@@ -37,7 +37,8 @@ describe('the gathering intent log',()=>{
   const host=new URL(gameUrl('https://example.com/cribbage/',table,{...joined.players[0],name:'Alex & friends'},'https://example.com/gameroom/?room=ABCDABCD'));
   const guest=new URL(gameUrl('https://example.com/cribbage/',table,joined.players[1],'https://example.com/room'));
   expect(host.pathname).toBe('/cribbage/');expect(host.searchParams.get('launch')).toBe('create');expect(host.searchParams.get('name')).toBe('Alex & friends');expect(guest.searchParams.get('launch')).toBe('join');expect(guest.searchParams.get('table')).toBe(host.searchParams.get('table'));
-  expect(new URL(gameUrl('https://example.com/cribbage/?returnTo=old',table,joined.players[0])).searchParams.has('returnTo')).toBe(false);
+  expect(new URL(gameUrl('https://example.com/cribbage/?theme=night&returnTo=old',table,joined.players[0])).searchParams.has('returnTo')).toBe(false);
+  expect(new URL(gameUrl('https://example.com/cribbage/?theme=night',table,joined.players[0])).searchParams.get('theme')).toBe('night');
   expect(()=>gameUrl('https://example.com',table,{id:'stranger',name:'X',present:true,table:null},'https://example.com')).toThrow();
  });
 });

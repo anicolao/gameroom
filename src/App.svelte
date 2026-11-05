@@ -30,7 +30,8 @@
  const invitation=$derived(`${location.origin}${location.pathname}?room=${room}`);
  const activeTables=$derived(roomState.tables.filter(t=>!t.closed));
  const ownTable=$derived(activeTables.find(t=>t.code===own?.table)??[...activeTables].reverse().find(t=>t.players.includes(uid)));
- const cribbageBase=$derived(import.meta.env.VITE_CRIBBAGE_URL??catalog.find(game=>game.available)?.launchUrl??'https://anicolao.github.io/cribbage/');
+ // Only emulator builds may redirect the shared WebURL to a local game server.
+ const cribbageBase=$derived((import.meta.env.VITE_CATALOGUE_USE_FIREBASE_EMULATORS==='true'?import.meta.env.VITE_CRIBBAGE_URL:undefined)??catalog.find(game=>game.available)?.launchUrl??'https://anicolao.github.io/cribbage/');
  const returnRequest=new URLSearchParams(location.search).get('returned');
  let returnTarget=$state(returnRequest);
  let returnAttempt=$state(-1);

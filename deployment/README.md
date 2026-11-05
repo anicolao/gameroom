@@ -3,8 +3,8 @@
 The PR preview uses project `launcherui` for rooms and the existing `Applications`
 catalog. `launcherui-before.rules` is the source read from production ruleset
 `d86a4b0b-857c-434e-a442-fc421dd52ae6` on 2026-11-05. It uses protected
-`users/{uid}.catalogueEditor` flags; the deployed permissions differ from the
-current local ttlauncher rules, so those local rules were not substituted.
+`users/{uid}.catalogueEditor` flags and already includes Gameroom rooms.
+The standalone ttlauncher rules omit those rooms and must not replace it.
 
 `launcherui.rules` preserves existing room and protected user permissions, and
 extends catalogue writes to `WebURL` and `GameroomEnabled`. `Hidden` applies only
@@ -28,3 +28,7 @@ both applications' rule blocks and repeat the preservation tests.
 
 GitHub preview builds receive only public Firebase web configuration through
 repository secrets, never a service-account key, Admin SDK token, or refresh token.
+
+Deployed combined ruleset: `9f82509f-a3af-46c9-8954-13282dbd6e8a`.
+`cribbage-application.json` records the single requested production addition.
+All 22 pre-existing application documents were verified unchanged after creation.

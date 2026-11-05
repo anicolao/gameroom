@@ -123,3 +123,7 @@ catalog access is checked separately from automated emulator tests.
 ## License
 
 GNU GPL version 3. See [LICENSE](LICENSE).
+
+E2E servers build into `.firebase/e2e-build` in each repository, separate from
+production `dist`. A regular build cannot change the running tests' Firebase
+configuration or replace their rendered assets.
