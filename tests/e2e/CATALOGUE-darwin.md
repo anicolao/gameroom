@@ -26,10 +26,10 @@ Viewpoint: **Reader**
 
 - [x] The original room stays open and no group table was recorded
 
-## Hidden and invalid entries disappear without rewriting catalog data
+## Gameroom-disabled and invalid entries disappear without rewriting catalog data
 
 Viewpoint: **Reader**
 
-![Hidden and invalid entries disappear without rewriting catalog data](./screenshots/003-hidden-and-invalid-reader-darwin.png)
+![Gameroom-disabled and invalid entries disappear without rewriting catalog data](./screenshots/003-hidden-and-invalid-reader-darwin.png)
 
 - [x] Only the four valid visible entries remain
