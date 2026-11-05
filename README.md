@@ -28,8 +28,8 @@ The preview therefore leaves the shared catalog unchanged and shows its 15 visib
 games. Cribbage group-launch coverage uses emulator fixtures until the shared
 schema supports per-launcher visibility.
 
-The Cribbage group adapter is in [Cribbage PR #11](https://github.com/anicolao/cribbage/pull/11).
-This preview points group launches at that playable build until it merges.
+The Cribbage group adapter merged in [Cribbage PR #11](https://github.com/anicolao/cribbage/pull/11).
+CI pins its reviewed merge commit; group launches use the canonical game URL.
 
 ## Local development
 

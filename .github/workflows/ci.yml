@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: anicolao/cribbage
-          ref: codex/gameroom-url-launch
+          ref: 6e542da6fb5d36f1f1941965bc8fa8004e422d37 # Cribbage PR 11, reviewed URL adapter
           path: cribbage
       - run: apt-get update && apt-get install -y --no-install-recommends unzip
       - uses: oven-sh/setup-bun@v2
