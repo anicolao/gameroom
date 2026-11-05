@@ -52,7 +52,7 @@ verification command. Preserve the pinned Linux ARM64 Playwright container in CI
 ## Shared catalog and preview
 
 - Read ttlauncher's existing LauncherUI `Applications` collection through the typed
-  catalog adapter. Preserve `Title`, `URL`, `Icon`, `Hidden`, and document IDs.
+  catalog adapter. Preserve `Title`, `URL`, `WebURL`, `Icon`, `Hidden`, `GameroomEnabled`, and document IDs. `Hidden` applies only to tabletop; Gameroom requires `GameroomEnabled === true` and uses only `WebURL`.
   Never seed or bulk-modify production catalog data. Development/test fixture
   records belong only to guarded local demo projects.
 - Unknown games are URL-only launches. Never infer group-protocol support from a

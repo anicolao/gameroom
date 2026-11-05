@@ -12,7 +12,7 @@ test('shared catalog updates, pages, hides games and opens URL-only games withou
  const target='https://games.example.test/standalone?keep=original';
  try{
   const roomUrl=await openRoom(page,'Catalog tester');await expect(page.getByRole('button',{name:/Select /})).toHaveCount(4);
-  await change('fresh',{Title:'Aardvark',URL:target});
+  await change('fresh',{Title:'Aardvark',URL:'https://tabletop.example.test/different',WebURL:target,GameroomEnabled:true,Hidden:true});
   await story.step('live-entry',page,'Reader','A catalog document arrives through the Firestore subscription',[{spec:'Five games produce two shelves without scrolling the desktop room',check:async()=>{await expect(page.getByRole('button',{name:'Select Aardvark',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Catalog pages'})).toContainText('1 / 2');}}]);
   await page.getByRole('button',{name:'Next shelf',exact:true}).click();
   await story.step('next-shelf',page,'Reader','The same cabinet browses a larger collection',[{spec:'The second shelf contains Robo Rally',check:async()=>{await expect(page.getByRole('button',{name:'Select Robo Rally',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Catalog pages'})).toContainText('2 / 2');}}]);
@@ -22,9 +22,9 @@ test('shared catalog updates, pages, hides games and opens URL-only games withou
   await page.getByRole('button',{name:'Open Aardvark',exact:true}).click();
   const [external,outbound]=await Promise.all([tab,request]);expect(outbound.url()).toBe(target);await external.close();
   await story.step('url-only',page,'Reader','A URL-only entry opens separately without invented group support',[{spec:'The original room stays open and no group table was recorded',check:async()=>{await expect(page).toHaveURL(roomUrl);await expect(page.getByRole('region',{name:'Room tables'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Play Cribbage',exact:true})).toHaveCount(0);await expect(page.getByTestId('external-tab-status')).toContainText('separately');}}]);
-  await change('fresh',{Title:'Aardvark',URL:target,Hidden:true});await change('bad',{Title:'Bad URL',URL:'javascript:alert(1)'});
+  await change('fresh',{Title:'Aardvark',WebURL:target,GameroomEnabled:false,Hidden:true});await change('bad',{Title:'Bad URL',WebURL:'javascript:alert(1)',GameroomEnabled:true});
   await page.getByRole('textbox',{name:'Search games'}).fill('');
-  await story.step('hidden-and-invalid',page,'Reader','Hidden and invalid entries disappear without rewriting catalog data',[{spec:'Only the four valid visible entries remain',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(4);await expect(page.getByRole('button',{name:'Select Aardvark',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Select Bad URL',exact:true})).toHaveCount(0);}}]);
+  await story.step('hidden-and-invalid',page,'Reader','Gameroom-disabled and invalid entries disappear without rewriting catalog data',[{spec:'Only the four valid visible entries remain',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(4);await expect(page.getByRole('button',{name:'Select Aardvark',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Select Bad URL',exact:true})).toHaveCount(0);}}]);
   story.finish();
  }finally{await change('fresh');await change('bad');}
 });

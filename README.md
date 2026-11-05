@@ -11,22 +11,22 @@ and chat use an immutable Firestore intent log. The bookshelf reads the same
 Anonymous Firebase authentication stays invisible. No admin credentials are sent
 to the browser. This preview creates real rooms and messages when you use it.
 
-The catalog is read-only here: `Title`, `URL`, `Icon`, and `Hidden` keep their
-existing names and meanings. Hidden entries and invalid HTTPS launch URLs are
-excluded. Titles sort alphabetically, and paging keeps four games in the cabinet
-at a time. Catalog edits in ttlauncher arrive through the live subscription.
+The catalog is read-only here. `Title`, `Icon`, and document IDs are shared.
+`Hidden` controls tabletop visibility (missing or false means enabled), and
+`GameroomEnabled: true` opts a game into Gameroom independently. Tabletop uses
+`URL`; Gameroom uses only `WebURL`, with no fallback between them. An enabled
+surface requires its own HTTPS launch URL. Existing records stay tabletop-only
+until an editor enables Gameroom and supplies `WebURL`.
 
-Only a recognized Cribbage URL supports group launch. Other games have **Open
-{title}**, which opens the catalog's exact URL separately without inventing a
-shared-game protocol or player-count/duration metadata. The **Group launch**
-filter shows supported integrations. The production catalog is never seeded or
-modified by development or automated tests.
+Only a recognized Cribbage WebURL supports group launch. Other games have
+**Open {title}**, which opens the exact WebURL separately. The **Group launch**
+filter shows supported integrations. Names appear on shelf labels below the box
+art, keeping printed titles unobstructed.
 
-The current production catalog has no Cribbage entry. Its only visibility flag
-is global `Hidden`; ttlauncher cannot currently enable a game only for Gameroom.
-The preview therefore leaves the shared catalog unchanged and shows its 15 visible
-games. Cribbage group-launch coverage uses emulator fixtures until the shared
-schema supports per-launcher visibility.
+Cribbage is the Gameroom-only production example: `Hidden: true`,
+`GameroomEnabled: true`, and `WebURL: https://anicolao.github.io/cribbage/`.
+Other production entries are unchanged. Enable either or both surfaces in the
+ttlauncher catalogue editor. Automated tests and development seed only emulators.
 
 The Cribbage group adapter merged in [Cribbage PR #11](https://github.com/anicolao/cribbage/pull/11).
 CI pins its reviewed merge commit; group launches use the canonical game URL.

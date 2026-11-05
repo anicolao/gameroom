@@ -17,8 +17,15 @@ service cloud.firestore {
         && request.resource.data.Title.size() > 0
         && request.resource.data.Title.size() <= 120
         && request.resource.data.Title.matches('.*[^\\s].*')
-        && request.resource.data.URL is string
-        && request.resource.data.URL.matches('^https://[^@\\s]+$')
+        && (!('URL' in request.resource.data) || (request.resource.data.URL is string
+          && (request.resource.data.URL == '' || request.resource.data.URL.matches('^https://[^@\\s]+$'))))
+        && (request.resource.data.get('Hidden', false) == true
+          || request.resource.data.get('URL', '').matches('^https://[^@\\s]+$'))
+        && (!('WebURL' in request.resource.data) || (request.resource.data.WebURL is string
+          && (request.resource.data.WebURL == '' || request.resource.data.WebURL.matches('^https://[^@\\s]+$'))))
+        && (!('GameroomEnabled' in request.resource.data) || request.resource.data.GameroomEnabled is bool)
+        && (request.resource.data.get('GameroomEnabled', false) == false
+          || request.resource.data.get('WebURL', '').matches('^https://[^@\\s]+$'))
         && (!('Icon' in request.resource.data) || request.resource.data.Icon is string)
         && (!('Hidden' in request.resource.data) || request.resource.data.Hidden is bool);
     }
@@ -26,11 +33,11 @@ service cloud.firestore {
     match /Applications/{document=**} {
       allow read: if signedIn();
       allow create: if catalogueEditor()
-        && request.resource.data.keys().hasOnly(['Title', 'URL', 'Icon', 'Hidden'])
+        && request.resource.data.keys().hasOnly(['Title', 'URL', 'WebURL', 'Icon', 'Hidden', 'GameroomEnabled'])
         && validApplication();
       allow update: if catalogueEditor()
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['Title', 'URL', 'Icon', 'Hidden'])
+          .hasOnly(['Title', 'URL', 'WebURL', 'Icon', 'Hidden', 'GameroomEnabled'])
         && validApplication();
       allow delete: if false;
     }

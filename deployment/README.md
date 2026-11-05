@@ -2,13 +2,16 @@
 
 The PR preview uses project `launcherui` for rooms and the existing `Applications`
 catalog. `launcherui-before.rules` is the source read from production ruleset
-`220e9d90-fd96-4066-aa74-39fce302839d` on 2026-11-05. It uses protected
+`d86a4b0b-857c-434e-a442-fc421dd52ae6` on 2026-11-05. It uses protected
 `users/{uid}.catalogueEditor` flags; the deployed permissions differ from the
 current local ttlauncher rules, so those local rules were not substituted.
 
-`launcherui.rules` adds only the Gameroom room functions and `rooms/**` matches.
-The existing catalog and user rules remain unchanged, including protection against
-self-granting catalog editor status. No Applications migration or write is needed.
+`launcherui.rules` preserves existing room and protected user permissions, and
+extends catalogue writes to `WebURL` and `GameroomEnabled`. `Hidden` applies only
+to tabletop; missing GameroomEnabled means disabled. Enabled surfaces require
+their own HTTPS URL. The explicitly requested Cribbage example is the only
+production catalogue addition; there is no bulk migration. Deploy this combined
+file, never ttlauncher's standalone catalogue rules over the shared project.
 
 Before deploying, run all unit/rules/E2E checks. Then, with the Firebase CLI signed
 into an authorized account:

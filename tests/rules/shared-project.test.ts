@@ -9,6 +9,9 @@ test('shared-project rules preserve authenticated reads, editor flags and protec
   await assertSucceeds(getDoc(doc(reader,'Applications','known')));await assertFails(getDoc(doc(anonymous,'Applications','known')));
   await assertFails(updateDoc(doc(reader,'Applications','known'),{Title:'Changed'}));
   await assertSucceeds(updateDoc(doc(editor,'Applications','known'),{Title:'Changed'}));
+  await assertSucceeds(setDoc(doc(editor,'Applications','cribbage'),{Title:'Cribbage',Hidden:true,GameroomEnabled:true,WebURL:'https://anicolao.github.io/cribbage/'}));
+  await assertFails(updateDoc(doc(editor,'Applications','cribbage'),{Hidden:false}));
+  await assertFails(updateDoc(doc(editor,'Applications','cribbage'),{WebURL:'javascript:alert(1)'}));
   await assertFails(deleteDoc(doc(editor,'Applications','known')));
   await assertFails(setDoc(doc(reader,'users','reader'),{catalogueEditor:true}));
   await assertSucceeds(setDoc(doc(reader,'users','reader'),{name:'Reader'}));
