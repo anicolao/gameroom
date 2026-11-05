@@ -15,10 +15,10 @@ import {deterministicRoom,profile,inGame,openRoom,joinRoom} from './helpers/laun
    for(const [view,name] of rooms)await story.step('three-friends',view,name,'Three friends are included in the game by default',[{spec:'All three friends share one room',check:async()=>{await expect(view.getByTestId('friend')).toHaveCount(3);}}]);
    const referenceOrder=process.env.E2E_REFERENCE_SEAT_ORDER;let offline:BrowserContext|undefined;
    if(referenceOrder){expect(info.config.updateSnapshots).not.toBe('none');expect(['sam-lee','lee-sam']).toContain(referenceOrder);offline=referenceOrder==='sam-lee'?contexts[1]:contexts[0];await offline.setOffline(true);}
-   const pending=rooms.map(([view])=>view.context().waitForEvent('page'));
-   await page.getByRole('button',{name:'Play Cribbage',exact:true}).click();const host=await pending[0];await inGame(host);
-   if(offline){const first=await pending[referenceOrder==='sam-lee'?1:2];await inGame(first);await expect(first.locator('[data-player]')).toHaveCount(2);await offline.setOffline(false);}
-   const gamePages=await Promise.all(pending);for(const view of gamePages){await inGame(view);await view.bringToFront();await expect(view.locator('[data-player]')).toHaveCount(3);}
+   const pending=rooms.map(([view])=>view.context()===offline?null:view.context().waitForEvent('page'));
+   await page.getByRole('button',{name:'Play Cribbage',exact:true}).click();const host=await pending[0]!;await inGame(host);
+   if(offline){const first=await pending[referenceOrder==='sam-lee'?1:2]!;await inGame(first);await expect(first.locator('[data-player]')).toHaveCount(2);pending[referenceOrder==='sam-lee'?2:1]=offline.waitForEvent('page');await offline.setOffline(false);}
+   const gamePages=await Promise.all(pending.map(opened=>opened!));for(const view of gamePages){await inGame(view);await view.bringToFront();await expect(view.locator('[data-player]')).toHaveCount(3);}
    const table=new URL(host.url()).searchParams.get('table'),seatOrder=(await host.locator('[data-player] h2').allTextContents()).slice(1).map(name=>name.toLowerCase()).join('-');expect(['sam-lee','lee-sam']).toContain(seatOrder);
    for(let i=0;i<rooms.length;i++){
     const [room,name]=rooms[i],game=gamePages[i];

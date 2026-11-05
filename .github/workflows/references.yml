@@ -6,6 +6,10 @@ on:
         description: Branch to generate references for
         required: true
         default: codex/gameroom-launcher
+      grep:
+        description: Optional story title filter
+        required: false
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -43,6 +47,7 @@ jobs:
           E2E_REFERENCE_SEAT_ORDER=lee-sam E2E_GREP='three friends' bun run test:e2e:update
         env:
           CRIBBAGE_PATH: ../cribbage
+          E2E_GREP: ${{ inputs.grep }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
