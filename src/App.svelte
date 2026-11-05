@@ -110,7 +110,7 @@
 
 {#snippet icon(name:string,size=20)}<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={paths[name]??paths.home}/></svg>{/snippet}
 {#snippet cover(game:Game)}
- <div class="cover {game.artKey}" class:generic={!game.artKey}><div class="cover-art">{#if game.iconSrc}<img src={game.iconSrc} alt="" onerror={event=>(event.currentTarget as HTMLImageElement).style.display='none'} onload={event=>(event.currentTarget as HTMLImageElement).style.display=''}/>{/if}</div><div class="cover-frame"></div><span class="box-title">{game.title}</span>{#if !game.available}<span class="box-status">Open separately</span>{/if}</div>
+ <div class="cover {game.artKey}" class:generic={!game.artKey}><div class="cover-art">{#if game.iconSrc}<img src={game.iconSrc} alt="" onerror={event=>(event.currentTarget as HTMLImageElement).style.display='none'} onload={event=>(event.currentTarget as HTMLImageElement).style.display=''}/>{/if}</div><div class="cover-frame"></div></div><span class="shelf-label">{game.title}</span>
 {/snippet}
 
 <div class="den">

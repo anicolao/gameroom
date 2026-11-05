@@ -1,4 +1,4 @@
-/** Read-compatible with ttlauncher's legacy Applications adapter. Never writes catalogue data. */
+/** Shared Applications catalogue: Gameroom is opt-in and uses only WebURL. */
 export type Game={id:string;title:string;iconSrc:string|null;launchUrl:string;available:boolean;artKey:string;players?:string;duration?:string};
 export type CatalogSnapshot={status:'loading'|'current'|'offline'|'empty'|'error';games:Game[];rejected:number};
 export function httpsUrl(value:unknown):string|null{
@@ -12,8 +12,8 @@ export function catalogArt(url:string){
  return ({'/cribbage':'cribbage','/jaipur':'jaipur','/istanbul':'istanbul','/roborally':'roborally'} as Record<string,string>)[path]??'';
 }
 export function parseApplication(id:string,value:Record<string,unknown>,assetOrigin='https://anicolao.github.io/ttlauncher/'):Game|null{
- if(value.Hidden===true)return null;
- const title=typeof value.Title==='string'?value.Title.trim():'',launchUrl=httpsUrl(value.URL);
+ if(value.GameroomEnabled!==true)return null;
+ const title=typeof value.Title==='string'?value.Title.trim():'',launchUrl=httpsUrl(value.WebURL);
  if(!title||!launchUrl)return null;
  let iconSrc=httpsUrl(value.Icon);
  if(typeof value.Icon==='string'&&value.Icon.startsWith('/')&&!value.Icon.startsWith('//')&&!value.Icon.includes('\\'))iconSrc=httpsUrl(new URL(value.Icon,assetOrigin).href);
@@ -22,7 +22,7 @@ export function parseApplication(id:string,value:Record<string,unknown>,assetOri
 }
 export function parseCatalog(documents:{id:string;data:Record<string,unknown>}[],assetOrigin?:string){
  const games:Game[]=[];let rejected=0;
- for(const document of documents){const game=parseApplication(document.id,document.data,assetOrigin);if(game)games.push(game);else if(document.data.Hidden!==true)rejected++;}
+ for(const document of documents){const game=parseApplication(document.id,document.data,assetOrigin);if(game)games.push(game);else if(document.data.GameroomEnabled===true)rejected++;}
  const collator=new Intl.Collator('en-CA',{sensitivity:'base',numeric:true});
  games.sort((a,b)=>collator.compare(a.title,b.title)||a.id.localeCompare(b.id));
  return {games,rejected};
