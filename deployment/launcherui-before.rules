@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function catalogueEditor() {
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid))
+          .data.catalogueEditor == true;
+    }
+
+    function validApplication() {
+      return request.resource.data.Title is string
+        && request.resource.data.Title.size() > 0
+        && request.resource.data.Title.size() <= 120
+        && request.resource.data.Title.matches('.*[^\\s].*')
+        && request.resource.data.URL is string
+        && request.resource.data.URL.matches('^https://[^@\\s]+$')
+        && (!('Icon' in request.resource.data) || request.resource.data.Icon is string)
+        && (!('Hidden' in request.resource.data) || request.resource.data.Hidden is bool);
+    }
+
+    match /Applications/{document=**} {
+      allow read: if signedIn();
+      allow create: if catalogueEditor()
+        && request.resource.data.keys().hasOnly(['Title', 'URL', 'Icon', 'Hidden'])
+        && validApplication();
+      allow update: if catalogueEditor()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['Title', 'URL', 'Icon', 'Hidden'])
+        && validApplication();
+      allow delete: if false;
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && !('catalogueEditor' in request.resource.data);
+      allow update: if signedIn()
+        && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['catalogueEditor']);
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

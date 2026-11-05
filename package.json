@@ -1,0 +1,20 @@
+{
+  "name": "gameroom",
+  "version": "0.1.0",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5199 --strictPort",
+    "dev:local": "bun scripts/local.ts",
+    "check": "svelte-check --tsconfig tsconfig.json",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4199 --strictPort",
+    "test:unit": "bun test tests/*.test.ts",
+    "test:rules": "bun scripts/emulators.ts rules",
+    "test:e2e": "bun scripts/emulators.ts e2e",
+    "test:e2e:update": "bun scripts/emulators.ts update"
+  },
+  "dependencies": {"firebase": "12.16.0", "svelte": "5.55.5", "@fontsource/dm-sans": "^5.2.8", "@fontsource/cormorant-garamond": "^5.2.11"},
+  "devDependencies": {"@sveltejs/vite-plugin-svelte": "7.1.0", "vite": "8.1.4", "typescript": "5.9.3", "svelte-check": "4.7.2", "@types/bun": "^1.3.10", "@playwright/test": "1.61.1", "sharp": "^0.35.5", "firebase-tools": "15.25.0", "@firebase/rules-unit-testing": "5.0.1"}
+}
