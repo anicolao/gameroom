@@ -1,0 +1,125 @@
+# gameroom
+
+Persistent rooms for friends, with games opened in separate tabs. Room history
+and chat use an immutable Firestore intent log. The bookshelf reads the same
+`Applications` catalog as [ttlauncher](https://github.com/anicolao/ttlauncher).
+
+## PR preview
+
+[PR #1 preview](https://anicolao.github.io/gameroom/pr-1/) uses the existing
+`launcherui` production Firebase project for both the catalog and room history.
+Anonymous Firebase authentication stays invisible. No admin credentials are sent
+to the browser. This preview creates real rooms and messages when you use it.
+
+The catalog is read-only here: `Title`, `URL`, `Icon`, and `Hidden` keep their
+existing names and meanings. Hidden entries and invalid HTTPS launch URLs are
+excluded. Titles sort alphabetically, and paging keeps four games in the cabinet
+at a time. Catalog edits in ttlauncher arrive through the live subscription.
+
+Only a recognized Cribbage URL supports group launch. Other games have **Open
+{title}**, which opens the catalog's exact URL separately without inventing a
+shared-game protocol or player-count/duration metadata. The **Group launch**
+filter shows supported integrations. The production catalog is never seeded or
+modified by development or automated tests.
+
+The current production catalog has no Cribbage entry. Its only visibility flag
+is global `Hidden`; ttlauncher cannot currently enable a game only for Gameroom.
+The preview therefore leaves the shared catalog unchanged and shows its 15 visible
+games. Cribbage group-launch coverage uses emulator fixtures until the shared
+schema supports per-launcher visibility.
+
+The Cribbage group adapter is in [Cribbage PR #11](https://github.com/anicolao/cribbage/pull/11).
+This preview points group launches at that playable build until it merges.
+
+## Local development
+
+Requires Bun 1.3.10, Node 24, Java 21, and the Cribbage worktree containing the URL
+adapter. Override the default `../cribbage-gameroom` with `CRIBBAGE_PATH` if needed.
+
+```sh
+bun install --frozen-lockfile
+cd ../cribbage-gameroom
+bun install --frozen-lockfile
+cd ../gameroom
+bun run dev:local
+```
+
+Open <http://127.0.0.1:5199> in two profiles. Create a room and share its invitation.
+Available friends are included in a Cribbage launch. The host opens a blank tab
+from the Play click before waiting for Firestore; guests try when the committed
+launch arrives. A blocked profile gets **Open Cribbage**. The room and chat stay
+open, and games need no back link. The host clicks **Deal** once everyone is seated.
+**Open Cribbage** also reopens a closed game tab. **Leave table** returns a player
+to the room; **Close table** lets the group choose again.
+
+Local development runs real Auth/Firestore emulators, with separate room, game,
+and catalog demo projects. Its four Applications records are emulator fixtures,
+not the production data source. The same catalog adapter is used in both modes.
+Room/game data are exported to ignored `.firebase/local/` on clean shutdown.
+Integrated Cribbage uses <http://127.0.0.1:5397>; override `GAMEROOM_CRIBBAGE_PORT`
+when necessary. Startup checks its capability manifest to reject legacy builds.
+
+For a live build, configure `.env.local` from `.env.example`. Use the same public
+web configuration as ttlauncher in both Firebase configuration groups to share
+its production project. `PUBLIC_BASE_PATH` supports PR-specific hosting paths.
+
+## Event model and isolation
+
+The canonical room state is replayed from ordered immutable
+`rooms/{roomCode}/events/{sequence}` records:
+
+```ts
+{ version: 1, id, sequence, actor, intent }
+```
+
+Choices are room creation, joining/leaving, launching/closing a Cribbage table,
+returning, and sending a message. Acknowledgement documents preserve command IDs
+across ambiguous retries; expected revisions serialize concurrent choices.
+Metadata indexes membership and revision for atomic validation, without replacing
+the log. Catalog snapshots and game outcomes do not enter the room event stream.
+Names are preferences; Firebase UIDs remain game-specific identities.
+
+Tab receipts are local to a profile, room, and table. An opened or blocked attempt
+is not repeated on replay/reload. Explicit reopening remains available. A new
+table permits a new attempt. Each game loses its opener before navigation.
+Opening a tab does not prove that a remote game loaded or that a player joined.
+Historical return URLs remain supported, but new launches do not send one.
+
+## Shared production rules
+
+Do **not** deploy standalone `firestore.rules` over ttlauncher's production rules.
+The additive, reviewed shared-project rules and their deployment guard are
+explained in [deployment/README.md](deployment/README.md). They preserve the
+existing catalog editor flags, Applications permissions, and protected user data.
+
+## Verification
+
+```sh
+bun run check
+bun run test:unit
+bun run test:rules
+bun run build
+bun run test:e2e
+```
+
+All automated tests use local emulators only: Auth 9299, Firestore 8199, and demo
+project IDs. They run alongside development without stopping it or clearing its
+room data. Rules tests cover both standalone and combined production rules.
+
+E2E uses full Chromium with its native popup blocker, plus a separate explicitly
+permitted-popup case. Stories cover group launch, blocked fallback, names,
+privacy after a real deal, continued room chat, reopen/reload, simultaneous leave,
+recurring launches, same-name profiles, mobile search, a genuine insecure HTTP
+origin without a UUID shim, and live catalog paging/hide/update behavior. The
+URL-only test observes the exact outbound browser request without pretending
+that an unknown external game implements group seating.
+
+Every decoded RGBA byte must match. There are no masks, tolerance, or retries.
+Reference generation is explicit with `bun run test:e2e:update`; review its
+images, then run an ordinary verification command. Linux references use the
+pinned ARM64 Playwright container. `E2E_GREP` selects a focused story. Production
+catalog access is checked separately from automated emulator tests.
+
+## License
+
+GNU GPL version 3. See [LICENSE](LICENSE).

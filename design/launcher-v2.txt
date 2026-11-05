@@ -1,0 +1,18 @@
+Launcher v2
+
+UI: removed promotional copy and the information card; the cabinet and game boxes
+are the catalog interface. Room setup, player selection, launch, search, chat,
+and table controls remain interactive HTML. Additional games use more cabinets.
+
+Asset: public/art/game-cabinet-v2.png
+Generated with the built-in imagegen tool, transparent background requested.
+Existing room and game-cover artwork is reused unchanged.
+
+Generation prompt:
+Use case: stylized-concept. Asset type: transparent game UI cabinet sprite for a cozy boardgame den website. Create one beautifully crafted freestanding dark walnut boardgame storage cabinet, perfectly straight-on frontal view, orthographic with subtly visible interior depth. Landscape aspect about 3:2. Cabinet occupies almost entire frame. Two large empty open shelf bays stacked vertically, no vertical dividers; each bay extends from x=8% to x=92% of image. Top bay open interior from y=12% to y=47%, lower bay from y=53% to y=86%. Deep shadowed wooden back panels, warm amber light along underside of upper mouldings, tactile wood grain, substantial dimensional shelf lips, hand-carved corner joints, small aged brass details, short feet. Hand-painted high fidelity game environment art with realistic materials and warm lamplight, visually rich and cozy, readable silhouette. Keep both bays completely EMPTY to place interactive game boxes later in HTML. Transparent background outside cabinet silhouette, no room/background, no games, no props, no text, no UI labels, no buttons, no people, no watermark. This is an actual reusable cabinet sprite, not a website mockup.
+
+Wall placement revision (2026-11-05): the cabinet is scaled to the room's back
+wall and its feet align with the floor, behind the foreground table. Desktop
+placement follows the floor line of the cover-scaled room artwork; tablet and
+mobile scale the background scene to meet the cabinet's feet. Existing raster
+assets are unchanged.

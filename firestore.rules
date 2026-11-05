@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signedIn(){return request.auth!=null;}
+  function root(room){return /databases/$(database)/documents/rooms/$(room);}
+  function event(room,sequence){return /databases/$(database)/documents/rooms/$(room)/events/$(string(sequence));}
+  function shortText(s,max){return s is string && s.size()>0 && s.size()<=max && s.matches('.*\\S.*');}
+  function intent(i){return i is map && (
+   (i.type=='room/created' && i.keys().hasOnly(['type','name','playerName']) && shortText(i.name,48) && shortText(i.playerName,24))
+   || (i.type=='player/joined' && i.keys().hasOnly(['type','name']) && shortText(i.name,24))
+   || (i.type in ['player/left','player/returned'] && i.keys().hasOnly(['type']))
+   || (i.type=='message/sent' && i.keys().hasOnly(['type','text']) && shortText(i.text,280))
+   || (i.type=='table/closed' && i.keys().hasOnly(['type','table']) && i.table.matches('[A-F0-9]{8}'))
+   || (i.type=='table/launched' && i.keys().hasOnly(['type','table','players']) && i.table.matches('[A-F0-9]{8}') && i.players is list && i.players.size()>=1 && i.players.size()<=4 && i.players.toSet().size()==i.players.size() && request.auth.uid in i.players)
+  );}
+  function metadata(d){return d.keys().hasOnly(['owner','members','present','revision']) && d.owner is string && d.members is list && d.present is list && d.members.size()>=1 && d.members.size()<=64 && d.present.hasOnly(d.members) && d.owner in d.members && d.revision is int && d.revision>=1;}
+  match /rooms/{room} {
+   // A known invitation permits reading, but not discovering other rooms.
+   allow get: if signedIn();
+   allow create: if signedIn() && room.matches('[A-F0-9]{8}') && metadata(request.resource.data)
+    && request.resource.data.owner==request.auth.uid && request.resource.data.members==[request.auth.uid]
+    && request.resource.data.present==[request.auth.uid] && request.resource.data.revision==1
+    && getAfter(event(room,1)).data.intent.type=='room/created' && getAfter(event(room,1)).data.actor==request.auth.uid;
+   allow update: if signedIn() && metadata(request.resource.data) && request.resource.data.owner==resource.data.owner
+    && request.resource.data.revision==resource.data.revision+1 && membership(room);
+   function membership(room){
+    let old=resource.data;let next=request.resource.data;let e=getAfter(event(room,next.revision)).data;
+    return e.actor==request.auth.uid && (
+     e.intent.type=='player/joined'
+      ? !(e.actor in old.present) && next.members==(e.actor in old.members ? old.members : old.members.concat([e.actor])) && next.present.size()==old.present.size()+1 && next.present.hasAll(old.present.concat([e.actor]))
+      : e.actor in old.present && next.members==old.members && (e.intent.type=='player/left' ? next.present==old.present.removeAll([e.actor]) : next.present==old.present)
+    );
+   }
+   match /events/{sequence} {
+    allow read: if signedIn();
+    allow create: if signedIn() && request.resource.data.keys().hasOnly(['version','id','sequence','actor','intent'])
+     && request.resource.data.version==1 && request.resource.data.id is string && request.resource.data.id.matches('[A-Za-z0-9_-]{1,128}')
+     && request.resource.data.actor==request.auth.uid && request.resource.data.sequence is int && intent(request.resource.data.intent)
+     && sequence==string(request.resource.data.sequence)
+     && getAfter(root(room)).data.revision==request.resource.data.sequence
+     && request.auth.uid in getAfter(root(room)).data.members
+     && (!exists(root(room)) || getAfter(root(room)).data.revision==get(root(room)).data.revision+1)
+     && getAfter(/databases/$(database)/documents/rooms/$(room)/commands/$(request.resource.data.id)).data.sequence==request.resource.data.sequence
+     && (request.resource.data.intent.type!='table/launched' || request.resource.data.intent.players.hasOnly(getAfter(root(room)).data.present));
+   }
+   match /commands/{id} {
+    allow get: if signedIn();
+    allow create: if signedIn() && request.resource.data.keys().hasOnly(['sequence']) && request.resource.data.sequence is int
+     && getAfter(root(room)).data.revision==request.resource.data.sequence
+     && request.auth.uid in getAfter(root(room)).data.members && !exists(event(room,request.resource.data.sequence))
+     && getAfter(event(room,request.resource.data.sequence)).data.id==id;
+   }
+  }
+ }
+}
