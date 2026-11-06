@@ -21,7 +21,7 @@
  function step(n:number){running=false;target+=n;}
  function play(){if(running){target=cursor;velocity=0;}running=!running;}
  function scrub(value:number){running=false;cursor=target=value;velocity=0;}
- function choose(id:string){selected=id;running=false;target=positionForGame(id,cursor,carriers);}
+ function choose(id:string){selected=id;running=false;target=positionForGame(id,cursor,carriers,variant==='cabinet');}
  function view(preset:string){orbit=false;if(preset==='front'){yaw=0;elevation=5;zoom=1;cutaway=false;}else if(preset==='cutaway'){yaw=25;elevation=35;zoom=.9;cutaway=true;}else{yaw=10;elevation=12;zoom=1;cutaway=false;}}
  function chooseVariant(value:'wall'|'magic'|'cabinet'){variant=value;orbit=false;cutaway=false;yaw=value==='magic'?25:10;elevation=value==='magic'?32:12;zoom=value==='magic'?.9:1;}
  function reset(){running=false;cursor=target=.5;velocity=0;carriers=12;rows=2;boxScale=1;speed=.65;settle=.8;warmth=1;selected='cribbage';chooseVariant(variant);}

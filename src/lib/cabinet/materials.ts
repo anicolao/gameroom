@@ -13,7 +13,7 @@ function back(game:CabinetGame){return canvas(768,1024,g=>{
  g.translate(384,470);g.save();g.strokeStyle='#d9bc7a66';for(let i=0;i<6;i++){g.rotate(Math.PI/6);g.strokeRect(-145,-145,290,290);}g.restore();g.font='600 52px Georgia';g.textAlign='center';g.fillStyle='#efd4a1';g.fillText(game.title,0,310,620);
  });}
 export function beltTexture(){return canvas(256,128,g=>{
- g.fillStyle='#202a24';g.fillRect(0,0,256,128);for(let x=0;x<256;x++){const c=24+Math.round(6*Math.sin(x*.19));g.fillStyle=`rgb(${c},${c+8},${c+3})`;g.fillRect(x,0,1,128);}g.fillStyle='#090f0d';g.fillRect(0,0,3,128);g.fillStyle='#ad8b4a';g.fillRect(6,7,5,4);g.fillRect(6,117,5,4);g.strokeStyle='#bfa36a40';g.beginPath();g.moveTo(0,4);g.lineTo(256,4);g.moveTo(0,124);g.lineTo(256,124);g.stroke();
+ g.fillStyle='#211810';g.fillRect(0,0,256,128);for(let x=0;x<256;x++){const c=24+Math.round(6*Math.sin(x*.19));g.fillStyle=`rgb(${c+5},${c},${c-5})`;g.fillRect(x,0,1,128);}g.fillStyle='#090f0d';g.fillRect(0,0,3,128);g.fillStyle='#ad8b4a';g.fillRect(6,7,5,4);g.fillRect(6,117,5,4);g.strokeStyle='#bfa36a40';g.beginPath();g.moveTo(0,4);g.lineTo(256,4);g.moveTo(0,124);g.lineTo(256,124);g.stroke();
  });}
 export function plasterTexture(){return canvas(512,512,g=>{
  let seed=461;const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
@@ -28,12 +28,12 @@ export async function loadCabinetMaterials(onChange:()=>void=()=>{}){
  for(const t of [wood,normal,rough]){t.wrapS=t.wrapT=RepeatWrapping;t.repeat.set(2,.65);}
  const rubber=beltTexture(),plaster=plasterTexture();rubber.wrapS=rubber.wrapT=RepeatWrapping;rubber.repeat.set(34,1);plaster.wrapS=plaster.wrapT=RepeatWrapping;plaster.repeat.set(5,3);textures.push(rubber,plaster);
  const materials={
-  wood:new MeshPhysicalMaterial({map:wood,normalMap:normal,normalScale:new Vector2(.2,.2),roughnessMap:rough,color:'#b88656',roughness:.52,clearcoat:.28,clearcoatRoughness:.5}),
-  trim:new MeshPhysicalMaterial({map:wood,color:'#715034',roughness:.5,clearcoat:.25}),
+  wood:new MeshPhysicalMaterial({map:wood,normalMap:normal,normalScale:new Vector2(.2,.2),roughnessMap:rough,color:'#866044',roughness:.6,clearcoat:.18,clearcoatRoughness:.5}),
+  trim:new MeshPhysicalMaterial({map:wood,color:'#4d3220',roughness:.5,clearcoat:.25}),
   brass:new MeshPhysicalMaterial({color:'#c4a061',metalness:.78,roughness:.3}),
   belt:new MeshStandardMaterial({map:rubber,roughness:.94,metalness:.03}),
   wall:new MeshStandardMaterial({map:plaster,color:'#425a4c',roughness:1,bumpMap:plaster,bumpScale:.025}),
-  dark:new MeshStandardMaterial({color:'#071410',roughness:1}),
+  dark:new MeshStandardMaterial({color:'#100b08',roughness:1}),
   cardboard:new MeshStandardMaterial({color:'#b7a486',roughness:.95}),
   bulb:new MeshStandardMaterial({color:'#ffd998',emissive:'#ffc67d',emissiveIntensity:2.2})
  };

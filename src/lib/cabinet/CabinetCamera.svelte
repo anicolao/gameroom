@@ -3,12 +3,12 @@
  import {onMount,untrack} from 'svelte';
  import {OrthographicCamera,Vector3} from 'three';
  import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
- let {yaw=10,elevation=12,zoom=1,orbit=false,compact=false,targetHeight=2.75}:{yaw?:number;elevation?:number;zoom?:number;orbit?:boolean;compact?:boolean;targetHeight?:number}=$props();
+ let {yaw=10,elevation=12,zoom=1,orbit=false,compact=false,targetHeight=2.75,fitWidth=18.3}:{yaw?:number;elevation?:number;zoom?:number;orbit?:boolean;compact?:boolean;targetHeight?:number;fitWidth?:number}=$props();
  const {size,renderer,invalidate}=useThrelte();
  const camera=new OrthographicCamera(-10,10,6,-6,.1,100);
  let controls:OrbitControls|undefined;
  $effect(()=>{
-  const aspect=$size.width/Math.max(1,$size.height),span=Math.max(8.8,(compact?11.5:18.3)/aspect)/zoom;
+  const aspect=$size.width/Math.max(1,$size.height),span=Math.max(8.8,(compact?Math.min(13.6,fitWidth):fitWidth)/aspect)/zoom;
   const target=new Vector3(0,targetHeight,-.15),a=yaw*Math.PI/180,b=elevation*Math.PI/180;
   camera.left=-span*aspect/2;camera.right=span*aspect/2;camera.top=span/2;camera.bottom=-span/2;
   camera.position.copy(target).add(new Vector3(Math.sin(a)*Math.cos(b)*30,Math.sin(b)*30,Math.cos(a)*Math.cos(b)*30));

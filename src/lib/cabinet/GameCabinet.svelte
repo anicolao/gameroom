@@ -12,7 +12,7 @@
  const limit=$derived(scrollLimit(games)),moving=$derived(position!==target),front=$derived(accessibleGames(games,position));
  const identity=$derived(games.map(g=>g.id).join('\0'));
  $effect(()=>{void identity;position=target=0;velocity=0;ready=false;});
- function move(value:number){ready=false;target=Math.max(0,Math.min(limit,value));}
+ function move(value:number){const next=Math.max(0,Math.min(limit,value));if(next===target)return;ready=false;target=next;}
  function select(id:string){if(!dragged)onSelect(id);}
  onMount(()=>{
   const query=matchMedia('(max-width:650px)'),resize=()=>compact=query.matches;resize();query.addEventListener('change',resize);

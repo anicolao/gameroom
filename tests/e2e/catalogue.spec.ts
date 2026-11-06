@@ -45,7 +45,12 @@ test('enclosed 3D cabinet selects real boxes and browses by wheel, keyboard and 
   for(const [id,title] of extra)await change(`cover-${id}`,{Title:title,WebURL:`https://anicolao.github.io/${id}/`,GameroomEnabled:true,Hidden:true});
   await openRoom(page,'Art reviewer');
   const slider=page.getByRole('slider',{name:'Browse game shelves'}),cabinet=page.getByTestId('cabinet');
-  await story.step('eight-boxes',page,'Reader','Eight illustrated boxes fit on the two enclosed shelves',[{spec:'All eight games are available without duplicate title overlays or pagination',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(8);await expect(slider).toHaveCount(0);await expect(page.locator('.shelf-label')).toHaveCount(0);}}]);
+  await story.step('eight-boxes',page,'Reader','The eight-game catalog can browse in the embedded cabinet',[{spec:'Six boxes are visible and browsing is enabled for the actual eight-game collection',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(6);await expect(slider).toHaveValue('0');await expect(slider).toHaveAttribute('max','1');await expect(page.locator('.shelf-label')).toHaveCount(0);}}]);
+  const eightBounds=(await cabinet.locator('canvas').boundingBox())!;
+  await page.mouse.move(eightBounds.x+eightBounds.width/2,eightBounds.y+eightBounds.height/2);await page.mouse.wheel(0,125);await page.mouse.move(0,0);
+  await story.step('eight-game-scroll',page,'Reader','Wheel input browses the production-sized eight-game collection',[{spec:'Both final games arrive through the slim closed ends',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','1',{timeout:30000});await expect(page.getByRole('button',{name:'Select Istanbul',exact:true})).toHaveCount(1);await expect(page.getByRole('button',{name:'Select Robo Rally',exact:true})).toHaveCount(1);}}]);
+  await page.mouse.move(eightBounds.x+eightBounds.width/2,eightBounds.y+eightBounds.height/2);await page.mouse.wheel(0,125);await page.mouse.move(0,0);
+  await expect(cabinet).toHaveAttribute('data-ready','true',{timeout:120000});
   await clickBox(page,'Pantheon');
   await story.step('mesh-selection',page,'Reader','A native click on the 3D Pantheon box selects it',[{spec:'The selected box lifts and the independent URL action follows the selection',check:async()=>{await expect(page.getByRole('button',{name:'Open Pantheon',exact:true})).toBeVisible();}}]);
   for(const [i,id] of filler.entries())await change(id,{Title:`Collection ${String(i+1).padStart(2,'0')}`,WebURL:`https://games.example.test/${id}`,GameroomEnabled:true,Hidden:true});
@@ -54,9 +59,9 @@ test('enclosed 3D cabinet selects real boxes and browses by wheel, keyboard and 
   const bounds=await cabinet.locator('canvas').boundingBox();
   await page.mouse.move(bounds!.x+bounds!.width/2,bounds!.y+bounds!.height/2);await page.mouse.wheel(0,125);
   await page.mouse.move(0,0);await expect(cabinet).toHaveAttribute('data-target','1');
-  await story.step('wheel-browse',page,'Reader','Wheel input carries new boxes through the concealed return loop',[{spec:'The finite twenty-game collection moves one position and remains bounded',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','1',{timeout:30000});await expect(slider).toHaveAttribute('max','6');await expect(page.getByRole('heading',{name:'Pantheon',exact:true})).toBeVisible();}}]);
+  await story.step('wheel-browse',page,'Reader','Wheel input carries new boxes through the concealed return loop',[{spec:'The finite twenty-game collection moves one position and remains bounded',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','1',{timeout:30000});await expect(slider).toHaveAttribute('max','7');await expect(page.getByRole('heading',{name:'Pantheon',exact:true})).toBeVisible();}}]);
   await slider.focus();await slider.press('End');await slider.blur();
-  await story.step('last-games',page,'Reader','The keyboard slider reaches the end of the catalog',[{spec:'The final covers are accessible and the next control is disabled',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','6',{timeout:30000});await expect(page.getByRole('button',{name:'Next games',exact:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Select Rebel Princess',exact:true})).toHaveCount(1);}}]);
+  await story.step('last-games',page,'Reader','The keyboard slider reaches the end of the catalog',[{spec:'The final covers are accessible and the next control is disabled',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','7',{timeout:30000});await expect(page.getByRole('button',{name:'Next games',exact:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Select Rebel Princess',exact:true})).toHaveCount(1);}}]);
   await slider.focus();await slider.press('Home');await slider.blur();await expect(cabinet).toHaveAttribute('data-position','0',{timeout:30000});
   await page.setViewportSize({width:390,height:844});await expect(cabinet).toHaveAttribute('data-ready','true',{timeout:120000});
   const session=await page.context().newCDPSession(page);

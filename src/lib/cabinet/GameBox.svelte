@@ -24,7 +24,7 @@
  onDestroy(()=>{onMoving(false);body.dispose();lip.dispose();});
 </script>
 {#if lease}
-<T.Group position={[x,base+.105+lift,z+lift*.8]} rotation.y={yaw+(selected?-.045:0)} scale={scale*variation}>
+<T.Group position={[x+Math.sin(yaw)*lift*.8,base+.105+lift,z+Math.cos(yaw)*lift*.8]} rotation.y={yaw+(selected?-.045:0)} scale={scale*variation}>
  <T.Mesh geometry={lip} material={library.materials.cardboard} position={[0,1.1,-.315]} castShadow dispose={false}/>
  <T.Mesh position={[0,1.1,-.357]} rotation.y={Math.PI} material={lease.materials[5]} dispose={false}><T.PlaneGeometry args={[1.55,2.10]}/></T.Mesh>
  <T.Mesh name={`game:${game.id}`} geometry={body} material={lease.materials} position.y={1.1} castShadow receiveShadow dispose={false}
