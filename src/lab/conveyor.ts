@@ -11,7 +11,7 @@ export const games=[
 ] as const;
 export type LabGame=typeof games[number];
 export {track,perimeter,seam,mod,pathAt,spring} from '../lib/cabinet/conveyor';
-import {boxesAt as sample,positionForGame as findPosition} from '../lib/cabinet/conveyor';
+import {boxesAt as sample,positionForGame as findPosition,cabinetTrack,track} from '../lib/cabinet/conveyor';
 export const cabinetFixtures=games.map(game=>({id:game.id,title:game.title,artKey:game.id,iconSrc:null}));
 export const boxesAt=(position:number,carriers=12,row=0)=>sample(cabinetFixtures,position,carriers,row);
-export const positionForGame=(id:string,position:number,carriers:number)=>findPosition(cabinetFixtures,id,position,carriers);
+export const positionForGame=(id:string,position:number,carriers:number,compact=false)=>findPosition(cabinetFixtures,id,position,carriers,compact?cabinetTrack:track);
