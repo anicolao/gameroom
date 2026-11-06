@@ -28,8 +28,8 @@ export async function loadCabinetMaterials(onChange:()=>void=()=>{}){
  for(const t of [wood,normal,rough]){t.wrapS=t.wrapT=RepeatWrapping;t.repeat.set(2,.65);}
  const rubber=beltTexture(),plaster=plasterTexture();rubber.wrapS=rubber.wrapT=RepeatWrapping;rubber.repeat.set(34,1);plaster.wrapS=plaster.wrapT=RepeatWrapping;plaster.repeat.set(5,3);textures.push(rubber,plaster);
  const materials={
-  wood:new MeshPhysicalMaterial({map:wood,normalMap:normal,normalScale:new Vector2(.2,.2),roughnessMap:rough,color:'#866044',roughness:.6,clearcoat:.18,clearcoatRoughness:.5}),
-  trim:new MeshPhysicalMaterial({map:wood,color:'#4d3220',roughness:.5,clearcoat:.25}),
+  wood:new MeshPhysicalMaterial({map:wood,normalMap:normal,normalScale:new Vector2(.2,.2),roughnessMap:rough,color:'#866044',roughness:.7,clearcoat:.05,clearcoatRoughness:.7,specularIntensity:.25,envMapIntensity:.3}),
+  trim:new MeshPhysicalMaterial({map:wood,color:'#4d3220',roughness:.8,clearcoat:0,specularIntensity:.25,envMapIntensity:.2}),
   brass:new MeshPhysicalMaterial({color:'#c4a061',metalness:.78,roughness:.3}),
   belt:new MeshStandardMaterial({map:rubber,roughness:.94,metalness:.03}),
   wall:new MeshStandardMaterial({map:plaster,color:'#425a4c',roughness:1,bumpMap:plaster,bumpScale:.025}),
