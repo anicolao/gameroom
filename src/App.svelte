@@ -139,7 +139,7 @@
      </form>
     {:else if selected}
      <div class="game-controls">
-      <h1>{selected.title}</h1>{#if selected.players}<p class="game-meta">{selected.players}{#if selected.duration} · {selected.duration}{/if}</p>{/if}
+      <h1>{selected.title}</h1>{#if selected.players}<p class="game-meta">{`${selected.players}${selected.duration?` · ${selected.duration}`:''}`}</p>{/if}
       {#if selected.available}
        {#if ownTable}
         <p class="table-players">{ownTable.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>
