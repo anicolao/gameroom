@@ -2,34 +2,58 @@
 
 Real Firestore and Auth emulators; independent browser identities. Desktop captures are 1180×820 at 1×; mobile captures are 390×844 with full-page capture. Every decoded RGBA byte must match. No masks, pixel tolerance, screenshot resizing or retries. Baselines are generated explicitly and verified in a separate run.
 
-## Painted covers and printed shelf labels fill the cabinet
+## Eight illustrated boxes fit on the two enclosed shelves
 
 Viewpoint: **Reader**
 
-![Painted covers and printed shelf labels fill the cabinet](./screenshots/000-first-four-reader-darwin.png)
+![Eight illustrated boxes fit on the two enclosed shelves](./screenshots/000-eight-boxes-reader-darwin.png)
 
-- [x] The first four of eight games have art and a disabled previous arrow
+- [x] All eight games are available without duplicate title overlays or pagination
 
-## Brass arrows advance the collection without moving the room
-
-Viewpoint: **Reader**
-
-![Brass arrows advance the collection without moving the room](./screenshots/001-last-four-reader-darwin.png)
-
-- [x] The other four covers are visible and the end boundary disables Next
-
-## A horizontal swipe browses while vertical room scrolling stays available
+## A native click on the 3D Pantheon box selects it
 
 Viewpoint: **Reader**
 
-![A horizontal swipe browses while vertical room scrolling stays available](./screenshots/002-touch-browse-reader-darwin.png)
+![A native click on the 3D Pantheon box selects it](./screenshots/001-mesh-selection-reader-darwin.png)
 
-- [x] Swiping shows the final four covers without accidentally selecting one
+- [x] The selected box lifts and the independent URL action follows the selection
 
-## Search narrows a large catalogue to one illustrated box
+## Wheel input carries new boxes through the concealed return loop
 
 Viewpoint: **Reader**
 
-![Search narrows a large catalogue to one illustrated box](./screenshots/003-single-cover-reader-darwin.png)
+![Wheel input carries new boxes through the concealed return loop](./screenshots/002-wheel-browse-reader-darwin.png)
 
-- [x] The matching box remains full size and unnecessary browsing controls disappear
+- [x] The finite twenty-game collection moves one position and remains bounded
+
+## The keyboard slider reaches the end of the catalog
+
+Viewpoint: **Reader**
+
+![The keyboard slider reaches the end of the catalog](./screenshots/003-last-games-reader-darwin.png)
+
+- [x] The final covers are accessible and the next control is disabled
+
+## A horizontal swipe moves the belts without selecting a box
+
+Viewpoint: **Reader**
+
+![A horizontal swipe moves the belts without selecting a box](./screenshots/004-touch-browse-reader-darwin.png)
+
+- [x] Touch reaches position four while the previous selection stays intact
+
+## Search narrows a large catalog to one illustrated box
+
+Viewpoint: **Reader**
+
+![Search narrows a large catalog to one illustrated box](./screenshots/005-single-cover-reader-darwin.png)
+
+- [x] One matching box remains and unnecessary browsing controls disappear
+
+## An empty search keeps the cabinet and room available
+
+Viewpoint: **Reader**
+
+![An empty search keeps the cabinet and room available](./screenshots/006-empty-shelves-reader-darwin.png)
+
+- [x] Empty shelves show a useful result message
