@@ -18,11 +18,27 @@ Viewpoint: **Reader**
 
 - [x] Both final games arrive through the slim closed ends
 
+## The shelves continue beyond their original sequence
+
+Viewpoint: **Reader**
+
+![The shelves continue beyond their original sequence](./screenshots/002-repeat-forward-reader-darwin.png)
+
+- [x] Position nine repeats position one without an end stop or visible controls
+
+## Keyboard browsing also repeats through negative positions
+
+Viewpoint: **Reader**
+
+![Keyboard browsing also repeats through negative positions](./screenshots/003-repeat-backward-reader-darwin.png)
+
+- [x] Position minus seven reaches the same games from the other direction
+
 ## A native click on the 3D Pantheon box selects it
 
 Viewpoint: **Reader**
 
-![A native click on the 3D Pantheon box selects it](./screenshots/002-mesh-selection-reader-darwin.png)
+![A native click on the 3D Pantheon box selects it](./screenshots/004-mesh-selection-reader-darwin.png)
 
 - [x] The selected box lifts and the independent URL action follows the selection
 
@@ -30,23 +46,23 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![Wheel input carries new boxes through the concealed return loop](./screenshots/003-wheel-browse-reader-darwin.png)
+![Wheel input carries new boxes through the concealed return loop](./screenshots/005-wheel-browse-reader-darwin.png)
 
-- [x] The finite twenty-game collection moves one position and remains bounded
+- [x] The twenty-game collection moves without adding visible scroll controls
 
-## The keyboard slider reaches the end of the catalog
+## A larger catalog repeats as many times as needed
 
 Viewpoint: **Reader**
 
-![The keyboard slider reaches the end of the catalog](./screenshots/004-last-games-reader-darwin.png)
+![A larger catalog repeats as many times as needed](./screenshots/006-large-repeat-reader-darwin.png)
 
-- [x] The final covers are accessible and the next control is disabled
+- [x] Position twenty-seven still exposes the final games without a boundary
 
 ## A horizontal swipe moves the belts without selecting a box
 
 Viewpoint: **Reader**
 
-![A horizontal swipe moves the belts without selecting a box](./screenshots/005-touch-browse-reader-darwin.png)
+![A horizontal swipe moves the belts without selecting a box](./screenshots/007-touch-browse-reader-darwin.png)
 
 - [x] Touch reaches position four while the previous selection stays intact
 
@@ -54,14 +70,14 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![Search narrows a large catalog to one illustrated box](./screenshots/006-single-cover-reader-darwin.png)
+![Search narrows a large catalog to one illustrated box](./screenshots/008-single-cover-reader-darwin.png)
 
-- [x] One matching box remains and unnecessary browsing controls disappear
+- [x] One semantic game choice repeats around its shelf and can keep scrolling
 
 ## An empty search keeps the cabinet and room available
 
 Viewpoint: **Reader**
 
-![An empty search keeps the cabinet and room available](./screenshots/007-empty-shelves-reader-darwin.png)
+![An empty search keeps the cabinet and room available](./screenshots/009-empty-shelves-reader-darwin.png)
 
 - [x] Empty shelves show a useful result message
