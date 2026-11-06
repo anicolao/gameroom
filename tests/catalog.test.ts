@@ -27,3 +27,10 @@ test('Gameroom selection is independent of tabletop and never falls back to URL'
  expect(parseApplication('missing-web',{Title:'Missing',URL:'https://table.example/',GameroomEnabled:true})).toBeNull();
  expect(parseApplication('cribbage',{Title:'Cribbage',URL:'https://table.example/',WebURL:'https://anicolao.github.io/cribbage/',Hidden:true,GameroomEnabled:true})).toMatchObject({available:true,launchUrl:'https://anicolao.github.io/cribbage/'});
 });
+
+test('known web versions resolve painted covers without claiming new group protocols',()=>{
+ for(const [host,path,key] of [['egirard.github.io','jaipur','jaipur'],['anicolao.github.io','drm','drm'],['anicolao.github.io','gotfive','gotfive'],['anicolao.github.io','pantheon','pantheon'],['anicolao.github.io','rebelprincess','rebelprincess']]){
+  expect(parseApplication('any',{Title:'Any title',GameroomEnabled:true,WebURL:`https://${host}/${path}/`})).toMatchObject({artKey:key,available:false});
+ }
+ expect(parseApplication('same-title',{Title:'Pantheon',GameroomEnabled:true,WebURL:'https://unknown.example/pantheon/'})).toMatchObject({artKey:'',available:false});
+});

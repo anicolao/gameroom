@@ -25,8 +25,7 @@ art, keeping printed titles unobstructed.
 
 Cribbage is the Gameroom-only production example: `Hidden: true`,
 `GameroomEnabled: true`, and `WebURL: https://anicolao.github.io/cribbage/`.
-Other production entries are unchanged. Enable either or both surfaces in the
-ttlauncher catalogue editor. Automated tests and development seed only emulators.
+Enable either or both surfaces in the ttlauncher catalogue editor. Automated tests and development seed only emulators.
 
 The Cribbage group adapter merged in [Cribbage PR #11](https://github.com/anicolao/cribbage/pull/11).
 CI pins its reviewed merge commit; group launches use the canonical game URL.
@@ -127,3 +126,19 @@ GNU GPL version 3. See [LICENSE](LICENSE).
 E2E servers build into `.firebase/e2e-build` in each repository, separate from
 production `dist`. A regular build cannot change the running tests' Firebase
 configuration or replace their rendered assets.
+
+## Cabinet artwork and browsing
+
+All eight configured games have painted covers: the original atlas serves
+Cribbage, Jaipur (including egirard's web URL), Istanbul and Robo Rally. New
+original covers for DRM, Got Five, Pantheon and Rebel Princess are served from
+`public/art/covers/`. They were generated with the built-in image_gen tool;
+[the complete prompt set](public/art/covers/prompts.json) is stored with them.
+Known cover mappings supply presentation only and do not imply group support.
+
+Labels are printed directly on the wooden shelf fascia. Brass arrows on the
+cabinet browse four games at a time; a drawer-mounted range slider jumps through
+large collections. It supports native keyboard controls, while horizontal touch
+swipes browse without disabling vertical page scrolling. Filtering resets the
+position, and small collections hide unnecessary controls. E2E uses its own
+Cribbage endpoint at 4397, separate from other local game processes.

@@ -7,9 +7,10 @@ export function httpsUrl(value:unknown):string|null{
 }
 export function catalogArt(url:string){
  const target=new URL(url);
- if(target.hostname!=='anicolao.github.io')return '';
  const path=target.pathname.replace(/\/+$/,'');
- return ({'/cribbage':'cribbage','/jaipur':'jaipur','/istanbul':'istanbul','/roborally':'roborally'} as Record<string,string>)[path]??'';
+ if(target.hostname==='egirard.github.io'&&path==='/jaipur')return 'jaipur';
+ if(target.hostname!=='anicolao.github.io')return '';
+ return ({'/cribbage':'cribbage','/jaipur':'jaipur','/istanbul':'istanbul','/roborally':'roborally','/rebelprincess':'rebelprincess','/gotfive':'gotfive','/drm':'drm','/pantheon':'pantheon'} as Record<string,string>)[path]??'';
 }
 export function parseApplication(id:string,value:Record<string,unknown>,assetOrigin='https://anicolao.github.io/ttlauncher/'):Game|null{
  if(value.GameroomEnabled!==true)return null;
