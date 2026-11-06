@@ -1,5 +1,5 @@
 import {test,expect} from 'bun:test';
-import {accessibleGames,catalogueBoxes,perimeter,pathAt,seam,spring} from '../src/lib/cabinet/conveyor';
+import {accessibleGames,catalogueBoxes,perimeter,pathAt,seam,spring,cabinetTrack} from '../src/lib/cabinet/conveyor';
 import {scrollLimit} from '../src/lib/cabinet/catalogue';
 const games=(n:number)=>Array.from({length:n},(_,i)=>({id:String(i),title:`Game ${i}`,artKey:'',iconSrc:null}));
 test('small collections show each game once without scrolling',()=>{
@@ -40,4 +40,13 @@ test('the eight-game embedded cabinet has browsing positions and changes its fro
  const collection=games(8);expect(scrollLimit(collection)).toBe(1);
  expect(accessibleGames(collection,0).map(g=>g.id)).toEqual(['0','1','2','4','5','6']);
  expect(accessibleGames(collection,1).map(g=>g.id)).toEqual(['1','2','3','5','6','7']);
+});
+
+test('the slim return bend clears the belt rails and the cabinet side walls',()=>{
+ expect(cabinetTrack.radius).toBeGreaterThan(.59+.027/2);
+ // Half the box width and its printed back define the full swept corner.
+ const outside=cabinetTrack.half+Math.hypot(1.65/2,cabinetTrack.radius+.357);
+ expect(outside).toBeLessThan(6.55);
+ const rear=cabinetTrack.front-2*cabinetTrack.radius-.357;
+ expect(rear).toBeGreaterThan(-1.31);
 });

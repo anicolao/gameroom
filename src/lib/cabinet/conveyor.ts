@@ -1,7 +1,7 @@
 /** Presentation-only motion. A closed racetrack has its seam behind the wall. */
 import type {CabinetGame} from './catalogue';
 export const track={half:5.2,radius:1.32,front:.35};
-export const cabinetTrack={...track,radius:.4};
+export const cabinetTrack={...track,radius:.62};
 export const cabinetPerimeter=4*cabinetTrack.half+2*Math.PI*cabinetTrack.radius;
 export const cabinetCarriers=8;
 export const perimeter=4*track.half+2*Math.PI*track.radius;
