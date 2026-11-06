@@ -12,6 +12,10 @@ test('every catalog game reaches the front and finite endpoints retain the first
   expect(seen.size).toBe(count);expect(accessibleGames(collection,0).some(g=>g.id==='0')).toBe(true);expect(accessibleGames(collection,scrollLimit(collection)).some(g=>g.id===String(count-1))).toBe(true);
  }
 });
+test('an uneven collection keeps both lanes moving with their belts',()=>{
+ const collection=games(9),before=catalogueBoxes(collection,0,1),after=catalogueBoxes(collection,1,1);
+ expect(before.find(box=>box.game.id==='6')!.x).not.toBe(after.find(box=>box.game.id==='6')!.x);
+});
 test('a very large collection keeps at most 24 real box meshes in the window',()=>{
  const collection=games(10000);
  for(const position of [0,123.5,2000,scrollLimit(collection)]){
@@ -24,4 +28,10 @@ test('the carrier replacement seam stays on the rear run and motion settles with
  let position=0,velocity=0;
  for(let i=0;i<300;i++){const next=spring(position,velocity,4,1/60,9);position=next.position;velocity=next.velocity;expect(position).toBeLessThanOrEqual(4);}
  expect(position).toBeCloseTo(4,10);expect(Math.abs(velocity)).toBeLessThan(1e-10);
+});
+
+test('the analytic spring keeps wall-clock timing when rendering drops frames',()=>{
+ const delayed=spring(0,0,6,2,9);let smooth={position:0,velocity:0};
+ for(let i=0;i<120;i++)smooth=spring(smooth.position,smooth.velocity,6,1/60,9);
+ expect(delayed.position).toBeCloseTo(smooth.position,12);expect(delayed.velocity).toBeCloseTo(smooth.velocity,12);
 });

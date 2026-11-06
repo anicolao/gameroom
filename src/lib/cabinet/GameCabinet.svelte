@@ -17,7 +17,7 @@
  onMount(()=>{
   const query=matchMedia('(max-width:650px)'),resize=()=>compact=query.matches;resize();query.addEventListener('change',resize);
   let raf=0,last=performance.now();
-  const animate=(now:number)=>{const dt=Math.min(.05,(now-last)/1000);last=now;if(position!==target||velocity){const next=spring(position,velocity,target,dt,9);velocity=next.velocity;position=next.position;if(Math.abs(position-target)<1e-5&&Math.abs(velocity)<1e-5){position=target;velocity=0;}}raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);
+  const animate=(now:number)=>{const dt=Math.max(0,(now-last)/1000);last=now;if(position!==target||velocity){const next=spring(position,velocity,target,dt,9);velocity=next.velocity;position=next.position;if(Math.abs(position-target)<1e-5&&Math.abs(velocity)<1e-5){position=target;velocity=0;}}raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);
   const wheel=(event:WheelEvent)=>{if(!limit||!(event.target instanceof HTMLCanvasElement))return;event.preventDefault();const delta=(Math.abs(event.deltaX)>Math.abs(event.deltaY)?event.deltaX:event.deltaY)*(event.deltaMode===1?16:event.deltaMode===2?stage.clientHeight:1);move(target+Math.max(-180,Math.min(180,delta))*.008);};
   const down=(event:PointerEvent)=>{if(event.button!==0||!(event.target instanceof HTMLCanvasElement))return;dragging=true;dragged=false;startX=event.clientX;startY=event.clientY;startTarget=target;event.target.setPointerCapture(event.pointerId);};
   const motion=(event:PointerEvent)=>{if(!dragging)return;const dx=event.clientX-startX,dy=event.clientY-startY;if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)*1.2){dragged=true;move(startTarget-dx*8/Math.max(1,stage.clientWidth));}};
