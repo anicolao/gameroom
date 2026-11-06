@@ -7,7 +7,7 @@ const env={...(cribbage?cribbageEnv:localEnv),VITE_CATALOGUE_FIREBASE_PROJECT_ID
 const outDir='.firebase/e2e-build';
 const build=Bun.spawn(['bun','run','build','--outDir',outDir],{cwd,env,stdout:'inherit',stderr:'inherit'});
 const result=await build.exited;if(result)process.exit(result);
-const preview=Bun.spawn(['bun','x','vite','preview','--host','127.0.0.1','--port',cribbage?'4197':'4199','--strictPort','--outDir',outDir],{cwd,env,stdout:'inherit',stderr:'inherit'});
+const preview=Bun.spawn(['bun','x','vite','preview','--host','127.0.0.1','--port',cribbage?'4397':'4199','--strictPort','--outDir',outDir],{cwd,env,stdout:'inherit',stderr:'inherit'});
 process.on('SIGTERM',()=>preview.kill());process.on('SIGINT',()=>preview.kill());
-if(cribbage){try{await waitForLaunchContract('http://127.0.0.1:4197/',preview);}catch(error){console.error(error);preview.kill();process.exit(1);}}
+if(cribbage){try{await waitForLaunchContract('http://127.0.0.1:4397/',preview);}catch(error){console.error(error);preview.kill();process.exit(1);}}
 process.exit(await preview.exited);

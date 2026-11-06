@@ -16,7 +16,7 @@ export async function waitForInactive(page:Page){
  }).toBe(false);}finally{await session.detach();}
 }
 export async function inGame(page:Page){
- await expect(page).toHaveURL(/127\.0\.0\.1:4197\/\?table=/);
+ await expect(page).toHaveURL(/127\.0\.0\.1:4397\/\?table=/);
  await expect(page.locator('main')).toHaveAttribute('data-connected','true');
  expect(await page.evaluate(()=>window.opener===null)).toBe(true);
  expect(new URL(page.url()).searchParams.has('returnTo')).toBe(false);

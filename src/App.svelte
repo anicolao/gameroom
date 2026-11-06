@@ -25,7 +25,22 @@
  let shelfIndex=$state(0);
  const shelfCount=$derived(Math.max(1,Math.ceil(visible.length/4)));
  const pageIndex=$derived(Math.min(shelfIndex,shelfCount-1));
- const shelves=$derived([visible.slice(pageIndex*4,pageIndex*4+4)]);
+ const shelf=$derived(visible.slice(pageIndex*4,pageIndex*4+4));
+ const shelfPosition=$derived(`${pageIndex*4+1}${shelf.length>1?`–${pageIndex*4+shelf.length}`:''} of ${visible.length}`);
+ function turnShelf(index:number){shelfIndex=Math.max(0,Math.min(shelfCount-1,index));}
+ let shelfTouch:{x:number;y:number}|undefined;
+ let ignoreShelfClick=false;
+ function beginShelfSwipe(event:PointerEvent){
+  ignoreShelfClick=false;
+  if(event.pointerType!=='touch'||(event.target as Element).closest('input,nav,.shelf-turn'))return;
+  shelfTouch={x:event.clientX,y:event.clientY};
+ }
+ function endShelfSwipe(event:PointerEvent){
+  const start=shelfTouch;shelfTouch=undefined;if(!start)return;
+  const dx=event.clientX-start.x,dy=event.clientY-start.y;
+  if(Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.4)return;
+  turnShelf(pageIndex+(dx<0?1:-1));ignoreShelfClick=true;event.preventDefault();
+ }
  $effect(()=>{void search;void readyOnly;shelfIndex=0;});
  const invitation=$derived(`${location.origin}${location.pathname}?room=${room}`);
  const activeTables=$derived(roomState.tables.filter(t=>!t.closed));
@@ -111,7 +126,7 @@
 
 {#snippet icon(name:string,size=20)}<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={paths[name]??paths.home}/></svg>{/snippet}
 {#snippet cover(game:Game)}
- <div class="cover {game.artKey}" class:generic={!game.artKey}><div class="cover-art">{#if game.iconSrc}<img src={game.iconSrc} alt="" onerror={event=>(event.currentTarget as HTMLImageElement).style.display='none'} onload={event=>(event.currentTarget as HTMLImageElement).style.display=''}/>{/if}</div><div class="cover-frame"></div></div><span class="shelf-label">{game.title}</span>
+ <div class="cover {game.artKey}" class:generic={!game.artKey}><div class="cover-art">{#if !game.artKey&&game.iconSrc}<img draggable="false" src={game.iconSrc} alt="" onerror={event=>(event.currentTarget as HTMLImageElement).style.display='none'} onload={event=>(event.currentTarget as HTMLImageElement).style.display=''}/>{/if}</div><div class="cover-frame"></div></div><span class="shelf-label">{game.title}</span>
 {/snippet}
 
 <div class="den">
@@ -127,15 +142,20 @@
      <div class="shelf-tabs"><button class:active={!readyOnly} onclick={()=>readyOnly=false}>All games <span>{catalog.length}</span></button><button class:active={readyOnly} onclick={()=>readyOnly=true}>Group launch <span>{catalog.filter(g=>g.available).length}</span></button></div>
      <label class="search">{@render icon('search',17)}<input aria-label="Search games" placeholder="Search games" bind:value={search}/></label>
     </div>
-    {#each shelves as shelf}
-     <div class="bookcase">
+     <div class="bookcase" role="region" aria-label="Game cabinet" onpointerdown={beginShelfSwipe} onpointerup={endShelfSwipe} onpointercancel={()=>shelfTouch=undefined} onclickcapture={event=>{if(ignoreShelfClick&&event.detail>0){event.preventDefault();event.stopPropagation();}ignoreShelfClick=false;}}>
       <div class="game-row">
        {#each shelf as game}<button class="game-box" class:selected={selected?.id===game.id} aria-label={`Select ${game.title}`} aria-pressed={selected?.id===game.id} onclick={()=>selectedId=game.id}>{@render cover(game)}</button>{/each}
        {#if !visible.length}<p class="empty-shelf">{catalogState.status==='loading'?'Loading games…':catalogState.status==='error'?'Couldn’t load games':!catalog.length?'No games in the catalog':'No matching games'}</p>{/if}
       </div>
+      {#if shelfCount>1}
+       <button class="shelf-turn previous" aria-label="Previous shelf" disabled={pageIndex===0} onclick={()=>turnShelf(pageIndex-1)}>{@render icon('arrow',18)}</button>
+       <button class="shelf-turn next" aria-label="Next shelf" disabled={pageIndex===shelfCount-1} onclick={()=>turnShelf(pageIndex+1)}>{@render icon('arrow',18)}</button>
+       <nav class="catalog-pages" aria-label="Catalog pages">
+        <span aria-live="polite">{shelfPosition}</span>
+        <input type="range" aria-label="Browse game shelves" aria-valuetext={`Games ${shelfPosition}`} min="0" max={shelfCount-1} step="1" value={pageIndex} oninput={event=>turnShelf(event.currentTarget.valueAsNumber)}/>
+       </nav>
+      {/if}
      </div>
-    {/each}
-    {#if shelfCount>1}<nav class="catalog-pages" aria-label="Catalog pages"><button aria-label="Previous shelf" disabled={pageIndex===0} onclick={()=>shelfIndex=pageIndex-1}>←</button><span>{pageIndex+1} / {shelfCount}</span><button aria-label="Next shelf" disabled={pageIndex===shelfCount-1} onclick={()=>shelfIndex=pageIndex+1}>→</button></nav>{/if}
     {#if catalogState.status==='offline'&&catalog.length}<p class="hint">Offline catalog</p>{/if}
     {#if catalogState.status==='error'}<button class="text-button" onclick={loadCatalog}>Retry games</button>{/if}
    </section>

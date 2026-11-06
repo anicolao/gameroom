@@ -23,7 +23,7 @@ test('HTTP origin without native randomUUID creates a room and persists launch c
  const roomUrl=page.url(),opened=page.context().waitForEvent('page');
  await page.getByRole('button',{name:'Play Cribbage',exact:true}).click();
  const game=await opened;
- await expect(game).toHaveURL(/127\.0\.0\.1:4197\/\?table=/);
+ await expect(game).toHaveURL(/127\.0\.0\.1:4397\/\?table=/);
  const url=new URL(game.url());
  expect(url.searchParams.get('table')).toMatch(/^[A-F0-9]{8}$/);
  expect(url.searchParams.get('name')).toBe('Dev');expect(url.searchParams.get('launch')).toBe('create');
