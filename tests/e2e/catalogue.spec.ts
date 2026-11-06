@@ -28,6 +28,8 @@ test('shared catalog updates, hides games and opens URL-only games without group
   await page.getByRole('button',{name:'Open Aardvark',exact:true}).click();
   const [external,outbound]=await Promise.all([tab,request]);expect(outbound.url()).toBe(target);await external.close();
   await story.step('url-only',page,'Reader','A URL-only entry opens separately without invented group support',[{spec:'The original room stays open and no group table was recorded',check:async()=>{await expect(page).toHaveURL(roomUrl);await expect(page.getByRole('region',{name:'Room tables'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Play Cribbage',exact:true})).toHaveCount(0);await expect(page.getByTestId('external-tab-status')).toContainText('separately');}}]);
+  await page.getByRole('textbox',{name:'Search games'}).fill('');
+  const keyboardChoice=page.getByRole('button',{name:'Select Cribbage',exact:true});await keyboardChoice.focus();await keyboardChoice.press('Enter');await keyboardChoice.blur();await expect(page.getByRole('heading',{name:'Cribbage',exact:true})).toBeVisible();
   await change('fresh',{Title:'Aardvark',WebURL:target,GameroomEnabled:false,Hidden:true});await change('bad',{Title:'Bad URL',WebURL:'javascript:alert(1)',GameroomEnabled:true});
   await page.getByRole('textbox',{name:'Search games'}).fill('');
   await story.step('hidden-and-invalid',page,'Reader','Gameroom-disabled and invalid entries disappear without rewriting catalog data',[{spec:'Only the four valid visible entries remain',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(4);await expect(page.getByRole('button',{name:'Select Aardvark',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Select Bad URL',exact:true})).toHaveCount(0);}}]);
@@ -47,6 +49,7 @@ test('enclosed 3D cabinet selects real boxes and browses by wheel, keyboard and 
   await clickBox(page,'Pantheon');
   await story.step('mesh-selection',page,'Reader','A native click on the 3D Pantheon box selects it',[{spec:'The selected box lifts and the independent URL action follows the selection',check:async()=>{await expect(page.getByRole('button',{name:'Open Pantheon',exact:true})).toBeVisible();}}]);
   for(const [i,id] of filler.entries())await change(id,{Title:`Collection ${String(i+1).padStart(2,'0')}`,WebURL:`https://games.example.test/${id}`,GameroomEnabled:true,Hidden:true});
+  await expect(page.getByRole('button',{name:'All games 20',exact:true})).toBeVisible();
   await expect(slider).toHaveValue('0');await expect(cabinet).toHaveAttribute('data-ready','true',{timeout:120000});
   const bounds=await cabinet.locator('canvas').boundingBox();
   await page.mouse.move(bounds!.x+bounds!.width/2,bounds!.y+bounds!.height/2);await page.mouse.wheel(0,125);
