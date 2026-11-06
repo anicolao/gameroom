@@ -6,7 +6,7 @@ and chat use an immutable Firestore intent log. The bookshelf reads the same
 
 ## PR preview
 
-[PR #1 preview](https://anicolao.github.io/gameroom/pr-1/) uses the existing
+[PR #2 preview](https://anicolao.github.io/gameroom/pr-2/) uses the existing
 `launcherui` production Firebase project for both the catalog and room history.
 Anonymous Firebase authentication stays invisible. No admin credentials are sent
 to the browser. This preview creates real rooms and messages when you use it.
