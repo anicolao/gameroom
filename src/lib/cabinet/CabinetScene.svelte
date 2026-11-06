@@ -12,7 +12,7 @@
  import CabinetCamera from './CabinetCamera.svelte';
  import GameBox from './GameBox.svelte';
  import MagicTunnel from './MagicTunnel.svelte';
- let {games,mode='lab',position=0,carriers=12,boxScale=1,rows=2,variant='wall',cutaway=false,yaw=10,elevation=12,zoom=1,orbit=false,compact=false,roomBackdrop=true,moving=false,selected='',warmth=1,onReady=()=>{},onError=()=>{},onStatus=()=>{},onSelect=()=>{}}:{games:readonly CabinetGame[];mode?:'lab'|'catalogue';position?:number;carriers?:number;boxScale?:number;rows?:number;variant?:'wall'|'magic'|'cabinet';cutaway?:boolean;yaw?:number;elevation?:number;zoom?:number;orbit?:boolean;compact?:boolean;roomBackdrop?:boolean;moving?:boolean;selected?:string;warmth?:number;onReady?:()=>void;onError?:(error:unknown)=>void;onStatus?:(ready:boolean,targets:Record<string,{x:number;y:number}>)=>void;onSelect?:(id:string)=>void}=$props();
+ let {games,mode='lab',position=0,carriers=12,boxScale=1,rows=2,variant='wall',cutaway=false,yaw=10,elevation=12,zoom=1,orbit=false,compact=false,targetHeight=2.75,roomBackdrop=true,moving=false,selected='',warmth=1,onReady=()=>{},onError=()=>{},onStatus=()=>{},onSelect=()=>{}}:{games:readonly CabinetGame[];mode?:'lab'|'catalogue';position?:number;carriers?:number;boxScale?:number;rows?:number;variant?:'wall'|'magic'|'cabinet';cutaway?:boolean;yaw?:number;elevation?:number;zoom?:number;orbit?:boolean;compact?:boolean;targetHeight?:number;roomBackdrop?:boolean;moving?:boolean;selected?:string;warmth?:number;onReady?:()=>void;onError?:(error:unknown)=>void;onStatus?:(ready:boolean,targets:Record<string,{x:number;y:number}>)=>void;onSelect?:(id:string)=>void}=$props();
  const {scene,renderer,invalidate,camera,size}=useThrelte();interactivity();
  let library=$state.raw<Awaited<ReturnType<typeof loadCabinetMaterials>>>();
  let assetRevision=$state(0),motionRevision=$state(0),environmentReady=$state(false);
@@ -25,7 +25,7 @@
  const laneBoxes=$derived(levels.map((_,row)=>mode==='lab'?boxesAt(games,position,carriers,row):catalogueBoxes(games,position,row)));
  // These are the projected centers of the actual meshes, also useful to native-input tests.
  $effect(()=>{
-  void assetRevision;void motionRevision;void selected;void position;void yaw;void elevation;void zoom;void compact;
+  void assetRevision;void motionRevision;void selected;void position;void yaw;void elevation;void zoom;void compact;void targetHeight;
   const boxes=laneBoxes,viewport=$size,view=$camera,ready=!!library&&environmentReady&&!moving&&motions.size===0&&assets.size===boxes.flat().length&&[...assets.values()].every(Boolean);
   onStatus(false,{});let cancelled=false;
   if(ready)void (async()=>{await tick();await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));if(cancelled)return;
@@ -51,7 +51,7 @@
  $effect(()=>{const p=position,lib=library;if(lib){lib.rubber.offset.x=p*(perimeter/carriers)*34/perimeter;invalidate();}});
  onDestroy(()=>{[deck,front,ribbon,bed,rail1,rail2].forEach(g=>g.dispose());});
 </script>
-<CabinetCamera {yaw} {elevation} {zoom} {orbit} {compact}/>
+<CabinetCamera {yaw} {elevation} {zoom} {orbit} {compact} {targetHeight}/>
 <T.HemisphereLight args={['#eee9d6','#172b24',.65]}/>
 <T.DirectionalLight position={[-5,10,12]} color="#ffdfad" intensity={2.8*warmth} castShadow shadow.mapSize.width={4096} shadow.mapSize.height={4096} shadow.camera.left={-14} shadow.camera.right={14} shadow.camera.top={12} shadow.camera.bottom={-6} shadow.camera.near={1} shadow.camera.far={45} shadow.bias={-.00015} shadow.normalBias={.025} shadow.radius={3}/>
 <T.DirectionalLight position={[8,6,5]} color="#bfd5df" intensity={.65}/>
