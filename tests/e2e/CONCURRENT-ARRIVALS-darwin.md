@@ -30,7 +30,7 @@ Viewpoint: **Lee**
 
 Viewpoint: **Alex**
 
-![Every gathering tab stays open with a reopen control](./screenshots/003-room-open-lee-sam-alex-darwin.png)
+![Every gathering tab stays open with a reopen control](./screenshots/003-room-open-sam-lee-alex-darwin.png)
 
 - [x] No guest click was needed and only one game tab opened per profile
 
@@ -38,7 +38,7 @@ Viewpoint: **Alex**
 
 Viewpoint: **Alex**
 
-![One host click opens all three game tabs when popups are permitted](./screenshots/004-auto-seats-lee-sam-alex-darwin.png)
+![One host click opens all three game tabs when popups are permitted](./screenshots/004-auto-seats-sam-lee-alex-darwin.png)
 
 - [x] Each URL names the right player and shares the table
 
@@ -46,7 +46,7 @@ Viewpoint: **Alex**
 
 Viewpoint: **Sam**
 
-![Every gathering tab stays open with a reopen control](./screenshots/005-room-open-lee-sam-sam-darwin.png)
+![Every gathering tab stays open with a reopen control](./screenshots/005-room-open-sam-lee-sam-darwin.png)
 
 - [x] No guest click was needed and only one game tab opened per profile
 
@@ -54,7 +54,7 @@ Viewpoint: **Sam**
 
 Viewpoint: **Sam**
 
-![One host click opens all three game tabs when popups are permitted](./screenshots/006-auto-seats-lee-sam-sam-darwin.png)
+![One host click opens all three game tabs when popups are permitted](./screenshots/006-auto-seats-sam-lee-sam-darwin.png)
 
 - [x] Each URL names the right player and shares the table
 
@@ -62,7 +62,7 @@ Viewpoint: **Sam**
 
 Viewpoint: **Lee**
 
-![Every gathering tab stays open with a reopen control](./screenshots/007-room-open-lee-sam-lee-darwin.png)
+![Every gathering tab stays open with a reopen control](./screenshots/007-room-open-sam-lee-lee-darwin.png)
 
 - [x] No guest click was needed and only one game tab opened per profile
 
@@ -70,6 +70,6 @@ Viewpoint: **Lee**
 
 Viewpoint: **Lee**
 
-![One host click opens all three game tabs when popups are permitted](./screenshots/008-auto-seats-lee-sam-lee-darwin.png)
+![One host click opens all three game tabs when popups are permitted](./screenshots/008-auto-seats-sam-lee-lee-darwin.png)
 
 - [x] Each URL names the right player and shares the table
