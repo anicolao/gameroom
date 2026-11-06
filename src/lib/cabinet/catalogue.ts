@@ -7,4 +7,3 @@ export function boxColor(game:CabinetGame){
  return ['#24483f','#3c3b5b','#6b3e32','#4a542f','#684553'][hash%5];
 }
 export function materialKey(game:CabinetGame){return JSON.stringify([game.id,game.title,game.artKey,game.iconSrc]);}
-export function scrollLimit(games:readonly CabinetGame[]){return Math.max(0,Math.ceil(games.length/2)-3);}

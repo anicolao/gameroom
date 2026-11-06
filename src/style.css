@@ -17,10 +17,8 @@ main{width:min(1360px,94%);margin:auto;flex:1;padding:28px 0}.room-layout{displa
 .cabinet-keyboard{position:absolute;left:12%;right:12%;bottom:18%;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .cabinet-keyboard:focus-within,.cabinet-keyboard.fallback{width:auto;height:auto;clip-path:none;display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#132b23f2;border:1px solid #cba66a}
 .cabinet-keyboard button{font-size:12px;padding:8px;border:1px solid #cba66a70;border-radius:2px}.cabinet-keyboard button[aria-pressed=true]{color:#ffdc95;background:#d7b27320}
-.cabinet-browse{position:absolute;bottom:0;left:24%;right:24%;display:flex;align-items:center;gap:14px;color:#e9c68e}
-.cabinet-browse button{font-size:23px;width:44px;height:44px;flex-shrink:0;border:1px solid #d1ac6866;border-radius:50%;background:#281b13e6}
-.cabinet-browse input{width:100%;height:32px;min-width:0;accent-color:#d6b16d;cursor:pointer}
-@media(max-width:650px){.cabinet-stage{height:310px;min-height:310px;max-height:none;margin:0 -2%}.cabinet-browse{left:16%;right:16%;bottom:-3px}.cabinet-browse button{width:36px;height:36px}.cabinet-loading{bottom:1%}}
+.cabinet-stage:focus-visible{outline:2px solid #eac17b;outline-offset:4px}
+@media(max-width:650px){.cabinet-stage{height:310px;min-height:310px;max-height:none;margin:0 -2%}.cabinet-loading{bottom:1%}}
 
 /* Place the cabinet on the clear back wall. The artwork's floor/baseboard line
    is 76% down the source image; account for its centered cover crop. */
@@ -28,6 +26,6 @@ main{width:min(1360px,94%);margin:auto;flex:1;padding:28px 0}.room-layout{displa
  .den{--wall-floor:calc(50svh + max(26svh,14.64vw))}
  main{display:flex;align-items:flex-start}.room-layout{width:100%;align-items:start}
  .library{container-type:inline-size}
- .cabinet-stage{width:80%;margin-left:18%;height:calc(80cqw / 1.75);min-height:0;max-height:none;margin-top:max(0px,calc(var(--wall-floor) - 150px - 80cqw / 1.75 * .969))}
+ .cabinet-stage{width:80%;margin-left:18%;height:calc(80cqw / 1.75);min-height:0;max-height:none;margin-top:max(0px,calc(var(--wall-floor) - 150px - 80cqw / 1.75 * .958))}
 }
-@media(max-width:650px){.den{--scene-height:535px}}
+@media(max-width:650px){.den{--scene-height:526px}}

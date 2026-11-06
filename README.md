@@ -136,14 +136,18 @@ original covers for DRM, Got Five, Pantheon and Rebel Princess are served from
 [the complete prompt set](public/art/covers/prompts.json) is stored with them.
 Known cover mappings supply presentation only and do not imply group support.
 
-The dark walnut cabinet uses two conveyor shelves, with three boxes per row.
-Collections larger than six games browse on a finite racetrack, so the eight-game
-production catalog scrolls in the embedded launcher. Tight return bends keep the
-closed walnut ends slim; the cabinet has no exterior light fixtures. Wheel or horizontal drag browses the collection. Arrow
-buttons and the native range slider support keyboard browsing; focusable HTML
-game buttons provide keyboard and screen-reader selection. Vertical touch
-scrolling stays available. Filtering resets the position. Empty collections keep
-the shelves visible, and small collections hide unnecessary browsing controls.
+The dark walnut cabinet uses two infinite conveyor shelves. Each shelf doubles
+its game sequence until it has at least eight carriers, then repeats indefinitely
+in either direction. Only sixteen physical boxes are rendered at once, even for
+large catalogs. Repeated boxes keep one accessible game choice per document.
+
+Wheel or horizontal drag browses without visible arrows or a slider. Keyboard
+users can focus the cabinet and use the arrow keys or Page Up / Page Down;
+focusable HTML game buttons support selection. Vertical touch scrolling stays
+available. Filtering resets the position, and empty collections retain the
+cabinet. Thin walnut end panels reveal games turning into the return path. A
+perspective camera and a joined wooden cap keep the top consistent with the room.
+The cabinet has no exterior light fixtures.
 
 Rendering is shared with the fixture-only [animation lab](src/lab/README.md),
 available through `bun run dev:lab` at `/dev/shelves?variant=cabinet`. The renderer

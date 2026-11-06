@@ -34,16 +34,21 @@ export function spring(position:number,velocity:number,target:number,dt:number,r
  return {position:target+(offset+t)*e,velocity:(velocity-response*t)*e};
 }
 
-/** Fixed-size virtual window. New faces enter at a seam on the hidden rear run. */
+/** Double a shelf's sequence until it fills the loop; virtualize the repeated copies. */
+export function carouselLength(count:number){
+ if(count===0)return 0;
+ let length=count;while(length<cabinetCarriers)length*=2;return length;
+}
 export function catalogueBoxes(games:readonly CabinetGame[],position:number,row:number){
- const middle=Math.ceil(games.length/2),offset=row?middle:0,count=row?games.length-middle:middle,pitch=cabinetPerimeter/cabinetCarriers;
- if(games.length<=6)return Array.from({length:count},(_,index)=>({key:games[offset+index].id,game:games[offset+index],x:(index-(count-1)/2)*pitch,z:track.front,yaw:0,front:true}));
- const first=Math.floor(position)-3,start=track.half-pitch;
- return Array.from({length:cabinetCarriers},(_,i)=>first+i).filter(i=>i>=0&&i<count).map(index=>{
+ const middle=Math.ceil(games.length/2),offset=row?middle:0,count=row?games.length-middle:middle;
+ const length=carouselLength(count);if(!length)return [];
+ const pitch=cabinetPerimeter/cabinetCarriers,first=Math.floor(position)-3,start=track.half-pitch;
+ return Array.from({length:cabinetCarriers},(_,i)=>first+i).map(index=>{
   const pose=pathAt((index-position)*pitch+start,cabinetTrack);
-  return {key:games[offset+index].id,game:games[offset+index],...pose,front:pose.yaw===0&&Math.abs(pose.x)<5};
+  return {key:index,game:games[offset+mod(index,length)%count],...pose,front:pose.yaw===0&&Math.abs(pose.x)<5};
  });
 }
+/** Repeated physical boxes retain one semantic choice per catalog document. */
 export function accessibleGames(games:readonly CabinetGame[],position:number){
- return [0,1].flatMap(row=>catalogueBoxes(games,position,row).filter(box=>box.front).map(box=>box.game));
+ return [...new Map([0,1].flatMap(row=>catalogueBoxes(games,position,row).filter(box=>box.front).map(box=>[box.game.id,box.game] as const))).values()];
 }

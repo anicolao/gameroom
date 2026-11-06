@@ -1,27 +1,32 @@
 import {test,expect} from 'bun:test';
-import {accessibleGames,catalogueBoxes,perimeter,pathAt,seam,spring,cabinetTrack} from '../src/lib/cabinet/conveyor';
-import {scrollLimit} from '../src/lib/cabinet/catalogue';
+import {accessibleGames,catalogueBoxes,perimeter,pathAt,seam,spring,cabinetTrack,carouselLength} from '../src/lib/cabinet/conveyor';
 const games=(n:number)=>Array.from({length:n},(_,i)=>({id:String(i),title:`Game ${i}`,artKey:'',iconSrc:null}));
-test('small collections show each game once without scrolling',()=>{
- for(const count of [0,1,2,4,5,6]){const collection=games(count);expect(scrollLimit(collection)).toBe(0);expect(accessibleGames(collection,0).map(g=>g.id)).toEqual(collection.map(g=>g.id));}
+test('each shelf doubles its game sequence until a full carousel is available',()=>{
+ for(const [count,length] of [[0,0],[1,8],[2,8],[3,12],[4,8],[5,10],[7,14],[8,8],[9,9]])expect(carouselLength(count)).toBe(length);
 });
-test('every catalog game reaches the front and finite endpoints retain the first and last games',()=>{
- for(const count of [7,8,9,20,37]){
-  const collection=games(count),seen=new Set<string>();
-  for(let position=0;position<=scrollLimit(collection);position++)for(const game of accessibleGames(collection,position))seen.add(game.id);
-  expect(seen.size).toBe(count);expect(accessibleGames(collection,0).some(g=>g.id==='0')).toBe(true);expect(accessibleGames(collection,scrollLimit(collection)).some(g=>g.id===String(count-1))).toBe(true);
+test('empty shelves stay empty and repeated boxes retain unique physical keys',()=>{
+ expect(catalogueBoxes([],0,0)).toEqual([]);expect(accessibleGames([],0)).toEqual([]);
+ const boxes=catalogueBoxes(games(1),0,0);expect(boxes).toHaveLength(8);expect(new Set(boxes.map(b=>b.key)).size).toBe(8);expect(accessibleGames(games(1),0)).toHaveLength(1);
+});
+test('all games reach the front while both shelves repeat indefinitely in either direction',()=>{
+ for(const count of [1,2,3,4,5,7,8,9,20,37]){
+  const collection=games(count),length=carouselLength(Math.ceil(count/2)),seen=new Set<string>();
+  for(let position=-length;position<=length;position++)for(const game of accessibleGames(collection,position))seen.add(game.id);
+  expect(seen.size).toBe(count);
+ }
+ const collection=games(8),pose=(position:number)=>catalogueBoxes(collection,position,0).map(({game,x,z,yaw})=>({id:game.id,x,z,yaw}));
+ expect(pose(-8)).toEqual(pose(0));expect(pose(8)).toEqual(pose(0));
+});
+test('large collections keep at most 16 meshes and small collections expose unique semantic choices',()=>{
+ for(const count of [1,4,8,10000])for(const position of [-10000,-1.5,0,123.5,10000]){
+  const collection=games(count),boxes=[0,1].flatMap(row=>catalogueBoxes(collection,position,row)),choices=accessibleGames(collection,position);
+  expect(boxes.length).toBeLessThanOrEqual(16);expect(new Set(choices.map(g=>g.id)).size).toBe(choices.length);
  }
 });
-test('an uneven collection keeps both lanes moving with their belts',()=>{
- const collection=games(9),before=catalogueBoxes(collection,0,1),after=catalogueBoxes(collection,1,1);
- expect(before.find(box=>box.game.id==='6')!.x).not.toBe(after.find(box=>box.game.id==='6')!.x);
-});
-test('a very large collection keeps at most 16 real box meshes in the window',()=>{
- const collection=games(10000);
- for(const position of [0,123.5,2000,scrollLimit(collection)]){
-  const boxes=[0,1].flatMap(row=>catalogueBoxes(collection,position,row));
-  expect(boxes.length).toBeLessThanOrEqual(16);expect(new Set(boxes.map(box=>box.game.id)).size).toBe(boxes.length);
- }
+test('virtual copies enter and leave only at the hidden rear seam',()=>{
+ const collection=games(8),before=catalogueBoxes(collection,1-1e-6,0),after=catalogueBoxes(collection,1+1e-6,0);
+ const removed=before.find(box=>!after.some(next=>next.key===box.key))!,added=after.find(box=>!before.some(previous=>previous.key===box.key))!;
+ expect(removed.yaw).toBe(Math.PI);expect(added.yaw).toBe(Math.PI);expect(removed.x).toBeCloseTo(added.x,4);expect(removed.z).toBeCloseTo(added.z,4);
 });
 test('the carrier replacement seam stays on the rear run and motion settles without overshooting',()=>{
  const rear=pathAt(seam);expect(rear.x).toBeCloseTo(0);expect(rear.yaw).toBe(Math.PI);expect(pathAt(seam+perimeter).z).toBeCloseTo(rear.z);
@@ -34,12 +39,6 @@ test('the analytic spring keeps wall-clock timing when rendering drops frames',(
  const delayed=spring(0,0,6,2,9);let smooth={position:0,velocity:0};
  for(let i=0;i<120;i++)smooth=spring(smooth.position,smooth.velocity,6,1/60,9);
  expect(delayed.position).toBeCloseTo(smooth.position,12);expect(delayed.velocity).toBeCloseTo(smooth.velocity,12);
-});
-
-test('the eight-game embedded cabinet has browsing positions and changes its front row',()=>{
- const collection=games(8);expect(scrollLimit(collection)).toBe(1);
- expect(accessibleGames(collection,0).map(g=>g.id)).toEqual(['0','1','2','4','5','6']);
- expect(accessibleGames(collection,1).map(g=>g.id)).toEqual(['1','2','3','5','6','7']);
 });
 
 test('the slim return bend clears the belt rails and the cabinet side walls',()=>{
