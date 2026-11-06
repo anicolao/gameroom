@@ -16,6 +16,7 @@ export class TestStepHelper{
    if(game)await expect(page.locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');
    for(const check of checks)await test.step(check.spec,check.check);
    await page.mouse.move(0,0);
+   if(!game)await expect(page.getByTestId('cabinet')).toHaveAttribute('data-ready','true',{timeout:120000});
    await page.evaluate(async()=>{
     await document.fonts.ready;
     const backgrounds=new Set([...document.querySelectorAll('*')].map(el=>getComputedStyle(el).backgroundImage).flatMap(bg=>[...bg.matchAll(/url\("?([^"\)]+)"?\)/g)].map(m=>m[1])));
