@@ -20,8 +20,8 @@ until an editor enables Gameroom and supplies `WebURL`.
 
 Only a recognized Cribbage WebURL supports group launch. Other games have
 **Open {title}**, which opens the exact WebURL separately. The **Group launch**
-filter shows supported integrations. Names appear on shelf labels below the box
-art, keeping printed titles unobstructed.
+filter shows supported integrations. Game boxes are real 3D meshes with painted fronts, printed spines and cardboard
+backs. The selected title appears beside the cabinet.
 
 Cribbage is the Gameroom-only production example: `Hidden: true`,
 `GameroomEnabled: true`, and `WebURL: https://anicolao.github.io/cribbage/`.
@@ -109,7 +109,7 @@ E2E uses full Chromium with its native popup blocker, plus a separate explicitly
 permitted-popup case. Stories cover group launch, blocked fallback, names,
 privacy after a real deal, continued room chat, reopen/reload, simultaneous leave,
 recurring launches, same-name profiles, mobile search, a genuine insecure HTTP
-origin without a UUID shim, and live catalog paging/hide/update behavior. The
+origin without a UUID shim, and live catalog hide/update behavior and native 3D cabinet interactions. The
 URL-only test observes the exact outbound browser request without pretending
 that an unknown external game implements group seating.
 
@@ -136,9 +136,21 @@ original covers for DRM, Got Five, Pantheon and Rebel Princess are served from
 [the complete prompt set](public/art/covers/prompts.json) is stored with them.
 Known cover mappings supply presentation only and do not imply group support.
 
-Labels are printed directly on the wooden shelf fascia. Brass arrows on the
-cabinet browse four games at a time; a drawer-mounted range slider jumps through
-large collections. It supports native keyboard controls, while horizontal touch
-swipes browse without disabling vertical page scrolling. Filtering resets the
-position, and small collections hide unnecessary controls. E2E uses its own
-Cribbage endpoint at 4397, separate from other local game processes.
+The enclosed walnut cabinet uses two conveyor shelves. Up to eight games fit
+together; larger collections move on a finite racetrack, with the return run
+concealed by the cabinet. Wheel or horizontal drag browses the collection. Arrow
+buttons and the native range slider support keyboard browsing; focusable HTML
+game buttons provide keyboard and screen-reader selection. Vertical touch
+scrolling stays available. Filtering resets the position. Empty collections keep
+the shelves visible, and small collections hide unnecessary browsing controls.
+
+Rendering is shared with the fixture-only [animation lab](src/lab/README.md),
+available through `bun run dev:lab` at `/dev/shelves?variant=cabinet`. The renderer
+keeps at most 24 box meshes active and caches up to 32 game materials, loading
+external icons on demand and painting a readable fallback when an icon fails.
+Wood maps and the studio environment are CC0; provenance is recorded in
+[public/materials/SOURCES.md](public/materials/SOURCES.md).
+
+E2E uses its own Cribbage endpoint at 4397, separate from other local game
+processes. References wait for textures, fonts, replay and motion to finish,
+then compare every decoded RGBA byte at the normal renderer quality.

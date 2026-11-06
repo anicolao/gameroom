@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect,type Page} from '@playwright/test';
 import {TestStepHelper} from './helpers/test-step-helper';
 import {deterministicRoom,openRoom} from './helpers/launch';
 const project='demo-gameroom-catalogue-e2e';
@@ -7,17 +7,23 @@ async function change(id:string,data?:Record<string,unknown>){
  const response=await fetch(`http://127.0.0.1:8199/v1/projects/${project}/databases/(default)/documents/Applications/${id}`,{method:data?'PATCH':'DELETE',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},...(data?{body:JSON.stringify({fields})}:{})});
  expect(response.ok).toBe(true);
 }
-test('shared catalog updates, pages, hides games and opens URL-only games without group claims',async({page},info)=>{
+async function clickBox(page:Page,title:string){
+ const cabinet=page.getByTestId('cabinet');await expect(cabinet).toHaveAttribute('data-ready','true',{timeout:120000});
+ const id=await page.getByRole('button',{name:`Select ${title}`,exact:true}).getAttribute('data-game-id');
+ const points=JSON.parse((await cabinet.getAttribute('data-targets'))!);expect(points[id!]).toBeDefined();
+ const canvas=await cabinet.locator('canvas').boundingBox();expect(canvas).not.toBeNull();
+ await page.mouse.click(canvas!.x+points[id!].x,canvas!.y+points[id!].y);
+ await expect(page.getByRole('heading',{name:title,exact:true})).toBeVisible();
+}
+test('shared catalog updates, hides games and opens URL-only games without group claims',async({page},info)=>{
  const story=new TestStepHelper(info,'CATALOGUE');await deterministicRoom(page,400);
  const target='https://games.example.test/standalone?keep=original';
  try{
   const roomUrl=await openRoom(page,'Catalog tester');await expect(page.getByRole('button',{name:/Select /})).toHaveCount(4);
   await change('fresh',{Title:'Aardvark',URL:'https://tabletop.example.test/different',WebURL:target,GameroomEnabled:true,Hidden:true});
-  await story.step('live-entry',page,'Reader','A catalog document arrives through the Firestore subscription',[{spec:'Five games produce two shelves without scrolling the desktop room',check:async()=>{await expect(page.getByRole('button',{name:'Select Aardvark',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Catalog pages'})).toContainText('1–4 of 5');}}]);
-  await page.getByRole('button',{name:'Next shelf',exact:true}).click();
-  await story.step('next-shelf',page,'Reader','The same cabinet browses a larger collection',[{spec:'The second shelf contains Robo Rally',check:async()=>{await expect(page.getByRole('button',{name:'Select Robo Rally',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Catalog pages'})).toContainText('5 of 5');}}]);
+  await story.step('live-entry',page,'Reader','A catalog document arrives through the Firestore subscription',[{spec:'Five games fit together in the enclosed cabinet',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(5);await expect(page.getByRole('slider',{name:'Browse game shelves'})).toHaveCount(0);}}]);
   await page.getByRole('textbox',{name:'Search games'}).fill('aardvark');
-  await page.getByRole('button',{name:'Select Aardvark',exact:true}).click();
+  await clickBox(page,'Aardvark');
   const tab=page.context().waitForEvent('page'),request=page.context().waitForEvent('request',r=>r.url()===target);
   await page.getByRole('button',{name:'Open Aardvark',exact:true}).click();
   const [external,outbound]=await Promise.all([tab,request]);expect(outbound.url()).toBe(target);await external.close();
@@ -29,49 +35,41 @@ test('shared catalog updates, pages, hides games and opens URL-only games withou
  }finally{await change('fresh');await change('bad');}
 });
 
-test('painted covers browse with cabinet arrows, keyboard slider and touch swipes',async({page},info)=>{
+test('enclosed 3D cabinet selects real boxes and browses by wheel, keyboard and touch',async({page},info)=>{
  const story=new TestStepHelper(info,'CABINET');await deterministicRoom(page,500);
  const extra=[['drm','DRM'],['gotfive','Got Five'],['pantheon','Pantheon'],['rebelprincess','Rebel Princess']];
+ const filler=Array.from({length:12},(_,i)=>`collection-${i}`);
  try{
   for(const [id,title] of extra)await change(`cover-${id}`,{Title:title,WebURL:`https://anicolao.github.io/${id}/`,GameroomEnabled:true,Hidden:true});
   await openRoom(page,'Art reviewer');
-  const slider=page.getByRole('slider',{name:'Browse game shelves'}),cabinet=page.getByRole('region',{name:'Game cabinet'});
-  await story.step('first-four',page,'Reader','Painted covers and printed shelf labels fill the cabinet',[{spec:'The first four of eight games have art and a disabled previous arrow',check:async()=>{
-   await expect(page.getByRole('button',{name:/Select /})).toHaveCount(4);
-   await expect(page.getByRole('button',{name:'Select DRM',exact:true})).toBeVisible();
-   await expect(page.getByRole('button',{name:'Select Got Five',exact:true})).toBeVisible();
-   await expect(slider).toHaveValue('0');await expect(page.getByRole('button',{name:'Previous shelf',exact:true})).toBeDisabled();
-   expect(await page.locator('.shelf-label').evaluateAll(labels=>labels.every(label=>getComputedStyle(label).backgroundColor==='rgba(0, 0, 0, 0)'))).toBe(true);
-  }}]);
-  await page.getByRole('button',{name:'Next shelf',exact:true}).click();
-  await story.step('last-four',page,'Reader','Brass arrows advance the collection without moving the room',[{spec:'The other four covers are visible and the end boundary disables Next',check:async()=>{
-   await expect(page.getByRole('button',{name:'Select Pantheon',exact:true})).toBeVisible();
-   await expect(page.getByRole('button',{name:'Select Rebel Princess',exact:true})).toBeVisible();
-   await expect(page.getByRole('navigation',{name:'Catalog pages'})).toContainText('5–8 of 8');
-   await expect(page.getByRole('button',{name:'Next shelf',exact:true})).toBeDisabled();
-  }}]);
-  await slider.focus();await slider.press('Home');await expect(slider).toHaveValue('0');
-  await slider.press('End');await expect(slider).toHaveValue('1');
-  await page.getByRole('button',{name:'Previous shelf',exact:true}).click();await expect(slider).toHaveValue('0');
-  await page.setViewportSize({width:390,height:844});
+  const slider=page.getByRole('slider',{name:'Browse game shelves'}),cabinet=page.getByTestId('cabinet');
+  await story.step('eight-boxes',page,'Reader','Eight illustrated boxes fit on the two enclosed shelves',[{spec:'All eight games are available without duplicate title overlays or pagination',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(8);await expect(slider).toHaveCount(0);await expect(page.locator('.shelf-label')).toHaveCount(0);}}]);
+  await clickBox(page,'Pantheon');
+  await story.step('mesh-selection',page,'Reader','A native click on the 3D Pantheon box selects it',[{spec:'The selected box lifts and the independent URL action follows the selection',check:async()=>{await expect(page.getByRole('button',{name:'Open Pantheon',exact:true})).toBeVisible();}}]);
+  for(const [i,id] of filler.entries())await change(id,{Title:`Collection ${String(i+1).padStart(2,'0')}`,WebURL:`https://games.example.test/${id}`,GameroomEnabled:true,Hidden:true});
+  await expect(slider).toHaveValue('0');await expect(cabinet).toHaveAttribute('data-ready','true',{timeout:120000});
+  const bounds=await cabinet.locator('canvas').boundingBox();
+  await page.mouse.move(bounds!.x+bounds!.width/2,bounds!.y+bounds!.height/2);await page.mouse.wheel(0,125);
+  await page.mouse.move(0,0);await expect(cabinet).toHaveAttribute('data-target','1');
+  await story.step('wheel-browse',page,'Reader','Wheel input carries new boxes through the concealed return loop',[{spec:'The finite twenty-game collection moves one position and remains bounded',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','1',{timeout:30000});await expect(slider).toHaveAttribute('max','6');await expect(page.getByRole('heading',{name:'Pantheon',exact:true})).toBeVisible();}}]);
+  await slider.focus();await slider.press('End');await slider.blur();
+  await story.step('last-games',page,'Reader','The keyboard slider reaches the end of the catalog',[{spec:'The final covers are accessible and the next control is disabled',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','6',{timeout:30000});await expect(page.getByRole('button',{name:'Next games',exact:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Select Rebel Princess',exact:true})).toHaveCount(1);}}]);
+  await slider.focus();await slider.press('Home');await slider.blur();await expect(cabinet).toHaveAttribute('data-position','0',{timeout:30000});
+  await page.setViewportSize({width:390,height:844});await expect(cabinet).toHaveAttribute('data-ready','true',{timeout:120000});
   const session=await page.context().newCDPSession(page);
   try{
    await session.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
-   const box=await cabinet.boundingBox();expect(box).not.toBeNull();
-   const y=box!.y+box!.height*.4,x=box!.x+box!.width*.75,end=box!.x+box!.width*.25;
+   const box=(await cabinet.boundingBox())!,y=box.y+box.height*.4,x=box.x+box.width*.75,end=box.x+box.width*.25;
    await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
    for(const fraction of [.25,.5,.75,1])await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+(end-x)*fraction,y}]});
    await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   }finally{await session.detach();}
-  await story.step('touch-browse',page,'Reader','A horizontal swipe browses while vertical room scrolling stays available',[{spec:'Swiping shows the final four covers without accidentally selecting one',check:async()=>{
-   await expect(slider).toHaveValue('1');
-   await expect(page.getByRole('button',{name:'Select Rebel Princess',exact:true})).toBeVisible();
-   await expect(page.getByRole('heading',{name:'Cribbage',exact:true})).toBeVisible();
-  }}],false,true);
+  await story.step('touch-browse',page,'Reader','A horizontal swipe moves the belts without selecting a box',[{spec:'Touch reaches position four while the previous selection stays intact',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','4',{timeout:30000});await expect(page.getByRole('heading',{name:'Pantheon',exact:true})).toBeVisible();}}],false,true);
   await page.getByRole('textbox',{name:'Search games'}).fill('pantheon');
-  await story.step('single-cover',page,'Reader','Search narrows a large catalogue to one illustrated box',[{spec:'The matching box remains full size and unnecessary browsing controls disappear',check:async()=>{
-   await expect(page.getByRole('button',{name:/Select /})).toHaveCount(1);
-   await expect(slider).toHaveCount(0);await expect(page.getByRole('button',{name:'Next shelf',exact:true})).toHaveCount(0);
-  }}],false,true);story.finish();
- }finally{for(const [id] of extra)await change(`cover-${id}`);}
+  await story.step('single-cover',page,'Reader','Search narrows a large catalog to one illustrated box',[{spec:'One matching box remains and unnecessary browsing controls disappear',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(1);await expect(slider).toHaveCount(0);}}],false,true);
+  await clickBox(page,'Pantheon');
+  await page.getByRole('textbox',{name:'Search games'}).fill('no matching title');
+  await story.step('empty-shelves',page,'Reader','An empty search keeps the cabinet and room available',[{spec:'Empty shelves show a useful result message',check:async()=>{await expect(page.getByText('No matching games',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:/Select /})).toHaveCount(0);}}],false,true);
+  story.finish();
+ }finally{for(const [id] of extra)await change(`cover-${id}`);for(const id of filler)await change(id);}
 });
