@@ -15,6 +15,7 @@
   void resource.ready.then(()=>{if(live)onAsset(true);});
   return()=>{live=false;resource.release();onAsset(undefined);};
  });
+ function hovered(value:boolean){hover=value;const goal=selected?.23:hover?.09:0;if(Math.abs(lift-goal)>=.0002){lastMoving=true;onMoving(true);}}
  useTask(delta=>{
   const goal=selected?.23:hover?.09:0,next=goal+(lift-goal)*Math.exp(-14*delta),moving=Math.abs(next-goal)>=.0002;
   if(moving!==lastMoving){lastMoving=moving;onMoving(moving);}
@@ -27,7 +28,7 @@
  <T.Mesh geometry={lip} material={library.materials.cardboard} position={[0,1.1,-.315]} castShadow dispose={false}/>
  <T.Mesh position={[0,1.1,-.357]} rotation.y={Math.PI} material={lease.materials[5]} dispose={false}><T.PlaneGeometry args={[1.55,2.10]}/></T.Mesh>
  <T.Mesh name={`game:${game.id}`} geometry={body} material={lease.materials} position.y={1.1} castShadow receiveShadow dispose={false}
-  onpointerenter={()=>hover=true} onpointerleave={()=>hover=false}
+  onpointerenter={()=>hovered(true)} onpointerleave={()=>hovered(false)}
   onclick={(event:{stopPropagation:()=>void})=>{event.stopPropagation();onSelect(game.id);}}/>
 </T.Group>
 {/if}
