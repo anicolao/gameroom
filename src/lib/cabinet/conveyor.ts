@@ -31,7 +31,7 @@ export function spring(position:number,velocity:number,target:number,dt:number,r
 /** Fixed-size virtual window. New faces enter at a seam on the hidden rear run. */
 export function catalogueBoxes(games:readonly CabinetGame[],position:number,row:number){
  const middle=Math.ceil(games.length/2),offset=row?middle:0,count=row?games.length-middle:middle,pitch=perimeter/12;
- if(count<=4)return Array.from({length:count},(_,index)=>({key:games[offset+index].id,game:games[offset+index],x:(index-(count-1)/2)*pitch,z:track.front,yaw:0,front:true}));
+ if(games.length<=8)return Array.from({length:count},(_,index)=>({key:games[offset+index].id,game:games[offset+index],x:(index-(count-1)/2)*pitch,z:track.front,yaw:0,front:true}));
  const first=Math.floor(position)-5,start=track.half-1.5*pitch;
  return Array.from({length:12},(_,i)=>first+i).filter(i=>i>=0&&i<count).map(index=>{
   const pose=pathAt((index-position)*pitch+start);
