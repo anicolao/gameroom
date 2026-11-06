@@ -29,7 +29,7 @@
 <div class="cabinet-stage" role="region" aria-label="Game cabinet" bind:this={stage} data-testid="cabinet" data-ready={ready} data-motion-idle={!moving} data-position={position} data-target={target} data-targets={JSON.stringify(targets)}>
  <svelte:boundary onerror={error=>{failure=true;console.error(error);}}>
   <Canvas dpr={Math.min(window.devicePixelRatio,2)} shadows={PCFShadowMap} toneMapping={ACESFilmicToneMapping} renderMode="on-demand">
-   <CabinetScene {games} {selected} position={position} {moving} {compact} onError={()=>failure=true} mode="catalogue" variant="cabinet" roomBackdrop={false} yaw={compact?0:10} elevation={compact?8:12} onSelect={select} onStatus={(value,points)=>{ready=value;targets=points;}}/>
+   <CabinetScene {games} {selected} position={position} {moving} {compact} onError={()=>failure=true} mode="catalogue" variant="cabinet" roomBackdrop={false} yaw={0} elevation={8} targetHeight={3.3} onSelect={select} onStatus={(value,points)=>{ready=value;targets=points;}}/>
   </Canvas>
   {#snippet failed()}<p class="cabinet-message">3D shelves unavailable. Choose a game below.</p>{/snippet}
  </svelte:boundary>

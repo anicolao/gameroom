@@ -21,3 +21,13 @@ main{width:min(1360px,94%);margin:auto;flex:1;padding:28px 0}.room-layout{displa
 .cabinet-browse button{font-size:23px;width:44px;height:44px;flex-shrink:0;border:1px solid #d1ac6866;border-radius:50%;background:#10271ed9}
 .cabinet-browse input{width:100%;height:32px;min-width:0;accent-color:#d6b16d;cursor:pointer}
 @media(max-width:650px){.cabinet-stage{height:310px;min-height:310px;max-height:none;margin:0 -2%}.cabinet-browse{left:16%;right:16%;bottom:-3px}.cabinet-browse button{width:36px;height:36px}.cabinet-loading{bottom:1%}}
+
+/* Place the cabinet on the clear back wall. The artwork's floor/baseboard line
+   is 76% down the source image; account for its centered cover crop. */
+@media(min-width:651px){
+ .den{--wall-floor:calc(50svh + max(26svh,14.64vw))}
+ main{display:flex;align-items:flex-start}.room-layout{width:100%;align-items:start}
+ .library{container-type:inline-size}
+ .cabinet-stage{width:80%;margin-left:18%;height:calc(80cqw / 1.75);min-height:0;max-height:none;margin-top:max(0px,calc(var(--wall-floor) - 150px - 80cqw / 1.75 * .896))}
+}
+@media(max-width:650px){.den{--scene-height:560px}}
