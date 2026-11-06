@@ -2,19 +2,27 @@
 
 Real Firestore and Auth emulators; independent browser identities. Desktop captures are 1180×820 at 1×; mobile captures are 390×844 with full-page capture. Every decoded RGBA byte must match. No masks, pixel tolerance, screenshot resizing or retries. Baselines are generated explicitly and verified in a separate run.
 
-## Eight illustrated boxes fit on the two enclosed shelves
+## The eight-game catalog can browse in the embedded cabinet
 
 Viewpoint: **Reader**
 
-![Eight illustrated boxes fit on the two enclosed shelves](./screenshots/000-eight-boxes-reader-linux.png)
+![The eight-game catalog can browse in the embedded cabinet](./screenshots/000-eight-boxes-reader-linux.png)
 
-- [x] All eight games are available without duplicate title overlays or pagination
+- [x] Six boxes are visible and browsing is enabled for the actual eight-game collection
+
+## Wheel input browses the production-sized eight-game collection
+
+Viewpoint: **Reader**
+
+![Wheel input browses the production-sized eight-game collection](./screenshots/001-eight-game-scroll-reader-linux.png)
+
+- [x] Both final games arrive through the slim closed ends
 
 ## A native click on the 3D Pantheon box selects it
 
 Viewpoint: **Reader**
 
-![A native click on the 3D Pantheon box selects it](./screenshots/001-mesh-selection-reader-linux.png)
+![A native click on the 3D Pantheon box selects it](./screenshots/002-mesh-selection-reader-linux.png)
 
 - [x] The selected box lifts and the independent URL action follows the selection
 
@@ -22,7 +30,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![Wheel input carries new boxes through the concealed return loop](./screenshots/002-wheel-browse-reader-linux.png)
+![Wheel input carries new boxes through the concealed return loop](./screenshots/003-wheel-browse-reader-linux.png)
 
 - [x] The finite twenty-game collection moves one position and remains bounded
 
@@ -30,7 +38,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![The keyboard slider reaches the end of the catalog](./screenshots/003-last-games-reader-linux.png)
+![The keyboard slider reaches the end of the catalog](./screenshots/004-last-games-reader-linux.png)
 
 - [x] The final covers are accessible and the next control is disabled
 
@@ -38,7 +46,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![A horizontal swipe moves the belts without selecting a box](./screenshots/004-touch-browse-reader-linux.png)
+![A horizontal swipe moves the belts without selecting a box](./screenshots/005-touch-browse-reader-linux.png)
 
 - [x] Touch reaches position four while the previous selection stays intact
 
@@ -46,7 +54,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![Search narrows a large catalog to one illustrated box](./screenshots/005-single-cover-reader-linux.png)
+![Search narrows a large catalog to one illustrated box](./screenshots/006-single-cover-reader-linux.png)
 
 - [x] One matching box remains and unnecessary browsing controls disappear
 
@@ -54,6 +62,6 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![An empty search keeps the cabinet and room available](./screenshots/006-empty-shelves-reader-linux.png)
+![An empty search keeps the cabinet and room available](./screenshots/007-empty-shelves-reader-linux.png)
 
 - [x] Empty shelves show a useful result message
