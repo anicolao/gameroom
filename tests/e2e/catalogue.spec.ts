@@ -50,6 +50,9 @@ test('enclosed 3D cabinet selects real boxes and browses by wheel, keyboard and 
   const eightBounds=(await cabinet.locator('canvas').boundingBox())!;
   await page.mouse.move(eightBounds.x+eightBounds.width/2,eightBounds.y+eightBounds.height/2);await page.mouse.wheel(0,125);await page.mouse.move(0,0);
   await story.step('eight-game-scroll',page,'Reader','Wheel input browses the production-sized eight-game collection',[{spec:'Both final games arrive through the slim closed ends',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','1',{timeout:30000});await expect(page.getByRole('button',{name:'Select Istanbul',exact:true})).toHaveCount(1);await expect(page.getByRole('button',{name:'Select Robo Rally',exact:true})).toHaveCount(1);}}]);
+  await page.mouse.move(eightBounds.x+eightBounds.width/2,eightBounds.y+eightBounds.height/2);await page.mouse.wheel(0,15.625);await page.mouse.move(0,0);
+  await story.step('corner-entry',page,'Reader','Rotating boxes enter real openings at the cabinet corners',[{spec:'An intermediate rotation clears the shortened backing and open passages',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','1.125',{timeout:30000});}}]);
+  await page.mouse.move(eightBounds.x+eightBounds.width/2,eightBounds.y+eightBounds.height/2);await page.mouse.wheel(0,-15.625);await page.mouse.move(0,0);
   await browse(['PageDown','PageDown','ArrowRight','ArrowRight']);
   await story.step('repeat-forward',page,'Reader','The shelves continue beyond their original sequence',[{spec:'Position nine repeats position one without an end stop or visible controls',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','9',{timeout:30000});await expect(page.getByRole('button',{name:'Select Robo Rally',exact:true})).toHaveCount(1);await expect(slider).toHaveCount(0);}}]);
   await browse([...Array(5).fill('PageUp'),'ArrowLeft']);

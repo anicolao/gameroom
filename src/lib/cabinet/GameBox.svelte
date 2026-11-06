@@ -2,13 +2,15 @@
  import {T,useTask} from '@threlte/core';
  import {onDestroy} from 'svelte';
  import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+ import {cabinetLift} from './structure';
  import {materialKey,type CabinetGame} from './catalogue';
  import type {MaterialLibrary} from './materials';
- let {game,x,z,yaw,base=0,scale=1,selected=false,library,onSelect=()=>{},onAsset=()=>{},onMoving=()=>{}}:{game:CabinetGame;x:number;z:number;yaw:number;base?:number;scale?:number;selected?:boolean;library:MaterialLibrary;onSelect?:(id:string)=>void;onAsset?:(ready:boolean|undefined)=>void;onMoving?:(moving:boolean)=>void}=$props();
+ let {game,x,z,yaw,base=0,scale=1,selected=false,tuckOnReturn=false,library,onSelect=()=>{},onAsset=()=>{},onMoving=()=>{}}:{game:CabinetGame;x:number;z:number;yaw:number;base?:number;scale?:number;selected?:boolean;tuckOnReturn?:boolean;library:MaterialLibrary;onSelect?:(id:string)=>void;onAsset?:(ready:boolean|undefined)=>void;onMoving?:(moving:boolean)=>void}=$props();
  let hover=$state(false),lift=$state(0),lease=$state.raw<ReturnType<MaterialLibrary['acquire']>>();
  let lastMoving=false;
  const body=new RoundedBoxGeometry(1.65,2.2,.58,3,.045),lip=new RoundedBoxGeometry(1.61,2.16,.075,2,.018);
  const variation=$derived(game.artKey==='gotfive'?.91:game.artKey==='pantheon'?1.04:1);
+ const displayLift=$derived(tuckOnReturn?cabinetLift(x,yaw,lift):lift);
  const signature=$derived(materialKey(game));
  $effect(()=>{
   void signature;let live=true;const resource=library.acquire(game);lease=resource;onAsset(false);
@@ -24,7 +26,7 @@
  onDestroy(()=>{onMoving(false);body.dispose();lip.dispose();});
 </script>
 {#if lease}
-<T.Group position={[x+Math.sin(yaw)*lift*.8,base+.105+lift,z+Math.cos(yaw)*lift*.8]} rotation.y={yaw+(selected?-.045:0)} scale={scale*variation}>
+<T.Group position={[x+Math.sin(yaw)*displayLift*.8,base+.105+displayLift,z+Math.cos(yaw)*displayLift*.8]} rotation.y={yaw+(selected?-.045:0)} scale={scale*variation}>
  <T.Mesh geometry={lip} material={library.materials.cardboard} position={[0,1.1,-.315]} castShadow dispose={false}/>
  <T.Mesh position={[0,1.1,-.357]} rotation.y={Math.PI} material={lease.materials[5]} dispose={false}><T.PlaneGeometry args={[1.55,2.10]}/></T.Mesh>
  <T.Mesh name={`game:${game.id}`} geometry={body} material={lease.materials} position.y={1.1} castShadow receiveShadow dispose={false}

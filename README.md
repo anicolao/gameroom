@@ -147,7 +147,10 @@ focusable HTML game buttons support selection. Vertical touch scrolling stays
 available. Filtering resets the position, and empty collections retain the
 cabinet. Thin walnut end panels reveal games turning into the return path. A
 perspective camera and a joined wooden cap keep the top consistent with the room.
-The cabinet has no exterior light fixtures.
+The cabinet has no exterior light fixtures. Its backing ends before real corner
+openings, and the belts pass through slots beneath it. Selected boxes settle
+onto the belt before turning. Shared geometry and full-loop box/wood clearance
+tests keep the boxes from penetrating the backing or corner borders.
 
 Rendering is shared with the fixture-only [animation lab](src/lab/README.md),
 available through `bun run dev:lab` at `/dev/shelves?variant=cabinet`. The renderer

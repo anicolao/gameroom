@@ -7,6 +7,7 @@
  import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
  import {boxesAt,catalogueBoxes,track,cabinetTrack,cabinetCarriers} from './conveyor';
  import type {CabinetGame} from './catalogue';
+ import {partitionSolids,partitionGaps} from './structure';
  import {beltGeometry} from './geometry';
  import {loadCabinetMaterials} from './materials';
  import CabinetCamera from './CabinetCamera.svelte';
@@ -71,7 +72,13 @@
  {/if}
  {#if !cutaway&&variant!=='magic'}
   <!-- The cabinet backing overlaps its side panels; the roof closes high-angle views. -->
-  <T.Mesh onclick={block} onpointerover={block} position={[0,variant==='cabinet'?3.15:3.4,variant==='cabinet'?-.055:-1.0]} material={variant==='cabinet'?lib.wood:lib.wall} receiveShadow><T.BoxGeometry args={[variant==='cabinet'?13.5:10.9,variant==='cabinet'?7.5:9,variant==='cabinet'?.11:.34]}/></T.Mesh>
+  {#if variant==='cabinet'}
+   {#each partitionSolids(levels) as solid (solid.name)}
+    <T.Mesh name={solid.name} onclick={block} onpointerover={block} position={solid.center} material={lib.wood} receiveShadow castShadow><T.BoxGeometry args={solid.size}/></T.Mesh>
+   {/each}
+  {:else}
+   <T.Mesh onclick={block} onpointerover={block} position={[0,3.4,-1]} material={lib.wall} receiveShadow><T.BoxGeometry args={[10.9,9,.34]}/></T.Mesh>
+  {/if}
   {#if variant==='cabinet'}
    <T.Mesh onclick={block} onpointerover={block} position={[0,7.02,-.1]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[13.7,.18,3.0]}/></T.Mesh>
    <T.Mesh onclick={block} onpointerover={block} position={[0,3.15,-1.4]} material={lib.trim} receiveShadow><T.BoxGeometry args={[13.5,7.7,.18]}/></T.Mesh>
@@ -82,7 +89,7 @@
    {#if roomBackdrop&&variant!=='cabinet'}<T.Mesh onclick={block} onpointerover={block} position={[side*10.5,3.3,-.65]} material={lib.wall} receiveShadow><T.BoxGeometry args={[4.15,8.5,.45]}/></T.Mesh>{/if}
    <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?6.15:5.49),variant==='cabinet'?3.15:3.3,1.48]} material={variant==='cabinet'?lib.trim:lib.brass}><T.BoxGeometry args={[.032,variant==='cabinet'?7.2:8.3,.024]}/></T.Mesh>
    <!-- Interior returns around the two horizontal mouths, leaving real clearance. -->
-   {#each [{y:-.48,h:.75},{y:2.89,h:.48},variant==='cabinet'?{y:6.35,h:1.5}:{y:6.5,h:1.55}] as jamb}
+   {#each variant==='cabinet'?partitionGaps(levels):[{y:-.48,h:.75},{y:2.89,h:.48},{y:6.5,h:1.55}] as jamb}
     <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?6.15:5.48),jamb.y,.14]} material={lib.trim} castShadow receiveShadow><T.BoxGeometry args={[.15,jamb.h,2.35]}/></T.Mesh>
    {/each}
    {#if variant!=='cabinet'}{#each levels as level}
@@ -106,7 +113,7 @@
   <T.Mesh onclick={block} onpointerover={block} geometry={belt.rail1} material={lib.brass} position.y={base+.063}/>
   <T.Mesh onclick={block} onpointerover={block} geometry={belt.rail2} material={lib.brass} position.y={base+.063}/>
   {#each laneBoxes[row] as box (box.key)}
-   <GameBox game={box.game} x={box.x} z={box.z} yaw={box.yaw} {base} scale={boxScale} selected={selected===box.game.id} {library} {onSelect} onAsset={ready=>asset(`${row}:${box.key}`,ready)} onMoving={active=>motion(`${row}:${box.key}`,active)}/>
+   <GameBox game={box.game} x={box.x} z={box.z} yaw={box.yaw} {base} scale={boxScale} selected={selected===box.game.id} tuckOnReturn={variant==='cabinet'} {library} {onSelect} onAsset={ready=>asset(`${row}:${box.key}`,ready)} onMoving={active=>motion(`${row}:${box.key}`,active)}/>
   {/each}
   {#if variant==='magic'&&!cutaway}<MagicTunnel {base} height={tunnelHeight} materials={lib}/>{/if}
   {#if cutaway||variant==='magic'}
