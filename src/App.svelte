@@ -3,7 +3,7 @@
  import GameCabinet from './lib/cabinet/GameCabinet.svelte';
  import type {Game,CatalogSnapshot} from './lib/catalog';
  import {subscribeCatalog} from './lib/catalog-source';
- import {initialState,replay,type Intent,type State} from './lib/engine';
+ import {initialState,replay,type Intent,type State,type Table} from './lib/engine';
  import {services} from './lib/firebase';
  import {repository} from './lib/repository';
  import {gameUrl,roomCode,selectedFriends,launchReceiptKey} from './lib/launch';
@@ -27,7 +27,11 @@
  const activeTables=$derived(roomState.tables.filter(t=>!t.closed));
  const ownTable=$derived(activeTables.find(t=>t.code===own?.table)??[...activeTables].reverse().find(t=>t.players.includes(uid)));
  // Only emulator builds may redirect the shared WebURL to a local game server.
- const cribbageBase=$derived((import.meta.env.VITE_CATALOGUE_USE_FIREBASE_EMULATORS==='true'?import.meta.env.VITE_CRIBBAGE_URL:undefined)??catalog.find(game=>game.available)?.launchUrl??'https://anicolao.github.io/cribbage/');
+ function gameBase(table:Table){
+  const local=import.meta.env.VITE_CATALOGUE_USE_FIREBASE_EMULATORS==='true'?(table.game==='cantstop'?import.meta.env.VITE_CANTSTOP_URL:import.meta.env.VITE_CRIBBAGE_URL):undefined;
+  return local??catalog.find(game=>game.groupGame===table.game)?.launchUrl??`https://anicolao.github.io/${table.game}/`;
+ }
+ const gameTitle=(game:Table['game'])=>game==='cantstop'?"Can't Stop":'Cribbage';
  const returnRequest=new URLSearchParams(location.search).get('returned');
  let returnTarget=$state(returnRequest);
  let returnAttempt=$state(-1);
@@ -64,13 +68,13 @@
    const players=[uid,...chosen.filter(id=>id!==uid&&eligible.some(p=>p.id===id))];
    const table=roomCode();
    prepared=prepareGameTab();
-   if(await act({type:'table/launched',table,players}))excluded=[];
+   if(await act(selected?.groupGame==='cantstop'?{type:'table/game-launched',game:'cantstop',table,players}:{type:'table/launched',table,players}))excluded=[];
    else{prepared?.close();prepared=undefined;}
   }catch(e){prepared?.close();prepared=undefined;error=(e as Error).message;}
  }
  function openGame(){
   if(!own||!ownTable)return;
-  openTable(gameUrl(cribbageBase,ownTable,own),launchReceiptKey(room,uid,ownTable.code));
+  openTable(gameUrl(gameBase(ownTable),ownTable,own),launchReceiptKey(room,uid,ownTable.code));
  }
  function openTable(destination:string,key:string,tab:Window|null=prepareGameTab()){
   tabStatus=navigateGameTab(tab,destination)?'opened':'blocked';
@@ -92,7 +96,7 @@
   if(!joined||!synced||busy||!own?.table)return;
   const table=activeTables.find(t=>t.code===own.table),player=own;
   if(!table||returnTarget===table.code)return;
-  const destination=gameUrl(cribbageBase,table,player),key=launchReceiptKey(room,uid,table.code);
+  const destination=gameUrl(gameBase(table),table,player),key=launchReceiptKey(room,uid,table.code);
   untrack(()=>{
    try{
     const receipt=sessionStorage.getItem(key);
@@ -135,26 +139,26 @@
      </form>
     {:else if selected}
      <div class="game-controls">
-      <h1>{selected.title}</h1>{#if selected.players}<p class="game-meta">{selected.players} · {selected.duration}</p>{/if}
+      <h1>{selected.title}</h1>{#if selected.players}<p class="game-meta">{selected.players}{#if selected.duration} · {selected.duration}{/if}</p>{/if}
       {#if selected.available}
        {#if ownTable}
         <p class="table-players">{ownTable.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>
-        <button class="gold-button" onclick={openGame}>Open Cribbage {@render icon('arrow',17)}</button>
+        <button class="gold-button" onclick={openGame}>Open {ownTable?gameTitle(ownTable.game):selected.title} {@render icon('arrow',17)}</button>
         <p class="hint" data-testid="game-tab-status" aria-live="polite">{tabStatus==='blocked'?'Your browser didn’t open the game. Use the button above.':'Opens in a new tab.'}</p>
         {#if own?.table}<button class="text-button" disabled={busy} onclick={leaveTable}>Leave table</button>{/if}
        {:else}
         <fieldset class="seat-picker"><legend>Players</legend><label class="seat-option"><input type="checkbox" checked disabled/><span>{own?.name} (you)</span></label>{#each eligible.filter(p=>p.id!==uid) as player}<label class="seat-option"><input type="checkbox" checked={chosen.includes(player.id)} onchange={()=>choose(player.id)} disabled={!chosen.includes(player.id)&&chosen.length>=3}/><span>{player.name}</span></label>{/each}</fieldset>
-        <button class="gold-button" disabled={busy||!synced} onclick={launch}>Play Cribbage {@render icon('arrow',17)}</button>
+        <button class="gold-button" disabled={busy||!synced} onclick={launch}>Play {selected.title} {@render icon('arrow',17)}</button>
        {/if}
       {:else}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button><p class="hint" data-testid="external-tab-status">{externalBlocked?'Your browser didn’t open the game. Try the button again.':'Opens separately in a new tab.'}</p>{/if}
      </div>
     {/if}
-    {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>Cribbage</strong><p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
+    {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{gameTitle(table.game)}</strong><p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
    </aside>
   </div>
  </main>
  {#if joined}
-  <footer class="gathering"><div class="friends">{#each present as player,i}<div class="friend" data-testid="friend"><div class="avatar avatar-{i%4}">{player.name.slice(0,1).toUpperCase()}</div><span><strong>{player.name}{player.id===uid?' (you)':''}</strong><small>{player.table?'Cribbage table':'In room'}</small></span></div>{/each}</div><div class="room-actions"><button class:pressed={showChat} aria-label="Room conversation" aria-expanded={showChat} onclick={()=>showChat=!showChat}>{@render icon('chat',20)}</button><button aria-label="Leave room" disabled={busy} onclick={()=>act({type:'player/left'})}>{@render icon('exit',20)}</button></div></footer>
+  <footer class="gathering"><div class="friends">{#each present as player,i}<div class="friend" data-testid="friend"><div class="avatar avatar-{i%4}">{player.name.slice(0,1).toUpperCase()}</div><span><strong>{player.name}{player.id===uid?' (you)':''}</strong><small>{player.table?`${gameTitle(roomState.tables.find(t=>t.code===player.table)?.game??'cribbage')} table`:'In room'}</small></span></div>{/each}</div><div class="room-actions"><button class:pressed={showChat} aria-label="Room conversation" aria-expanded={showChat} onclick={()=>showChat=!showChat}>{@render icon('chat',20)}</button><button aria-label="Leave room" disabled={busy} onclick={()=>act({type:'player/left'})}>{@render icon('exit',20)}</button></div></footer>
   {#if showChat}<section class="chat-panel" aria-label="Room conversation"><div class="chat-heading"><h2>Chat</h2><button aria-label="Close conversation" onclick={()=>showChat=false}>×</button></div><div class="messages" aria-live="polite">{#each roomState.messages as m}<p><strong>{roomState.players.find(p=>p.id===m.actor)?.name}</strong><span>{m.text}</span></p>{/each}</div><form onsubmit={e=>{e.preventDefault();void sendMessage();}}><input aria-label="Message" placeholder="Message" maxlength="280" bind:value={message}/><button aria-label="Send message" disabled={busy||!message.trim()}>{@render icon('arrow',20)}</button></form></section>{/if}
  {/if}
  <div class="sr-only" role="status" data-status={synced&&!busy?'synced':'waiting'}>{synced?'Room connected':'Connecting to the room'}</div>

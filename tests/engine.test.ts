@@ -51,3 +51,11 @@ test('available friends are selected by ID, including two profiles using the sam
  expect(launchReceiptKey('ROOM','host','TABLE')).not.toBe(launchReceiptKey('ROOM','guest','TABLE'));
  expect(launchReceiptKey('ROOM','host','TABLE')).not.toBe(launchReceiptKey('ROOM','host','NEXT'));
 });
+
+test('v1 Cribbage histories upgrade explicitly to a v2 Can’t Stop launch',()=>{
+ const log:RoomEvent[]=[{version:1,id:'a',sequence:1,actor:'alex',intent:{type:'room/created',name:'Games',playerName:'Alex'}},{version:1,id:'b',sequence:2,actor:'sam',intent:{type:'player/joined',name:'Sam'}},{version:1,id:'c',sequence:3,actor:'alex',intent:{type:'table/launched',table:'AABB0011',players:['alex','sam']}},{version:1,id:'d',sequence:4,actor:'alex',intent:{type:'table/closed',table:'AABB0011'}},{version:2,id:'e',sequence:5,actor:'sam',intent:{type:'table/game-launched',game:'cantstop',table:'AABB0022',players:['sam','alex']}}];
+ const state=replay(log);expect(state.tables.map(t=>t.game)).toEqual(['cribbage','cantstop']);expect(state.tables[1].host).toBe('sam');
+ expect(()=>replay(log.map((e,i)=>i===4?{...e,version:1}:e))).toThrow();
+ expect(()=>replay([...log,{version:1,id:'f',sequence:6,actor:'alex',intent:{type:'message/sent',text:'old client'}}])).toThrow();
+ expect(()=>apply(state,'sam',{type:'table/game-launched',game:'fake',table:'AABB0033',players:['sam']})).toThrow();
+});

@@ -1,15 +1,16 @@
-export const VERSION=1;
+export const VERSION=2;
 export type Intent =
  | {type:'room/created';name:string;playerName:string}
  | {type:'player/joined';name:string}
  | {type:'player/left'}
  | {type:'table/launched';table:string;players:string[]}
+ | {type:'table/game-launched';table:string;players:string[];game:'cantstop'}
  | {type:'player/returned'}
  | {type:'table/closed';table:string}
  | {type:'message/sent';text:string};
-export type RoomEvent={version:1;id:string;sequence:number;actor:string;intent:Intent};
+export type RoomEvent={version:1|2;id:string;sequence:number;actor:string;intent:Intent};
 export type Player={id:string;name:string;present:boolean;table:string|null};
-export type Table={code:string;game:'cribbage';host:string;players:string[];closed:boolean};
+export type Table={code:string;game:'cribbage'|'cantstop';host:string;players:string[];closed:boolean};
 export type State={revision:number;name:string;host:string;players:Player[];tables:Table[];messages:{id:string;actor:string;text:string}[]};
 export function initialState():State{return {revision:0,name:'',host:'',players:[],tables:[],messages:[]};}
 function requireChoice(ok:unknown,message:string):asserts ok {if(!ok)throw new Error(message);}
@@ -17,14 +18,15 @@ function text(value:unknown,max:number){return typeof value==='string'&&value.tr
 export function parseIntent(value:unknown):Intent{
  requireChoice(value&&typeof value==='object'&&!Array.isArray(value),'Choose something to do.');
  const i=value as Record<string,unknown>;
- const keys:Record<string,string[]>={'room/created':['name','playerName'],'player/joined':['name'],'player/left':[],'table/launched':['table','players'],'player/returned':[],'table/closed':['table'],'message/sent':['text']};
+ const keys:Record<string,string[]>={'room/created':['name','playerName'],'player/joined':['name'],'player/left':[],'table/launched':['table','players'],'table/game-launched':['table','players','game'],'player/returned':[],'table/closed':['table'],'message/sent':['text']};
  requireChoice(typeof i.type==='string'&&Object.hasOwn(keys,i.type),'This room needs a newer version.');
  requireChoice(Object.keys(i).sort().join(',')===['type',...keys[i.type]].sort().join(','),'Choose something to do.');
  if(i.type==='room/created')requireChoice(text(i.name,48)&&text(i.playerName,24),'Give the room and yourself a name.');
  if(i.type==='player/joined')requireChoice(text(i.name,24),'Choose a name up to 24 characters.');
  if(i.type==='message/sent')requireChoice(text(i.text,280),'Write a message up to 280 characters.');
- if(i.type==='table/launched'||i.type==='table/closed')requireChoice(typeof i.table==='string'&&/^[A-F0-9]{8}$/.test(i.table),'Choose a new table.');
- if(i.type==='table/launched')requireChoice(Array.isArray(i.players)&&i.players.length>=1&&i.players.length<=4&&i.players.every(p=>typeof p==='string')&&new Set(i.players).size===i.players.length,'Choose up to four friends.');
+ if(i.type==='table/launched'||i.type==='table/game-launched'||i.type==='table/closed')requireChoice(typeof i.table==='string'&&/^[A-F0-9]{8}$/.test(i.table),'Choose a new table.');
+ if(i.type==='table/game-launched')requireChoice(i.game==='cantstop','Choose a supported game.');
+ if(i.type==='table/launched'||i.type==='table/game-launched')requireChoice(Array.isArray(i.players)&&i.players.length>=1&&i.players.length<=4&&i.players.every(p=>typeof p==='string')&&new Set(i.players).size===i.players.length,'Choose up to four friends.');
  return i as Intent;
 }
 export function apply(state:State,actor:string,value:unknown):State{
@@ -42,11 +44,11 @@ export function apply(state:State,actor:string,value:unknown):State{
   }else{
    requireChoice(own?.present,'Come into the room first.');
    if(intent.type==='player/left'){own.present=false;own.table=null;}
-   if(intent.type==='table/launched'){
+   if(intent.type==='table/launched'||intent.type==='table/game-launched'){
     requireChoice(intent.players.includes(actor),'Take a seat at your table.');
     requireChoice(!next.tables.some(t=>t.code===intent.table),'Choose a fresh table.');
     requireChoice(intent.players.every(id=>next.players.some(p=>p.id===id&&p.present&&!p.table)),'Someone is already at a table.');
-    next.tables.push({code:intent.table,game:'cribbage',host:actor,players:[...intent.players],closed:false});
+    next.tables.push({code:intent.table,game:intent.type==='table/game-launched'?intent.game:'cribbage',host:actor,players:[...intent.players],closed:false});
     for(const p of next.players)if(intent.players.includes(p.id))p.table=intent.table;
    }
    if(intent.type==='player/returned'){requireChoice(own.table,'You’re already by the shelves.');own.table=null;}
@@ -60,5 +62,10 @@ export function apply(state:State,actor:string,value:unknown):State{
  next.revision++;return next;
 }
 export function replay(events:readonly RoomEvent[]):State{
- return events.reduce((state,e)=>{requireChoice(e.version===VERSION&&e.sequence===state.revision+1,'This room’s history cannot be replayed.');return apply(state,e.actor,e.intent);},initialState());
+ let version=1;
+ return events.reduce((state,e)=>{
+  requireChoice([1,2].includes(e.version)&&e.version>=version&&e.sequence===state.revision+1,'This room’s history cannot be replayed.');
+  requireChoice(e.intent.type!=='table/game-launched'||e.version===2,'This launch needs protocol version 2.');
+  version=e.version;return apply(state,e.actor,e.intent);
+ },initialState());
 }

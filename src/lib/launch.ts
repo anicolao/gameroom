@@ -9,7 +9,7 @@ export function launchReceiptKey(room:string,player:string,table:string){return 
 export function gameUrl(base:string,table:Table,player:Player,returnTo?:string){
  if(!table.players.includes(player.id))throw new Error('This invitation is for another player.');
  const url=new URL(base);
- if(!['http:','https:'].includes(url.protocol))throw new Error('Choose a web address for Cribbage.');
+ if(!['http:','https:'].includes(url.protocol))throw new Error('Choose a web address for the game.');
  url.searchParams.set('table',table.code);url.searchParams.set('launch',table.host===player.id?'create':'join');url.searchParams.set('name',player.name);
  if(returnTo)url.searchParams.set('returnTo',returnTo);else url.searchParams.delete('returnTo');
  return url.href;

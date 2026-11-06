@@ -159,3 +159,23 @@ Wood maps and the studio environment are CC0; provenance is recorded in
 E2E uses its own Cribbage endpoint at 4397, separate from other local game
 processes. References wait for textures, fonts, replay and motion to finish,
 then compare every decoded RGBA byte at the normal renderer quality.
+
+## Can’t Stop group launches
+
+Can’t Stop supports the same version-1 URL contract as Cribbage. The catalog
+adapter recognizes only the exact `https://anicolao.github.io/cantstop/` WebURL,
+when its shared Applications record explicitly enables `GameroomEnabled`.
+Titles and document IDs never grant group support. No production record is
+created or modified by this integration.
+
+Room protocol 2 adds `table/game-launched {game:'cantstop',table,players}`. Existing
+protocol-1 `table/launched` actions still replay as Cribbage. An existing room can
+upgrade to version 2, but cannot downgrade afterward. The room records only the
+chosen game and intended participants; each game retains its own anonymous
+identities and immutable player-action log.
+
+The test stack starts both integrated games in isolated build directories.
+`CANTSTOP_PATH` selects the Can’t Stop checkout (default `../cantstop`), and
+`CRIBBAGE_PATH` selects Cribbage as before. `VITE_CANTSTOP_URL` redirects only
+emulator builds. The Can’t Stop E2E story temporarily adds a guarded demo catalog
+record and removes it afterward; production catalog access remains read-only.

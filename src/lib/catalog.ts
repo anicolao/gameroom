@@ -1,5 +1,5 @@
 /** Shared Applications catalogue: Gameroom is opt-in and uses only WebURL. */
-export type Game={id:string;title:string;iconSrc:string|null;launchUrl:string;available:boolean;artKey:string;players?:string;duration?:string};
+export type Game={id:string;title:string;iconSrc:string|null;launchUrl:string;available:boolean;artKey:string;players?:string;duration?:string;groupGame?:'cribbage'|'cantstop'};
 export type CatalogSnapshot={status:'loading'|'current'|'offline'|'empty'|'error';games:Game[];rejected:number};
 export function httpsUrl(value:unknown):string|null{
  if(typeof value!=='string'||!value.trim())return null;
@@ -18,8 +18,10 @@ export function parseApplication(id:string,value:Record<string,unknown>,assetOri
  if(!title||!launchUrl)return null;
  let iconSrc=httpsUrl(value.Icon);
  if(typeof value.Icon==='string'&&value.Icon.startsWith('/')&&!value.Icon.startsWith('//')&&!value.Icon.includes('\\'))iconSrc=httpsUrl(new URL(value.Icon,assetOrigin).href);
- const artKey=catalogArt(launchUrl),available=artKey==='cribbage';
- return {id,title,iconSrc,launchUrl,available,artKey,...(available?{players:'2–4 players',duration:'30–45 min'}:{})};
+ const artKey=catalogArt(launchUrl),target=new URL(launchUrl);
+ const groupGame=target.hostname==='anicolao.github.io'?({'/cribbage':'cribbage','/cantstop':'cantstop'} as const)[target.pathname.replace(/\/+$/,'') as '/cribbage'|'/cantstop']:undefined;
+ const available=!!groupGame;
+ return {id,title,iconSrc,launchUrl,available,artKey,...(groupGame?{groupGame,players:'2–4 players',...(groupGame==='cribbage'?{duration:'30–45 min'}:{})}:{})};
 }
 export function parseCatalog(documents:{id:string;data:Record<string,unknown>}[],assetOrigin?:string){
  const games:Game[]=[];let rejected=0;

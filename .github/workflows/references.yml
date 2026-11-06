@@ -31,6 +31,11 @@ jobs:
           repository: anicolao/cribbage
           ref: 6e542da6fb5d36f1f1941965bc8fa8004e422d37 # Cribbage PR 11, reviewed URL adapter
           path: cribbage
+      - uses: actions/checkout@v4
+        with:
+          repository: anicolao/cantstop
+          ref: 43b5e61ab0a86dadba1f74b22c860fb170c056cf # Replayable game and URL adapter
+          path: cantstop
       - run: apt-get update && apt-get install -y --no-install-recommends unzip
       - uses: oven-sh/setup-bun@v2
         with:
@@ -42,11 +47,14 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun install --frozen-lockfile
         working-directory: cribbage
+      - run: bun install --frozen-lockfile
+        working-directory: cantstop
       - run: |
           E2E_REFERENCE_SEAT_ORDER=sam-lee bun run test:e2e:update
           E2E_REFERENCE_SEAT_ORDER=lee-sam E2E_GREP='three friends' bun run test:e2e:update
         env:
           CRIBBAGE_PATH: ../cribbage
+          CANTSTOP_PATH: ../cantstop
           E2E_GREP: ${{ inputs.grep }}
       - uses: actions/upload-artifact@v4
         if: always()

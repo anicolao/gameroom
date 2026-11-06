@@ -12,6 +12,7 @@ service cloud.firestore {
    || (i.type=='message/sent' && i.keys().hasOnly(['type','text']) && shortText(i.text,280))
    || (i.type=='table/closed' && i.keys().hasOnly(['type','table']) && i.table.matches('[A-F0-9]{8}'))
    || (i.type=='table/launched' && i.keys().hasOnly(['type','table','players']) && i.table.matches('[A-F0-9]{8}') && i.players is list && i.players.size()>=1 && i.players.size()<=4 && i.players.toSet().size()==i.players.size() && request.auth.uid in i.players)
+   || (i.type=='table/game-launched' && i.keys().hasOnly(['type','table','players','game']) && i.game=='cantstop' && i.table.matches('[A-F0-9]{8}') && i.players is list && i.players.size()>=1 && i.players.size()<=4 && i.players.toSet().size()==i.players.size() && request.auth.uid in i.players)
   );}
   function metadata(d){return d.keys().hasOnly(['owner','members','present','revision']) && d.owner is string && d.members is list && d.present is list && d.members.size()>=1 && d.members.size()<=64 && d.present.hasOnly(d.members) && d.owner in d.members && d.revision is int && d.revision>=1;}
   match /rooms/{room} {
@@ -34,14 +35,16 @@ service cloud.firestore {
    match /events/{sequence} {
     allow read: if signedIn();
     allow create: if signedIn() && request.resource.data.keys().hasOnly(['version','id','sequence','actor','intent'])
-     && request.resource.data.version==1 && request.resource.data.id is string && request.resource.data.id.matches('[A-Za-z0-9_-]{1,128}')
+     && request.resource.data.version in [1,2] && request.resource.data.id is string && request.resource.data.id.matches('[A-Za-z0-9_-]{1,128}')
      && request.resource.data.actor==request.auth.uid && request.resource.data.sequence is int && intent(request.resource.data.intent)
      && sequence==string(request.resource.data.sequence)
      && getAfter(root(room)).data.revision==request.resource.data.sequence
      && request.auth.uid in getAfter(root(room)).data.members
      && (!exists(root(room)) || getAfter(root(room)).data.revision==get(root(room)).data.revision+1)
      && getAfter(/databases/$(database)/documents/rooms/$(room)/commands/$(request.resource.data.id)).data.sequence==request.resource.data.sequence
-     && (request.resource.data.intent.type!='table/launched' || request.resource.data.intent.players.hasOnly(getAfter(root(room)).data.present));
+     && (request.resource.data.intent.type!='table/game-launched' || request.resource.data.version==2)
+     && (!exists(root(room)) || request.resource.data.version>=get(event(room,get(root(room)).data.revision)).data.version)
+     && (!(request.resource.data.intent.type in ['table/launched','table/game-launched']) || request.resource.data.intent.players.hasOnly(getAfter(root(room)).data.present));
    }
    match /commands/{id} {
     allow get: if signedIn();

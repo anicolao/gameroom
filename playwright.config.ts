@@ -7,5 +7,5 @@ export default defineConfig({
  projects:[{name:'chromium',use:{browserName:'chromium'}}],
  snapshotPathTemplate:'{testDir}/{testFileDir}/screenshots/{arg}-{platform}{ext}',
  expect:{timeout:60_000,toHaveScreenshot:{maxDiffPixels:0,threshold:0,animations:'disabled',caret:'hide',scale:'css'}},
- webServer:[{command:'bun scripts/serve-test.ts gameroom',url:'http://127.0.0.1:4199',reuseExistingServer:false,timeout:120_000},{command:'bun scripts/serve-test.ts cribbage',url:'http://127.0.0.1:4397',reuseExistingServer:false,timeout:120_000}]
+ webServer:[{command:'bun scripts/serve-test.ts gameroom',url:'http://127.0.0.1:4199',reuseExistingServer:false,timeout:120_000},{command:'bun scripts/serve-test.ts cribbage',url:'http://127.0.0.1:4397',reuseExistingServer:false,timeout:120_000},{command:'bun scripts/serve-test.ts cantstop',url:'http://127.0.0.1:4499',reuseExistingServer:false,timeout:120_000}]
 });

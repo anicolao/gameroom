@@ -62,3 +62,11 @@ test('concurrent arrivals reject a stale append and can join after replay catche
   expect((await getDoc(doc(env.authenticatedContext('alex').firestore(),'rooms','ABCD1234'))).data()?.members).toHaveLength(3);
  }finally{for(const repo of repos)repo.close();}
 });
+
+test('v2 Can’t Stop launches are attributed, and a room cannot downgrade after upgrading',async()=>{
+ const {db,state}=await create(),intent:Intent={type:'table/game-launched',game:'cantstop',table:'CABC1234',players:['alex']};
+ const root=doc(db,'rooms','ABCD1234'),after=apply(state,'alex',intent),batch=writeBatch(db);
+ batch.set(root,{owner:after.host,members:['alex'],present:['alex'],revision:2});
+ batch.set(doc(root,'events','2'),{version:2,id:'cantstop',sequence:2,actor:'alex',intent});batch.set(doc(root,'commands','cantstop'),{sequence:2});await assertSucceeds(batch.commit());
+ const old=append(db,'ABCD1234','alex',{type:'message/sent',text:'old protocol'},after);await assertFails(old.commit());
+});

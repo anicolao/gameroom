@@ -34,3 +34,8 @@ test('known web versions resolve painted covers without claiming new group proto
  }
  expect(parseApplication('same-title',{Title:'Pantheon',GameroomEnabled:true,WebURL:'https://unknown.example/pantheon/'})).toMatchObject({artKey:'',available:false});
 });
+
+test('Can’t Stop group launching is recognized only by its exact integrated WebURL',()=>{
+ expect(parseApplication('arbitrary',{Title:'Any label',GameroomEnabled:true,WebURL:'https://anicolao.github.io/cantstop/'})).toMatchObject({available:true,groupGame:'cantstop'});
+ expect(parseApplication('cantstop',{Title:"Can't Stop",GameroomEnabled:true,WebURL:'https://other.example/cantstop/'})).toMatchObject({available:false});
+});
