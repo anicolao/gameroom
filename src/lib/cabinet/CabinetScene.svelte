@@ -52,7 +52,7 @@
  $effect(()=>{const p=position,lib=library;if(lib){lib.rubber.offset.x=p*34/(mode==='catalogue'?cabinetCarriers:carriers);invalidate();}});
  onDestroy(()=>{[deck,front,...tracks.flatMap(t=>Object.values(t))].forEach(g=>g.dispose());});
 </script>
-<CabinetCamera {yaw} {elevation} {zoom} {orbit} {compact} {targetHeight} fitWidth={variant==='cabinet'?13.6:18.3}/>
+<CabinetCamera {yaw} {elevation} {zoom} {orbit} {compact} {targetHeight} fitWidth={variant==='cabinet'?13.9:18.3}/>
 <T.HemisphereLight args={['#eee9d6',variant==='cabinet'?'#392619':'#172b24',variant==='cabinet'?1.1:.65]}/>
 {#if variant==='cabinet'}<T.DirectionalLight position={[0,4.5,10]} color="#ffe2bf" intensity={.8}/>{/if}
 <T.DirectionalLight position={[-5,10,12]} color="#ffdfad" intensity={2.8*warmth} castShadow shadow.mapSize.width={4096} shadow.mapSize.height={4096} shadow.camera.left={-14} shadow.camera.right={14} shadow.camera.top={12} shadow.camera.bottom={-6} shadow.camera.near={1} shadow.camera.far={45} shadow.bias={-.00015} shadow.normalBias={.025} shadow.radius={3}/>
@@ -70,14 +70,14 @@
  {/if}
  {#if !cutaway&&variant!=='magic'}
   <!-- The cabinet backing overlaps its side panels; the roof closes high-angle views. -->
-  <T.Mesh onclick={block} onpointerover={block} position={[0,variant==='cabinet'?3.15:3.4,variant==='cabinet'?-.055:-1.0]} material={variant==='cabinet'?lib.wood:lib.wall} receiveShadow><T.BoxGeometry args={[variant==='cabinet'?13.1:10.9,variant==='cabinet'?7.5:9,variant==='cabinet'?.11:.34]}/></T.Mesh>
+  <T.Mesh onclick={block} onpointerover={block} position={[0,variant==='cabinet'?3.15:3.4,variant==='cabinet'?-.055:-1.0]} material={variant==='cabinet'?lib.wood:lib.wall} receiveShadow><T.BoxGeometry args={[variant==='cabinet'?13.5:10.9,variant==='cabinet'?7.5:9,variant==='cabinet'?.11:.34]}/></T.Mesh>
   {#if variant==='cabinet'}
-   <T.Mesh onclick={block} onpointerover={block} position={[0,7.12,.35]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[13.2,.25,2.9]}/></T.Mesh>
-   <T.Mesh onclick={block} onpointerover={block} position={[0,3.15,-.95]} material={lib.trim} receiveShadow><T.BoxGeometry args={[13.1,7.7,.18]}/></T.Mesh>
-   {#each [-1,1] as side}<T.Mesh onclick={block} onpointerover={block} position={[side*6.45,3.15,.35]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[.20,7.7,2.8]}/></T.Mesh>{/each}
+   <T.Mesh onclick={block} onpointerover={block} position={[0,7.12,.2]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[13.6,.25,3.4]}/></T.Mesh>
+   <T.Mesh onclick={block} onpointerover={block} position={[0,3.15,-1.4]} material={lib.trim} receiveShadow><T.BoxGeometry args={[13.5,7.7,.18]}/></T.Mesh>
+   {#each [-1,1] as side}<T.Mesh onclick={block} onpointerover={block} position={[side*6.65,3.15,.2]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[.20,7.7,3.2]}/></T.Mesh>{/each}
   {/if}
   {#each [-1,1] as side}
-   <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?5.8:6.95),variant==='cabinet'?3.15:3.3,1.24]} material={variant==='cabinet'?lib.wood:lib.wall} receiveShadow castShadow><T.BoxGeometry args={[variant==='cabinet'?1.5:3,variant==='cabinet'?7.5:8.5,.42]}/></T.Mesh>
+   <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?5.9:6.95),variant==='cabinet'?3.15:3.3,1.24]} material={variant==='cabinet'?lib.wood:lib.wall} receiveShadow castShadow><T.BoxGeometry args={[variant==='cabinet'?1.7:3,variant==='cabinet'?7.5:8.5,.42]}/></T.Mesh>
    {#if roomBackdrop&&variant!=='cabinet'}<T.Mesh onclick={block} onpointerover={block} position={[side*10.5,3.3,-.65]} material={lib.wall} receiveShadow><T.BoxGeometry args={[4.15,8.5,.45]}/></T.Mesh>{/if}
    <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?5.09:5.49),3.3,1.48]} material={variant==='cabinet'?lib.trim:lib.brass}><T.BoxGeometry args={[.032,8.3,.024]}/></T.Mesh>
    <!-- Interior returns around the two horizontal mouths, leaving real clearance. -->
@@ -88,10 +88,10 @@
     <T.Mesh onclick={block} onpointerover={block} position={[side*6.4,level+1.13,-.8]} material={lib.dark}><T.BoxGeometry args={[1.8,2.5,.08]}/></T.Mesh>
    {/each}{/if}
   {/each}
-  <T.Mesh onclick={block} onpointerover={block} position={[0,6.8,1.22]} material={lib.wood} castShadow><T.BoxGeometry args={[variant==='cabinet'?13.1:17.2,.32,.6]}/></T.Mesh>
-  <T.Mesh onclick={block} onpointerover={block} position={[0,6.99,1.22]} material={lib.trim}><T.BoxGeometry args={[variant==='cabinet'?13.3:17.65,.10,.73]}/></T.Mesh>
-  <T.Mesh onclick={block} onpointerover={block} position={[0,6.6,1.46]} material={variant==='cabinet'?lib.trim:lib.brass}><T.BoxGeometry args={[variant==='cabinet'?12.9:16.8,.025,.05]}/></T.Mesh>
-  <T.Mesh onclick={block} onpointerover={block} position={[0,-.51,1.32]} material={lib.wood} receiveShadow><T.BoxGeometry args={[variant==='cabinet'?13.1:17.2,.25,.35]}/></T.Mesh>
+  <T.Mesh onclick={block} onpointerover={block} position={[0,6.8,1.22]} material={lib.wood} castShadow><T.BoxGeometry args={[variant==='cabinet'?13.5:17.2,.32,.6]}/></T.Mesh>
+  <T.Mesh onclick={block} onpointerover={block} position={[0,6.99,1.22]} material={lib.trim}><T.BoxGeometry args={[variant==='cabinet'?13.7:17.65,.10,.73]}/></T.Mesh>
+  <T.Mesh onclick={block} onpointerover={block} position={[0,6.6,1.46]} material={variant==='cabinet'?lib.trim:lib.brass}><T.BoxGeometry args={[variant==='cabinet'?13.3:16.8,.025,.05]}/></T.Mesh>
+  <T.Mesh onclick={block} onpointerover={block} position={[0,-.51,1.32]} material={lib.wood} receiveShadow><T.BoxGeometry args={[variant==='cabinet'?13.5:17.2,.25,.35]}/></T.Mesh>
  {:else}
   <!-- Structural feet keep the cutaway readable while the hidden loop is exposed. -->
   {#each [-1,1] as side}<T.Mesh onclick={block} onpointerover={block} position={[side*5.25,2.6,-1.05]} material={lib.trim}><T.BoxGeometry args={[.14,6.6,.14]}/></T.Mesh>{/each}
