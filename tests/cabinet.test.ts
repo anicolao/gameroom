@@ -57,7 +57,7 @@ test('selected boxes settle onto the belt before the corner and stay down on the
 });
 
 test('corner openings enclose the full selected box height and the backing clears its rear face',()=>{
- const levels=[3.27,.12],openings=cornerOpenings(levels);
+ const levels=[6.42,3.27,.12],openings=cornerOpenings(levels);
  for(const [i,base] of [...levels].sort((a,b)=>a-b).entries()){
   expect(openings[i].bottom).toBeLessThan(base+.105);
   expect(openings[i].top).toBeGreaterThan(base+.105+.23+2.2*1.04);
@@ -79,17 +79,17 @@ function intersectsWood(pose:{x:number;z:number;yaw:number},base:number,scale:nu
  });
 }
 test('the complete rotating box sweep never intersects the backing or its corner borders',()=>{
- const levels=[3.27,.12],solids=partitionSolids(levels),length=4*cabinetTrack.half+2*Math.PI*cabinetTrack.radius;
+ const levels=[6.42,3.27,.12],solids=partitionSolids(levels,9.305),length=4*cabinetTrack.half+2*Math.PI*cabinetTrack.radius;
  for(let step=0;step<1440;step++)for(const base of levels)for(const scale of [.91,1,1.04])for(const lift of [0,.09,.23])for(const selected of [false,true]){
   const pose=pathAt(step/1440*length,cabinetTrack);
   const collision=solids.find(solid=>intersectsWood(pose,base,scale,lift,selected,solid));
   if(collision)throw new Error(`Box intersects ${collision.name}: ${JSON.stringify({step,pose,base,scale,lift,selected})}`);
  }
- expect(solids).toHaveLength(9);
+ expect(solids).toHaveLength(12);
 });
 
 test('the belt and rails pass through open slots below the backing',()=>{
- const levels=[3.27,.12],solids=partitionSolids(levels),length=4*cabinetTrack.half+2*Math.PI*cabinetTrack.radius;
+ const levels=[6.42,3.27,.12],solids=partitionSolids(levels,9.305),length=4*cabinetTrack.half+2*Math.PI*cabinetTrack.radius;
  for(let step=0;step<720;step++)for(const base of levels)for(const height of [.015,.045,.063])for(const offset of [-.63,-.59,0,.59,.63]){
   const pose=pathAt(step/720*length,cabinetTrack),point=[pose.x+Math.sin(pose.yaw)*offset,base+height,pose.z+Math.cos(pose.yaw)*offset];
   const collision=solids.find(solid=>point.every((value,axis)=>Math.abs(value-solid.center[axis])<solid.size[axis]/2-1e-9));

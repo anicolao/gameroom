@@ -8,7 +8,7 @@ Viewpoint: **Reader**
 
 ![The eight-game catalog can browse in the embedded cabinet](./screenshots/000-eight-boxes-reader-darwin.png)
 
-- [x] Six boxes are visible and browsing is enabled for the actual eight-game collection
+- [x] All eight games are visible across three shelves and browsing is enabled for the actual eight-game collection
 
 ## Wheel input browses the production-sized eight-game collection
 
@@ -16,21 +16,29 @@ Viewpoint: **Reader**
 
 ![Wheel input browses the production-sized eight-game collection](./screenshots/001-eight-game-scroll-reader-darwin.png)
 
-- [x] Both final games arrive through the slim closed ends
+- [x] The three shelves move through the slim closed ends
+
+## Rotating boxes enter real openings at the cabinet corners
+
+Viewpoint: **Reader**
+
+![Rotating boxes enter real openings at the cabinet corners](./screenshots/002-corner-entry-reader-darwin.png)
+
+- [x] An intermediate rotation clears the shortened backing and open passages
 
 ## The shelves continue beyond their original sequence
 
 Viewpoint: **Reader**
 
-![The shelves continue beyond their original sequence](./screenshots/002-repeat-forward-reader-darwin.png)
+![The shelves continue beyond their original sequence](./screenshots/003-repeat-forward-reader-darwin.png)
 
-- [x] Position nine repeats position one without an end stop or visible controls
+- [x] Position nine continues without an end stop or visible controls
 
 ## Keyboard browsing also repeats through negative positions
 
 Viewpoint: **Reader**
 
-![Keyboard browsing also repeats through negative positions](./screenshots/003-repeat-backward-reader-darwin.png)
+![Keyboard browsing also repeats through negative positions](./screenshots/004-repeat-backward-reader-darwin.png)
 
 - [x] Position minus seven reaches the same games from the other direction
 
@@ -38,7 +46,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![A native click on the 3D Pantheon box selects it](./screenshots/004-mesh-selection-reader-darwin.png)
+![A native click on the 3D Pantheon box selects it](./screenshots/005-mesh-selection-reader-darwin.png)
 
 - [x] The selected box lifts and the independent URL action follows the selection
 
@@ -46,7 +54,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![Wheel input carries new boxes through the concealed return loop](./screenshots/005-wheel-browse-reader-darwin.png)
+![Wheel input carries new boxes through the concealed return loop](./screenshots/006-wheel-browse-reader-darwin.png)
 
 - [x] The twenty-game collection moves without adding visible scroll controls
 
@@ -54,7 +62,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![A larger catalog repeats as many times as needed](./screenshots/006-large-repeat-reader-darwin.png)
+![A larger catalog repeats as many times as needed](./screenshots/007-large-repeat-reader-darwin.png)
 
 - [x] Position twenty-seven still exposes the final games without a boundary
 
@@ -62,7 +70,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![A horizontal swipe moves the belts without selecting a box](./screenshots/007-touch-browse-reader-darwin.png)
+![A horizontal swipe moves the belts without selecting a box](./screenshots/008-touch-browse-reader-darwin.png)
 
 - [x] Touch reaches position four while the previous selection stays intact
 
@@ -70,7 +78,7 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![Search narrows a large catalog to one illustrated box](./screenshots/008-single-cover-reader-darwin.png)
+![Search narrows a large catalog to one illustrated box](./screenshots/009-single-cover-reader-darwin.png)
 
 - [x] One semantic game choice repeats around its shelf and can keep scrolling
 
@@ -78,6 +86,6 @@ Viewpoint: **Reader**
 
 Viewpoint: **Reader**
 
-![An empty search keeps the cabinet and room available](./screenshots/009-empty-shelves-reader-darwin.png)
+![An empty search keeps the cabinet and room available](./screenshots/010-empty-shelves-reader-darwin.png)
 
 - [x] Empty shelves show a useful result message
