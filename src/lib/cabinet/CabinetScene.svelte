@@ -7,7 +7,7 @@
  import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
  import {boxesAt,catalogueBoxes,track,cabinetTrack,cabinetCarriers} from './conveyor';
  import type {CabinetGame} from './catalogue';
- import {partitionSolids,partitionGaps} from './structure';
+ import {partitionSolids} from './structure';
  import {beltGeometry} from './geometry';
  import {loadCabinetMaterials} from './materials';
  import CabinetCamera from './CabinetCamera.svelte';
@@ -23,7 +23,10 @@
  const tunnelHeight=$derived(Math.max(2.82,2.2*1.04*boxScale+.105+.23+.20));
  const rowPitch=$derived(variant==='magic'?Math.max(3.15,tunnelHeight+.32):3.15);
  const levels=$derived(Array.from({length:rows},(_,i)=>.12+(rows-1-i)*rowPitch));
- const laneBoxes=$derived(levels.map((_,row)=>mode==='lab'?boxesAt(games,position,carriers,row,variant==='cabinet'?cabinetTrack:track):catalogueBoxes(games,position,row)));
+ const roof=$derived(levels[0]+rowPitch-.145);
+ const shellTop=$derived(roof+.13),shellBottom=-.7;
+ const shellCenter=$derived((shellTop+shellBottom)/2),shellHeight=$derived(shellTop-shellBottom);
+ const laneBoxes=$derived(levels.map((_,row)=>mode==='lab'?boxesAt(games,position,carriers,row,variant==='cabinet'?cabinetTrack:track):catalogueBoxes(games,position,row,rows)));
  // These are the projected centers of the actual meshes, also useful to native-input tests.
  $effect(()=>{
   void assetRevision;void motionRevision;void selected;void position;void yaw;void elevation;void zoom;void compact;void targetHeight;
@@ -54,7 +57,7 @@
  $effect(()=>{const p=position,lib=library;if(lib){lib.rubber.offset.x=p*34/(mode==='catalogue'?cabinetCarriers:carriers);invalidate();}});
  onDestroy(()=>{[deck,front,cabinetDeck,cabinetFront,...tracks.flatMap(t=>Object.values(t))].forEach(g=>g.dispose());});
 </script>
-<CabinetCamera {yaw} {elevation} {zoom} {orbit} {compact} {targetHeight} perspective={variant==='cabinet'} fitWidth={variant==='cabinet'?14.8:18.3}/>
+<CabinetCamera {yaw} {elevation} {zoom} {orbit} {compact} {targetHeight} perspective={variant==='cabinet'} fitWidth={variant==='cabinet'?14.8:18.3} fitHeight={variant==='cabinet'?shellHeight+1.2:8.8}/>
 <T.HemisphereLight args={['#eee9d6',variant==='cabinet'?'#392619':'#172b24',variant==='cabinet'?1.1:.65]}/>
 {#if variant==='cabinet'}<T.DirectionalLight position={[0,4.5,10]} color="#ffe2bf" intensity={.8}/>{/if}
 <T.DirectionalLight position={[-5,10,12]} color="#ffdfad" intensity={2.8*warmth} castShadow shadow.mapSize.width={4096} shadow.mapSize.height={4096} shadow.camera.left={-14} shadow.camera.right={14} shadow.camera.top={12} shadow.camera.bottom={-6} shadow.camera.near={1} shadow.camera.far={45} shadow.bias={-.00015} shadow.normalBias={.025} shadow.radius={3}/>
@@ -73,33 +76,41 @@
  {#if !cutaway&&variant!=='magic'}
   <!-- The cabinet backing overlaps its side panels; the roof closes high-angle views. -->
   {#if variant==='cabinet'}
-   {#each partitionSolids(levels) as solid (solid.name)}
+   {#each partitionSolids(levels,roof-.12) as solid (solid.name)}
     <T.Mesh name={solid.name} onclick={block} onpointerover={block} position={solid.center} material={lib.wood} receiveShadow castShadow><T.BoxGeometry args={solid.size}/></T.Mesh>
    {/each}
   {:else}
    <T.Mesh onclick={block} onpointerover={block} position={[0,3.4,-1]} material={lib.wall} receiveShadow><T.BoxGeometry args={[10.9,9,.34]}/></T.Mesh>
   {/if}
   {#if variant==='cabinet'}
-   <T.Mesh onclick={block} onpointerover={block} position={[0,7.02,-.1]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[13.7,.18,3.0]}/></T.Mesh>
-   <T.Mesh onclick={block} onpointerover={block} position={[0,3.15,-1.4]} material={lib.trim} receiveShadow><T.BoxGeometry args={[13.5,7.7,.18]}/></T.Mesh>
-   {#each [-1,1] as side}<T.Mesh onclick={block} onpointerover={block} position={[side*6.65,3.15,.2]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[.20,7.7,3.2]}/></T.Mesh>{/each}
+   <T.Mesh onclick={block} onpointerover={block} position={[0,roof,-.1]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[13.7,.18,3.0]}/></T.Mesh>
+   <T.Mesh onclick={block} onpointerover={block} position={[0,shellCenter,-1.4]} material={lib.trim} receiveShadow><T.BoxGeometry args={[13.5,shellHeight,.18]}/></T.Mesh>
+   {#each [-1,1] as side}<T.Mesh onclick={block} onpointerover={block} position={[side*6.65,shellCenter,.2]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[.20,shellHeight,3.2]}/></T.Mesh>{/each}
   {/if}
   {#each [-1,1] as side}
-   <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?6.45:6.95),variant==='cabinet'?3.15:3.3,1.24]} material={variant==='cabinet'?lib.wood:lib.wall} receiveShadow castShadow><T.BoxGeometry args={[variant==='cabinet'?.6:3,variant==='cabinet'?7.5:8.5,.42]}/></T.Mesh>
+   <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?6.45:6.95),variant==='cabinet'?shellCenter:3.3,1.24]} material={variant==='cabinet'?lib.wood:lib.wall} receiveShadow castShadow><T.BoxGeometry args={[variant==='cabinet'?.6:3,variant==='cabinet'?shellHeight:8.5,.42]}/></T.Mesh>
    {#if roomBackdrop&&variant!=='cabinet'}<T.Mesh onclick={block} onpointerover={block} position={[side*10.5,3.3,-.65]} material={lib.wall} receiveShadow><T.BoxGeometry args={[4.15,8.5,.45]}/></T.Mesh>{/if}
-   <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?6.15:5.49),variant==='cabinet'?3.15:3.3,1.48]} material={variant==='cabinet'?lib.trim:lib.brass}><T.BoxGeometry args={[.032,variant==='cabinet'?7.2:8.3,.024]}/></T.Mesh>
-   <!-- Interior returns around the two horizontal mouths, leaving real clearance. -->
-   {#each variant==='cabinet'?partitionGaps(levels):[{y:-.48,h:.75},{y:2.89,h:.48},{y:6.5,h:1.55}] as jamb}
-    <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?6.15:5.48),jamb.y,.14]} material={lib.trim} castShadow receiveShadow><T.BoxGeometry args={[.15,jamb.h,2.35]}/></T.Mesh>
+   <T.Mesh onclick={block} onpointerover={block} position={[side*(variant==='cabinet'?6.15:5.49),variant==='cabinet'?shellCenter:3.3,1.48]} material={variant==='cabinet'?lib.trim:lib.brass}><T.BoxGeometry args={[.032,variant==='cabinet'?shellHeight-.3:8.3,.024]}/></T.Mesh>
+   {#if variant!=='cabinet'}
+   <!-- Interior returns around the wall openings. -->
+   {#each [{y:-.48,h:.75},{y:2.89,h:.48},{y:6.5,h:1.55}] as jamb}
+    <T.Mesh onclick={block} onpointerover={block} position={[side*5.48,jamb.y,.14]} material={lib.trim} castShadow receiveShadow><T.BoxGeometry args={[.15,jamb.h,2.35]}/></T.Mesh>
    {/each}
+   {/if}
    {#if variant!=='cabinet'}{#each levels as level}
     <T.Mesh onclick={block} onpointerover={block} position={[side*6.4,level+1.13,-.8]} material={lib.dark}><T.BoxGeometry args={[1.8,2.5,.08]}/></T.Mesh>
    {/each}{/if}
   {/each}
-  <T.Mesh onclick={block} onpointerover={block} position={[0,variant==='cabinet'?6.94:6.8,variant==='cabinet'?1.34:1.22]} material={lib.wood} castShadow><T.BoxGeometry args={[variant==='cabinet'?13.7:17.2,variant==='cabinet'?.28:.32,variant==='cabinet'?.36:.6]}/></T.Mesh>
-  <T.Mesh onclick={block} onpointerover={block} position={[0,variant==='cabinet'?7.11:6.99,variant==='cabinet'?1.34:1.22]} material={lib.trim}><T.BoxGeometry args={[variant==='cabinet'?13.8:17.65,variant==='cabinet'?.09:.10,variant==='cabinet'?.42:.73]}/></T.Mesh>
-  <T.Mesh onclick={block} onpointerover={block} position={[0,6.6,1.46]} material={variant==='cabinet'?lib.trim:lib.brass}><T.BoxGeometry args={[variant==='cabinet'?13.3:16.8,.025,.05]}/></T.Mesh>
+  <T.Mesh onclick={block} onpointerover={block} position={[0,variant==='cabinet'?roof-.08:6.8,variant==='cabinet'?1.34:1.22]} material={lib.wood} castShadow><T.BoxGeometry args={[variant==='cabinet'?13.7:17.2,variant==='cabinet'?.28:.32,variant==='cabinet'?.36:.6]}/></T.Mesh>
+  <T.Mesh onclick={block} onpointerover={block} position={[0,variant==='cabinet'?roof+.09:6.99,variant==='cabinet'?1.34:1.22]} material={variant==='cabinet'?lib.wood:lib.trim}><T.BoxGeometry args={[variant==='cabinet'?13.8:17.65,variant==='cabinet'?.09:.10,variant==='cabinet'?.42:.73]}/></T.Mesh>
+  {#if variant!=='cabinet'}
+   <T.Mesh onclick={block} onpointerover={block} position={[0,6.6,1.46]} material={lib.brass}><T.BoxGeometry args={[16.8,.025,.05]}/></T.Mesh>
+  {/if}
   <T.Mesh onclick={block} onpointerover={block} position={[0,-.51,1.32]} material={lib.wood} receiveShadow><T.BoxGeometry args={[variant==='cabinet'?13.5:17.2,.25,.35]}/></T.Mesh>
+  {#if variant==='cabinet'}
+   <!-- Recessed walnut kickplate closes the space between the lowest deck and floor. -->
+   <T.Mesh name="cabinet kickplate" onclick={block} onpointerover={block} position={[0,(shellBottom+levels[levels.length-1]-.235)/2,1.02]} material={lib.wood} castShadow receiveShadow><T.BoxGeometry args={[13.1,levels[levels.length-1]-.235-shellBottom,.18]}/></T.Mesh>
+  {/if}
  {:else}
   <!-- Structural feet keep the cutaway readable while the hidden loop is exposed. -->
   {#each [-1,1] as side}<T.Mesh onclick={block} onpointerover={block} position={[side*5.25,2.6,-1.05]} material={lib.trim}><T.BoxGeometry args={[.14,6.6,.14]}/></T.Mesh>{/each}

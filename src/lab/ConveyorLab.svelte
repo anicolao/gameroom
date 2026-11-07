@@ -11,7 +11,7 @@
  const initialPosition=number('position',.5,-10000,10000);
  let cursor=$state(initialPosition),target=$state(initialPosition),velocity=0;
  let running=$state(false),speed=$state(number('speed',.65,.1,2)),settle=$state(number('settle',.8,.2,2));
- let carriers=$state(Math.round(number('carriers',12,10,14)/2)*2),rows=$state(Math.round(number('rows',2,1,2))),boxScale=$state(number('size',1,.75,1.25));
+ let carriers=$state(Math.round(number('carriers',12,10,14)/2)*2),rows=$state(Math.round(number('rows',3,1,3))),boxScale=$state(number('size',1,.75,1.25));
  let cutaway=$state(params.get('cutaway')==='1'),orbit=$state(false),yaw=$state(number('yaw',initialVariant==='magic'?25:10,-55,55)),elevation=$state(number('elevation',initialVariant==='magic'?32:12,0,65)),zoom=$state(number('zoom',initialVariant==='magic'?.9:1,.7,1.6)),warmth=$state(number('light',1,.4,1.7));
  let quality=$state('native'),focus=$state(false),ready=$state(false),failure=$state(''),selected=$state('cribbage'),copied=$state(false);
  let stage:HTMLDivElement,dragging=false,dragged=false,startX=0,startTarget=0;
@@ -24,7 +24,7 @@
  function choose(id:string){selected=id;running=false;target=positionForGame(id,cursor,carriers,variant==='cabinet');}
  function view(preset:string){orbit=false;if(preset==='front'){yaw=0;elevation=5;zoom=1;cutaway=false;}else if(preset==='cutaway'){yaw=25;elevation=35;zoom=.9;cutaway=true;}else{yaw=10;elevation=12;zoom=1;cutaway=false;}}
  function chooseVariant(value:'wall'|'magic'|'cabinet'){variant=value;orbit=false;cutaway=false;yaw=value==='magic'?25:10;elevation=value==='magic'?32:12;zoom=value==='magic'?.9:1;}
- function reset(){running=false;cursor=target=.5;velocity=0;carriers=12;rows=2;boxScale=1;speed=.65;settle=.8;warmth=1;selected='cribbage';chooseVariant(variant);}
+ function reset(){running=false;cursor=target=.5;velocity=0;carriers=12;rows=3;boxScale=1;speed=.65;settle=.8;warmth=1;selected='cribbage';chooseVariant(variant);}
  async function copySetup(){const url=new URL(location.href);url.search='';for(const [k,v] of Object.entries({variant,position:cursor.toFixed(3),speed,settle,carriers,rows,size:boxScale,cutaway:cutaway?1:0,yaw,elevation,zoom,light:warmth}))url.searchParams.set(k,String(v));history.replaceState(null,'',url);try{await navigator.clipboard.writeText(url.href);copied=true;}catch{copied=false;}}
  onMount(()=>{
   let last=performance.now(),raf=0;
@@ -64,7 +64,7 @@
   <div class="lab-stage" class:orbit bind:this={stage}>
    <svelte:boundary onerror={(error)=>{failure=String(error);console.error(error);}}>
     <Canvas {dpr} shadows={PCFShadowMap} toneMapping={ACESFilmicToneMapping} renderMode="on-demand">
-     <ShelfScene games={cabinetFixtures} {variant} position={cursor} {carriers} {boxScale} {rows} {cutaway} {yaw} {elevation} {zoom} {orbit} {warmth} {selected} onSelect={id=>{if(!dragged)selected=id;}} onReady={()=>ready=true}/>
+     <ShelfScene games={cabinetFixtures} {variant} position={cursor} {carriers} {boxScale} {rows} targetHeight={variant==='cabinet'?.12+(rows-1)*3.15/2+1.13:2.75} {cutaway} {yaw} {elevation} {zoom} {orbit} {warmth} {selected} onSelect={id=>{if(!dragged)selected=id;}} onReady={()=>ready=true}/>
     </Canvas>
     {#snippet failed()}<div class="lab-loading">WebGL couldn’t start. Try enabling hardware acceleration.</div>{/snippet}
    </svelte:boundary>
@@ -79,7 +79,7 @@
     <label>Study version<select aria-label="Study version" value={variant} onchange={event=>chooseVariant(event.currentTarget.value as typeof variant)}><option value="wall">Original wall</option><option value="magic">Exposed track · magic tunnel</option><option value="cabinet">Enclosed cabinet</option></select></label>
     <label class="lab-check"><input type="checkbox" bind:checked={cutaway}/> {variant==='magic'?'Remove tunnel cover':'Reveal behind the wall'}</label>
     <label class="lab-check"><input type="checkbox" bind:checked={orbit}/> Orbit camera</label>
-    <label>Visible shelves<select aria-label="Visible shelves" bind:value={rows}><option value={1}>One</option><option value={2}>Two</option></select></label>
+    <label>Visible shelves<select aria-label="Visible shelves" bind:value={rows}><option value={1}>One</option><option value={2}>Two</option><option value={3}>Three</option></select></label>
     <label>Spacing<select aria-label="Carrier spacing" bind:value={carriers}><option value={10}>Airy · 10 carriers</option><option value={12}>Balanced · 12 carriers</option><option value={14}>Close · 14 carriers</option></select></label>
     <label>Box size <output>{Math.round(boxScale*100)}%</output><input aria-label="Box size" type="range" min=".75" max="1.25" step=".01" bind:value={boxScale}/></label>
    </section>

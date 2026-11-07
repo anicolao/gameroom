@@ -55,7 +55,7 @@ export async function loadCabinetMaterials(onChange:()=>void=()=>{}){
     const tile=({cribbage:0,jaipur:1,istanbul:2,roborally:3} as Record<string,number>)[game.artKey];
     try{
      if(tile!==undefined){const original=await(atlas??=load('art/game-covers.png',true));if(current.disposed)return;art=original.clone();art.repeat.set(.5,.5);art.offset.set(tile%2*.5,tile<2?.5:0);art.needsUpdate=true;}
-     else if(['drm','gotfive','pantheon','rebelprincess'].includes(game.artKey))art=await loader.loadAsync(asset(`art/covers/${game.artKey}.png`));
+     else if(['drm','gotfive','pantheon','rebelprincess','cantstop'].includes(game.artKey))art=await loader.loadAsync(asset(`art/covers/${game.artKey}.png`));
      else if(game.iconSrc)art=await loader.loadAsync(game.iconSrc);
      if(art){if(current.disposed){art.dispose();return;}art.colorSpace=SRGBColorSpace;art.anisotropy=8;current.textures.push(art);front.map=art;front.needsUpdate=true;}
     }catch{/* Missing or CORS-restricted icons keep their readable, locally painted box. */}

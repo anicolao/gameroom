@@ -29,6 +29,10 @@ as accessible HTML over environmental artwork.
 
 ## Verification
 
+For visual adjustments, serve the change locally and ask the user to review it
+before regenerating screenshot references or updating the PR. Keep the dev server
+running and provide its URL for that review.
+
 Run `bun run check`, `bun run test:unit`, `bun run test:rules`, `bun run build`,
 and `bun run test:e2e` for changes to the launch flow. Tests use their own emulator
 ports and demo project IDs; do not stop the user’s development server or clear
@@ -52,11 +56,11 @@ verification command. Preserve the pinned Linux ARM64 Playwright container in CI
 ## Shared catalog and preview
 
 - Read ttlauncher's existing LauncherUI `Applications` collection through the typed
-  catalog adapter. Preserve `Title`, `URL`, `WebURL`, `Icon`, `Hidden`, `GameroomEnabled`, and document IDs. `Hidden` applies only to tabletop; Gameroom requires `GameroomEnabled === true` and uses only `WebURL`.
+  catalog adapter. Preserve `Title`, `URL`, `WebURL`, `Icon`, `Hidden`, `GameroomEnabled`, and document IDs. `Hidden` applies only to tabletop; GameroomEnabled is `disabled`, `integrated`, or `new-tab`; missing values are disabled. Gameroom uses only `WebURL`.
   Never seed or bulk-modify production catalog data. Development/test fixture
   records belong only to guarded local demo projects.
-- Unknown games are URL-only launches. Never infer group-protocol support from a
-  title or document ID, or invent metadata absent from the shared source.
+- Launch behavior comes only from GameroomEnabled. Never infer integration from
+  a URL, title or document ID, or invent metadata absent from the shared source.
 - PR previews use the shared production project. Deploy additive reviewed rules
   through `scripts/deploy-shared-rules.cjs`, preserving the actual current catalog
   editor/user rules. Never overwrite that project with standalone room rules.

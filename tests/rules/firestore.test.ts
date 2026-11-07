@@ -1,7 +1,7 @@
 import {beforeAll,afterAll,beforeEach,test,expect} from 'bun:test';
 import {initializeTestEnvironment,assertFails,assertSucceeds,type RulesTestEnvironment} from '@firebase/rules-unit-testing';
 import {collection,deleteDoc,doc,getDoc,getDocs,setDoc,writeBatch,type Firestore} from 'firebase/firestore';
-import {apply,initialState,type Intent,type State} from '../../src/lib/engine';
+import {apply,initialState,type Intent,type State,VERSION} from '../../src/lib/engine';
 import {repository} from '../../src/lib/repository';
 let env:RulesTestEnvironment;
 beforeAll(async()=>{env=await initializeTestEnvironment({projectId:'demo-gameroom-e2e',firestore:{host:'127.0.0.1',port:Number(process.env.FIRESTORE_EMULATOR_HOST?.split(':').at(-1)??8199),rules:await Bun.file(process.env.GAMEROOM_RULES_FILE??'firestore.rules').text()}});});
@@ -11,7 +11,7 @@ type TestDb=ReturnType<ReturnType<RulesTestEnvironment['authenticatedContext']>[
 function append(db:TestDb,room:string,actor:string,intent:Intent,before=initialState()){
  const after=apply(before,actor,intent),root=doc(db,'rooms',room),id=`intent-${after.revision}`,batch=writeBatch(db);
  batch.set(root,{owner:after.host,members:after.players.map(p=>p.id),present:after.players.filter(p=>p.present).map(p=>p.id),revision:after.revision});
- batch.set(doc(root,'events',String(after.revision)),{version:1,id,sequence:after.revision,actor,intent});batch.set(doc(root,'commands',id),{sequence:after.revision});
+ batch.set(doc(root,'events',String(after.revision)),{version:intent.type==='table/catalog-launched'?VERSION:1,id,sequence:after.revision,actor,intent});batch.set(doc(root,'commands',id),{sequence:after.revision});
  return {commit:()=>batch.commit(),after};
 }
 async function create(){const db=env.authenticatedContext('alex').firestore(),write=append(db,'ABCD1234','alex',{type:'room/created',name:'Friday friends',playerName:'Alex'});await assertSucceeds(write.commit());return {db,state:write.after};}
@@ -61,4 +61,16 @@ test('concurrent arrivals reject a stale append and can join after replay catche
   await until(()=>revisions.every(r=>r===2));await repos[failed].append({type:'player/joined',name:ids[failed]});await until(()=>revisions.every(r=>r===3));
   expect((await getDoc(doc(env.authenticatedContext('alex').firestore(),'rooms','ABCD1234'))).data()?.members).toHaveLength(3);
  }finally{for(const repo of repos)repo.close();}
+});
+test('protocol 2 accepts catalog-selected launches and rejects unsafe destinations or v1 claims',async()=>{
+ const {db,state}=await create();
+ const intent:Intent={type:'table/catalog-launched',table:'AABB1122',players:['alex'],game:{id:'new-game',title:'New game',url:'https://independent.example/play/'}};
+ for(const [version,url] of [[1,intent.game.url],[2,'javascript:alert(1)'],[2,'https://user:secret@example.com/']] as const){
+  const root=doc(db,'rooms','ABCD1234'),batch=writeBatch(db);
+  batch.set(root,{owner:'alex',members:['alex'],present:['alex'],revision:2});
+  batch.set(doc(root,'events','2'),{version,id:'unsafe',sequence:2,actor:'alex',intent:{...intent,game:{...intent.game,url}}});
+  batch.set(doc(root,'commands','unsafe'),{sequence:2});await assertFails(batch.commit());
+ }
+ const write=append(db,'ABCD1234','alex',intent,state);await assertSucceeds(write.commit());
+ const event=(await getDoc(doc(db,'rooms','ABCD1234','events','2'))).data();expect(event?.version).toBe(2);expect(event?.intent.game).toEqual(intent.game);
 });

@@ -15,12 +15,12 @@ export async function seedCatalogue(projectId:string){
     const {fields}=await existing.json() as {fields:Record<string,unknown>};
     const additions:Record<string,unknown>={};
     if(!('WebURL' in fields))additions.WebURL={stringValue:`https://anicolao.github.io/${id}/`};
-    if(!('GameroomEnabled' in fields))additions.GameroomEnabled={booleanValue:true};
+    if(!('GameroomEnabled' in fields)||typeof (fields.GameroomEnabled as {booleanValue?:boolean}).booleanValue==='boolean')additions.GameroomEnabled={stringValue:id==='cribbage'?'integrated':'new-tab'};
     if(Object.keys(additions).length){const mask=Object.keys(additions).map(key=>`updateMask.fieldPaths=${key}`).join('&');const updated=await fetch(`${document}?${mask}`,{method:'PATCH',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},body:JSON.stringify({fields:additions})});if(!updated.ok)throw new Error(`Cannot update local catalogue fixture (${updated.status}).`);}
     continue;
    }
    if(existing.status!==404)throw new Error(`Cannot read catalogue fixture (${existing.status}).`);
-   const response=await fetch(document,{method:'PATCH',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},body:JSON.stringify({fields:{Title:{stringValue:title},URL:{stringValue:`https://anicolao.github.io/${id}/`},WebURL:{stringValue:`https://anicolao.github.io/${id}/`},GameroomEnabled:{booleanValue:true},Hidden:{booleanValue:id==='cribbage'},Icon:{stringValue:''}}})});
+   const response=await fetch(document,{method:'PATCH',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},body:JSON.stringify({fields:{Title:{stringValue:title},URL:{stringValue:`https://anicolao.github.io/${id}/`},WebURL:{stringValue:`https://anicolao.github.io/${id}/`},GameroomEnabled:{stringValue:id==='cribbage'?'integrated':'new-tab'},Hidden:{booleanValue:id==='cribbage'},Icon:{stringValue:''}}})});
    if(!response.ok)throw new Error(`Cannot seed catalogue fixture (${response.status}).`);
   }
  }finally{await environment.cleanup();}

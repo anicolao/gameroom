@@ -51,3 +51,14 @@ test('available friends are selected by ID, including two profiles using the sam
  expect(launchReceiptKey('ROOM','host','TABLE')).not.toBe(launchReceiptKey('ROOM','guest','TABLE'));
  expect(launchReceiptKey('ROOM','host','TABLE')).not.toBe(launchReceiptKey('ROOM','host','NEXT'));
 });
+test('catalog launches retain the chosen identity, title and URL through catalog changes and replay',()=>{
+ const old:RoomEvent={version:1,id:'old-create',sequence:1,actor:'alex',intent:{type:'room/created',name:'Friends',playerName:'Alex'}};
+ const game={id:'arbitrary-document',title:'A different game',url:'https://independent.example/play/?keep=1'};
+ const launch:RoomEvent={version:2,id:'new-launch',sequence:2,actor:'alex',intent:{type:'table/catalog-launched',table:'ABCD1234',players:['alex'],game}};
+ const state=replay([old,launch]);expect(state.tables[0]).toMatchObject({game:game.id,title:game.title,url:game.url});
+ expect(new URL(gameUrl(state.tables[0].url,state.tables[0],state.players[0])).searchParams.get('keep')).toBe('1');
+ expect(()=>replay([old,{...launch,version:1}])).toThrow('protocol version 2');
+ expect(()=>replay([old,launch,{version:1,id:'downgrade',sequence:3,actor:'alex',intent:{type:'message/sent',text:'hi'}}])).toThrow();
+ for(const url of ['javascript:alert(1)','https://user:secret@example.com/','http://example.com/'])expect(()=>apply(replay([old]),'alex',{...launch.intent,game:{...game,url}})).toThrow('valid game URL');
+ expect(()=>apply(replay([old]),'alex',{...launch.intent,game:{...game,outcome:'won'}})).toThrow();
+});

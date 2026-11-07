@@ -1,5 +1,5 @@
 import {collection,doc,getDoc,onSnapshot,orderBy,query,runTransaction,type Firestore} from 'firebase/firestore';
-import {apply,parseIntent,replay,type Intent,type RoomEvent} from './engine';
+import {VERSION,apply,parseIntent,replay,type Intent,type RoomEvent} from './engine';
 import {randomId} from './random-id';
 type Pending={id:string;actor:string;expectedRevision:number;intent:Intent};
 export function repository(db:Firestore,room:string,actor:string,accept:(events:RoomEvent[])=>void,fail:(message:string)=>void,storage:Pick<Storage,'getItem'|'setItem'|'removeItem'>=localStorage){
@@ -24,7 +24,7 @@ export function repository(db:Firestore,room:string,actor:string,accept:(events:
     const prefix=events.length<=revision?events:[];
     const tail=await Promise.all(Array.from({length:revision-prefix.length},(_,i)=>tx.get(doc(root,'events',String(prefix.length+i+1)))));
     const before=replay([...prefix,...tail.map(d=>d.data() as RoomEvent)]),next=apply(before,actor,pending.intent);
-    const event:RoomEvent={version:1,id:pending.id,sequence:next.revision,actor,intent:pending.intent};
+    const event:RoomEvent={version:VERSION,id:pending.id,sequence:next.revision,actor,intent:pending.intent};
     tx.set(root,{owner:next.host,members:next.players.map(p=>p.id),present:next.players.filter(p=>p.present).map(p=>p.id),revision:next.revision});
     tx.set(doc(root,'events',String(event.sequence)),event);tx.set(ackRef,{sequence:event.sequence});
    });
