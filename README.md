@@ -185,3 +185,12 @@ eight named web entries plus the new Can’t Stop record, preserves tabletop
 fields, and uses update-time preconditions. Missing modes remain disabled; no
 unrelated catalog records are rewritten. The shared rules accept only the three
 mode strings for editor writes.
+
+## Publishing main and PR previews
+
+The Publish Pages workflow publishes merged `main` to
+https://anicolao.github.io/gameroom/ on every push to main. Its manual dispatch
+also publishes main, even when dispatched from a workflow-fix branch. PR events
+publish only their own `/pr-N/` directory. Both routes preserve the existing PR
+previews and share one deployment concurrency group. Each build includes a
+`deployment.json` identifying its source commit and Actions run.
