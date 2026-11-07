@@ -1,0 +1,6 @@
+Generated using the built-in imagegen tool, 2026-11-06.
+Output: public/art/covers/cantstop.png
+Reference: ../cantstop/artifacts/closed-desktop.png, inspected to identify its palette, diamond board, ivory stepping stones, colored round markers, black pawns and red dice.
+
+Prompt:
+Use case: stylized-concept. Asset type: flat portrait board-game box cover texture, 3:4 portrait, no perspective box mockup. Primary request: original cover for the dice board game CAN'T STOP inspired by its existing elegant physical game UI: deep emerald green felt on a walnut table, a large ruby red diamond-shaped board with cream ivory square stepping stones arranged in eleven columns of ascending and descending heights, fine antique brass edging, glossy red dice with ivory pips in the foreground, tiny emerald green, amber, purple and red round playing markers, and three polished black pawns. Rich tactile 3D illustration, warm soft studio light, restrained premium tabletop aesthetic. Composition: one centered diamond board in the lower two-thirds, dignified large cream serif title in the top quarter. Exact text: "CAN'T STOP". No other text, no extra logos, no UI buttons, no browser chrome. Full bleed artwork, crisp readable title at thumbnail size.

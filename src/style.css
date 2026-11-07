@@ -18,7 +18,7 @@ main{width:min(1360px,94%);margin:auto;flex:1;padding:28px 0}.room-layout{displa
 .cabinet-keyboard:focus-within,.cabinet-keyboard.fallback{width:auto;height:auto;clip-path:none;display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#132b23f2;border:1px solid #cba66a}
 .cabinet-keyboard button{font-size:12px;padding:8px;border:1px solid #cba66a70;border-radius:2px}.cabinet-keyboard button[aria-pressed=true]{color:#ffdc95;background:#d7b27320}
 .cabinet-stage:focus-visible{outline:2px solid #eac17b;outline-offset:4px}
-@media(max-width:650px){.cabinet-stage{height:310px;min-height:310px;max-height:none;margin:0 -2%}.cabinet-loading{bottom:1%}}
+@media(max-width:650px){.cabinet-stage{height:390px;min-height:390px;max-height:none;margin:0 -2%}.cabinet-loading{bottom:1%}}
 
 /* Place the cabinet on the clear back wall. The artwork's floor/baseboard line
    is 76% down the source image; account for its centered cover crop. */
@@ -26,6 +26,6 @@ main{width:min(1360px,94%);margin:auto;flex:1;padding:28px 0}.room-layout{displa
  .den{--wall-floor:calc(50svh + max(26svh,14.64vw))}
  main{display:flex;align-items:flex-start}.room-layout{width:100%;align-items:start}
  .library{container-type:inline-size}
- .cabinet-stage{width:80%;margin-left:18%;height:calc(80cqw / 1.75);min-height:0;max-height:none;margin-top:max(0px,calc(var(--wall-floor) - 150px - 80cqw / 1.75 * .958))}
+ .cabinet-stage{width:80%;margin-left:18%;height:calc(80cqw / 1.45);min-height:0;max-height:none;margin-top:max(0px,calc(var(--wall-floor) - 150px - 80cqw / 1.45 * .958))}
 }
 @media(max-width:650px){.den{--scene-height:526px}}

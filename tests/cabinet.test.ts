@@ -97,3 +97,13 @@ test('the belt and rails pass through open slots below the backing',()=>{
  }
  expect(solids.length).toBeGreaterThan(0);
 });
+test('three shelves partition arbitrary catalogs, repeat independently, and expose every game',()=>{
+ for(const count of [0,1,2,8,9,20,37,100]){
+  const collection=games(count),seen=new Set<string>();
+  const assigned=[0,1,2].map(row=>new Set(catalogueBoxes(collection,0,row,3).map(box=>box.game.id)));
+  for(let a=0;a<3;a++)for(let b=a+1;b<3;b++)expect([...assigned[a]].some(id=>assigned[b].has(id))).toBe(false);
+  for(let position=-count-16;position<count+16;position++)for(const game of accessibleGames(collection,position,3))seen.add(game.id);
+  expect(seen.size).toBe(count);
+  expect([0,1,2].flatMap(row=>catalogueBoxes(collection,0,row,3)).length).toBeLessThanOrEqual(24);
+ }
+});

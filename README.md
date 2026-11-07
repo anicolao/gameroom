@@ -13,18 +13,19 @@ to the browser. This preview creates real rooms and messages when you use it.
 
 The catalog is read-only here. `Title`, `Icon`, and document IDs are shared.
 `Hidden` controls tabletop visibility (missing or false means enabled), and
-`GameroomEnabled: true` opts a game into Gameroom independently. Tabletop uses
+`GameroomEnabled` is `disabled`, `integrated`, or `new-tab`. Missing values are disabled. Tabletop uses
 `URL`; Gameroom uses only `WebURL`, with no fallback between them. An enabled
 surface requires its own HTTPS launch URL. Existing records stay tabletop-only
 until an editor enables Gameroom and supplies `WebURL`.
 
-Only a recognized Cribbage WebURL supports group launch. Other games have
+`integrated` entries use the shared create/join URL protocol for group launch,
+regardless of URL, title, or document ID. `new-tab` entries have
 **Open {title}**, which opens the exact WebURL separately. The **Group launch**
 filter shows supported integrations. Game boxes are real 3D meshes with painted fronts, printed spines and cardboard
 backs. The selected title appears beside the cabinet.
 
-Cribbage is the Gameroom-only production example: `Hidden: true`,
-`GameroomEnabled: true`, and `WebURL: https://anicolao.github.io/cribbage/`.
+Cribbage and Can’t Stop are integrated production examples: `Hidden: true`,
+`GameroomEnabled: integrated`, with their independently deployed HTTPS `WebURL`.
 Enable either or both surfaces in the ttlauncher catalogue editor. Automated tests and development seed only emulators.
 
 The Cribbage group adapter merged in [Cribbage PR #11](https://github.com/anicolao/cribbage/pull/11).
@@ -71,7 +72,7 @@ The canonical room state is replayed from ordered immutable
 { version: 1, id, sequence, actor, intent }
 ```
 
-Choices are room creation, joining/leaving, launching/closing a Cribbage table,
+Choices are room creation, joining/leaving, launching/closing a game table,
 returning, and sending a message. Acknowledgement documents preserve command IDs
 across ambiguous retries; expected revisions serialize concurrent choices.
 Metadata indexes membership and revision for atomic validation, without replacing
@@ -154,7 +155,7 @@ tests keep the boxes from penetrating the backing or corner borders.
 
 Rendering is shared with the fixture-only [animation lab](src/lab/README.md),
 available through `bun run dev:lab` at `/dev/shelves?variant=cabinet`. The renderer
-keeps at most 16 box meshes active and caches up to 32 game materials, loading
+uses three equally spaced shelves and keeps at most 24 box meshes active and caches up to 32 game materials, loading
 external icons on demand and painting a readable fallback when an icon fails.
 Wood maps and the studio environment are CC0; provenance is recorded in
 [public/materials/SOURCES.md](public/materials/SOURCES.md).
@@ -162,3 +163,25 @@ Wood maps and the studio environment are CC0; provenance is recorded in
 E2E uses its own Cribbage endpoint at 4397, separate from other local game
 processes. References wait for textures, fonts, replay and motion to finish,
 then compare every decoded RGBA byte at the normal renderer quality.
+
+## Catalog launch modes and replay
+
+New `table/catalog-launched` decisions use protocol 2 and record the selected
+catalog document ID, title, WebURL, and intended participants. Reopening and
+replay use that recorded destination even if the catalog changes. Protocol-1
+Cribbage history retains its original meaning; histories may upgrade to version
+2 but cannot downgrade. No external game results enter the room log.
+
+Can’t Stop already implements `launch=create|join`, `table`, and `name`. Tests
+run the reviewed game checkout in `../cantstop-gameroom-review` (override with
+`CANTSTOP_PATH`) at port 4499, against its own demo Firebase project. The browser
+story checks separate identities, the common table, replay, and the room staying
+open. Its generated cover and exact prompt are documented in
+[design/cantstop-cover.txt](design/cantstop-cover.txt).
+
+The requested production edit is reproducible with
+`node scripts/update-launch-modes.cjs` (dry run) or `--apply`. It targets only the
+eight named web entries plus the new Can’t Stop record, preserves tabletop
+fields, and uses update-time preconditions. Missing modes remain disabled; no
+unrelated catalog records are rewritten. The shared rules accept only the three
+mode strings for editor writes.

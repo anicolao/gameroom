@@ -39,8 +39,9 @@ export function carouselLength(count:number){
  if(count===0)return 0;
  let length=count;while(length<cabinetCarriers)length*=2;return length;
 }
-export function catalogueBoxes(games:readonly CabinetGame[],position:number,row:number){
- const middle=Math.ceil(games.length/2),offset=row?middle:0,count=row?games.length-middle:middle;
+export function catalogueBoxes(games:readonly CabinetGame[],position:number,row:number,rows=2){
+ const size=Math.floor(games.length/rows),extra=games.length%rows;
+ const offset=row*size+Math.min(row,extra),count=size+(row<extra?1:0);
  const length=carouselLength(count);if(!length)return [];
  const pitch=cabinetPerimeter/cabinetCarriers,first=Math.floor(position)-3,start=track.half-pitch;
  return Array.from({length:cabinetCarriers},(_,i)=>first+i).map(index=>{
@@ -49,6 +50,6 @@ export function catalogueBoxes(games:readonly CabinetGame[],position:number,row:
  });
 }
 /** Repeated physical boxes retain one semantic choice per catalog document. */
-export function accessibleGames(games:readonly CabinetGame[],position:number){
- return [...new Map([0,1].flatMap(row=>catalogueBoxes(games,position,row).filter(box=>box.front).map(box=>[box.game.id,box.game] as const))).values()];
+export function accessibleGames(games:readonly CabinetGame[],position:number,rows=2){
+ return [...new Map(Array.from({length:rows},(_,row)=>row).flatMap(row=>catalogueBoxes(games,position,row,rows).filter(box=>box.front).map(box=>[box.game.id,box.game] as const))).values()];
 }

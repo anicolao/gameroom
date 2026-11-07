@@ -3,13 +3,13 @@
  import {untrack} from 'svelte';
  import {OrthographicCamera,PerspectiveCamera,Vector3} from 'three';
  import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
- let {yaw=10,elevation=12,zoom=1,orbit=false,compact=false,targetHeight=2.75,fitWidth=18.3,perspective=false}:{yaw?:number;elevation?:number;zoom?:number;orbit?:boolean;compact?:boolean;targetHeight?:number;fitWidth?:number;perspective?:boolean}=$props();
+ let {yaw=10,elevation=12,zoom=1,orbit=false,compact=false,targetHeight=2.75,fitWidth=18.3,fitHeight=8.8,perspective=false}:{yaw?:number;elevation?:number;zoom?:number;orbit?:boolean;compact?:boolean;targetHeight?:number;fitWidth?:number;fitHeight?:number;perspective?:boolean}=$props();
  const {size,renderer,invalidate}=useThrelte();
  const orthographic=new OrthographicCamera(-10,10,6,-6,.1,100),natural=new PerspectiveCamera(28,1,.1,100);
  const camera=$derived(perspective?natural:orthographic);
  let controls:OrbitControls|undefined;
  $effect(()=>{
-  const aspect=$size.width/Math.max(1,$size.height),span=Math.max(perspective?9.4:8.8,(compact?Math.min(14.8,fitWidth):fitWidth)/aspect)/zoom;
+  const aspect=$size.width/Math.max(1,$size.height),span=Math.max(perspective?Math.max(9.4,fitHeight):fitHeight,(compact?Math.min(14.8,fitWidth):fitWidth)/aspect)/zoom;
   const target=new Vector3(0,targetHeight,-.15),a=yaw*Math.PI/180,b=elevation*Math.PI/180;
   const distance=perspective?span/(2*Math.tan(natural.fov*Math.PI/360)):30;
   if(perspective){natural.aspect=aspect;natural.updateProjectionMatrix();}

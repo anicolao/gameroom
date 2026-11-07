@@ -1,6 +1,6 @@
 /** Presentation data only. These fields do not imply a game launch protocol. */
 export type CabinetGame={id:string;title:string;artKey:string;iconSrc:string|null};
-const palette:Record<string,string>={cribbage:'#173b30',drm:'#172d57',gotfive:'#547c71',istanbul:'#173c58',jaipur:'#9b4e30',pantheon:'#63443c',rebelprincess:'#67273f',roborally:'#314548'};
+const palette:Record<string,string>={cantstop:'#174239',cribbage:'#173b30',drm:'#172d57',gotfive:'#547c71',istanbul:'#173c58',jaipur:'#9b4e30',pantheon:'#63443c',rebelprincess:'#67273f',roborally:'#314548'};
 export function boxColor(game:CabinetGame){
  if(palette[game.artKey])return palette[game.artKey];
  let hash=0;for(const c of game.id)hash=(Math.imul(hash,31)+c.charCodeAt(0))>>>0;

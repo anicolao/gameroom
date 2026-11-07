@@ -10,7 +10,7 @@
  let targets=$state<Record<string,{x:number;y:number}>>({});
  let initialized=$state(false);
  let dragging=false,dragged=false,startX=0,startY=0,startTarget=0;
- const moving=$derived(position!==target),front=$derived(accessibleGames(games,position));
+ const moving=$derived(position!==target),front=$derived(accessibleGames(games,position,3));
  const identity=$derived(games.map(g=>g.id).join('\0'));
  $effect(()=>{void identity;position=target=0;velocity=0;ready=false;});
  function move(value:number){if(!games.length||value===target)return;ready=false;target=value;}
@@ -32,7 +32,7 @@
 <div class="cabinet-stage" role="region" aria-label="Game cabinet" aria-describedby="cabinet-instructions" tabindex="0" bind:this={stage} data-testid="cabinet" data-ready={ready} data-motion-idle={!moving} data-position={position} data-target={target} data-targets={JSON.stringify(targets)}>
  <svelte:boundary onerror={error=>{failure=true;console.error(error);}}>
   <Canvas dpr={Math.min(window.devicePixelRatio,2)} shadows={PCFShadowMap} toneMapping={ACESFilmicToneMapping} renderMode="on-demand">
-   <CabinetScene {games} {selected} position={position} {moving} {compact} onError={()=>failure=true} mode="catalogue" variant="cabinet" roomBackdrop={false} yaw={0} elevation={8} targetHeight={3.3} onSelect={select} onStatus={(value,points)=>{ready=value;targets=points;if(value)initialized=true;}}/>
+   <CabinetScene {games} {selected} position={position} {moving} {compact} onError={()=>failure=true} mode="catalogue" variant="cabinet" roomBackdrop={false} yaw={0} elevation={8} rows={3} targetHeight={4.4} onSelect={select} onStatus={(value,points)=>{ready=value;targets=points;if(value)initialized=true;}}/>
   </Canvas>
   {#snippet failed()}<p class="cabinet-message">3D shelves unavailable. Choose a game below.</p>{/snippet}
  </svelte:boundary>
