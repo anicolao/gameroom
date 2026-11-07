@@ -130,16 +130,16 @@ configuration or replace their rendered assets.
 
 ## Cabinet artwork and browsing
 
-All eight configured games have painted covers: the original atlas serves
-Cribbage, Jaipur (including egirard's web URL), Istanbul and Robo Rally. New
+All nine configured games have painted covers: the original atlas serves
+Cribbage, Jaipur, Istanbul and Robo Rally. New
 original covers for DRM, Got Five, Pantheon and Rebel Princess are served from
 `public/art/covers/`. They were generated with the built-in image_gen tool;
 [the complete prompt set](public/art/covers/prompts.json) is stored with them.
 Known cover mappings supply presentation only and do not imply group support.
 
-The dark walnut cabinet uses two infinite conveyor shelves. Each shelf doubles
+The dark walnut cabinet uses three equally spaced infinite conveyor shelves. Each shelf doubles
 its game sequence until it has at least eight carriers, then repeats indefinitely
-in either direction. Only sixteen physical boxes are rendered at once, even for
+in either direction. At most twenty-four physical boxes are rendered at once, even for
 large catalogs. Repeated boxes keep one accessible game choice per document.
 
 Wheel or horizontal drag browses without visible arrows or a slider. Keyboard
