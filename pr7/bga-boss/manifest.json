@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "BGA Boss — Gameroom test bridge",
+  "version": "0.1.0",
+  "description": "Open a BGA game, capture its table URL, and return it to an approved Gameroom page. Host only.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://boardgamearena.com/*",
+    "https://en.boardgamearena.com/*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "https://gameroom.boardgamescafe.org/*"
+    ]
+  },
+  "background": {
+    "service_worker": "worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "BGA Boss: pending requests"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv0EnexLukHvjBd+s75Y2+vO5srq/tFet+cS8PHWuTAjzASD/SK+sGpKhcpI9YErnEq2bClSjHKJNmQrT6954V7iITs4C72m7/3yHhSuRce89wr78yY1fgcKHVUNALmxzWE7b9Kfgd/iG1RwaH0PD2dytsxIsnTAO0eIAXxA9ZG3I7EuyXKuMozUGO9Mupr7Vm7V/cbBLVJ0dGUvguTKXjs+7czcpFn93K1MyUSkIfnsSzp2OmXoEmFjeZHPOn1IY8e8v5lsCfNpzyk41LkmIEMmSqR8HnZjdQKSTC8ZxNiT2jG88O80NcXCjVt0eMGuCPkOt71Chxz7JnXqXBjiVwQIDAQAB"
+}
