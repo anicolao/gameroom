@@ -52,7 +52,6 @@ test('BGA room shares one captured table with an independent friend and keeps ch
   expect(extension.context.pages().filter(p=>p.url().startsWith('https://boardgamearena.com/table'))).toHaveLength(1);
   await capture('shared','Both selected profiles receive the same BGA table and a reopen control');
   const popup=guestContext.waitForEvent('page');await guest.getByRole('button',{name:"Open Can't Stop (BGA)",exact:true}).click();const guestBga=await popup;
-  await guestBga.goto('https://boardgamearena.com/table?table=12345678');
   await expect(guestBga.getByRole('heading',{name:'BGA fixture',exact:true})).toBeVisible();
   await expect(guestBga).toHaveURL('https://boardgamearena.com/table?table=12345678');expect(await guestBga.evaluate(()=>window.opener===null)).toBe(true);
   // Return through a real room control after the cross-site popup; this also
