@@ -61,6 +61,10 @@ verification command. Preserve the pinned Linux ARM64 Playwright container in CI
   records belong only to guarded local demo projects.
 - Launch behavior comes only from GameroomEnabled. Never infer integration from
   a URL, title or document ID, or invent metadata absent from the shared source.
+- PR N previews are served at `https://gameroom.boardgamescafe.org/prN/`,
+  sharing production’s origin by the owner’s choice for BGA Boss testing. Keep
+  preview build credentials read-only; publish validated static artifacts from
+  the main-branch workflow. Never publish fork previews on this trusted origin.
 - PR previews use the shared production project. Deploy additive reviewed rules
   through `scripts/deploy-shared-rules.cjs`, preserving the actual current catalog
   editor/user rules. Never overwrite that project with standalone room rules.

@@ -6,7 +6,7 @@ and chat use an immutable Firestore intent log. The bookshelf reads the same
 
 ## PR preview
 
-[PR #2 preview](https://anicolao.github.io/gameroom-previews/pr-2/) uses the existing
+[PR #2 preview](https://gameroom.boardgamescafe.org/pr2/) uses the existing
 `launcherui` production Firebase project for both the catalog and room history.
 Anonymous Firebase authentication stays invisible. No admin credentials are sent
 to the browser. This preview creates real rooms and messages when you use it.
@@ -188,34 +188,43 @@ mode strings for editor writes.
 
 ## Publishing main and PR previews
 
-The Publish production workflow publishes merged `main` to
-https://gameroom.boardgamescafe.org/ on every push to main. Its manual dispatch
-must run from `main`; the production deployment environment permits only that
-branch. PR events
-publish only their own `/pr-N/` directory in the separate
-`anicolao/gameroom-previews` repository, using a deploy key scoped to that repo.
-Previews are served from `anicolao.github.io`; production is served from the
-custom hostname. Production and previews have independent publication queues. The preview
-workflow has a read-only repository token and no production Pages deployment
-permissions. Each build includes a
-`deployment.json` identifying its source commit and Actions run.
+Production is https://gameroom.boardgamescafe.org/. Preview N is
+`https://gameroom.boardgamescafe.org/prN/`, built with Vite base `/prN/`.
+Historical `/pr-N/` URLs redirect to the canonical numbered path.
 
-## Custom domain
+The PR preview workflow builds same-repository PRs with a read-only repository
+token and uploads website files as `preview-site`. It does not deploy Pages or
+receive a deploy key. The publisher runs from `main`, validates the completed
+build's repository, workflow, PR head SHA, and artifact identity, safely extracts
+website data, and updates only `/prN/`. It never checks out or executes PR code
+with deployment credentials. Automatic publication skips stale or closed PRs.
+A manual dispatch of `publish.yml` with `preview_run_id` can publish a validated
+archived build, including a merged PR. Without that input it publishes `main`.
 
-Production is https://gameroom.boardgamescafe.org/ (GitHub Pages). Cloudflare DNS
-uses a DNS-only CNAME to `anicolao.github.io`; GitHub owns TLS issuance and HTTPS
-enforcement. Production builds use `/`; PR previews use `/gameroom-previews/pr-N/`
-as their Vite base. The Pages repository setting is authoritative for this Actions-hosted
-site; `public/CNAME` records the intended hostname in source.
+Production refreshes preserve numbered previews; preview refreshes preserve the
+production root and all neighboring previews. Publication uses one concurrency
+group. The `github-pages` environment permits only `main`, including the trusted
+`workflow_run` publisher. Each build includes `deployment.json` identifying its
+source commit and Actions run.
 
-This is a separate browser origin from `anicolao.github.io`, with separate local
-Auth and preference storage. Existing room invitation codes remain valid, but
-visiting from the new origin signs in with a new anonymous browser identity; it
-does not migrate the old origin's local identity or popup receipts. BGA Boss must
-explicitly approve the new HTTPS origin. PR previews run on the separate `anicolao.github.io` origin. Historical
-production `/pr-N/` paths contain only redirects to that preview origin; no
-preview JavaScript remains hosted on the trusted production origin. BGA Boss
-should allow only the production HTTPS origin by default.
+## Custom domain and BGA Boss
 
-Cloudflare credentials belong in ignored `.env`, never in Vite `VITE_*` variables,
-the published artifact, or repository files.
+Cloudflare DNS has a DNS-only CNAME to `anicolao.github.io`; GitHub Pages manages
+TLS issuance and HTTPS enforcement. Production uses Vite base `/`. The repository
+Pages setting is authoritative; `public/CNAME` records the intended hostname.
+Cloudflare credentials belong in ignored `.env`, never Vite `VITE_*` variables,
+build artifacts, or repository files.
+
+The custom hostname is a separate browser origin from `anicolao.github.io`.
+However, **production and `/prN/` previews deliberately share one origin and trust
+boundary** so BGA Boss can be tested on previews. They also share origin-scoped
+browser storage and Firebase anonymous identity. Path-specific client approvals
+are useful to prevent accidental actions, but do not isolate a malicious or
+compromised preview from production. Use independent browser profiles when
+separate identities are needed. Do not publish untrusted fork previews here.
+
+BGA Boss should support explicitly approved production and preview client paths
+on `https://gameroom.boardgamescafe.org`, with preview grants disabled until the
+user enables them. This policy is an action guard, not a separate security origin.
+The former `anicolao/gameroom-previews` site remains an archive; current preview
+publication uses the app domain and needs no cross-repository deploy key.

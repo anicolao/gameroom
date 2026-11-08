@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-24.04
     environment:
       name: github-pages-previews
-      url: https://anicolao.github.io/gameroom-previews/pr-${{ github.event.pull_request.number }}/
+      url: https://gameroom.boardgamescafe.org/pr${{ github.event.pull_request.number }}/
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,7 +26,7 @@ jobs:
       - run: bun run check && bun run test:unit
       - name: Build with the existing LauncherUI production project
         env:
-          PUBLIC_BASE_PATH: /gameroom-previews/pr-${{ github.event.pull_request.number }}/
+          PUBLIC_BASE_PATH: /pr${{ github.event.pull_request.number }}/
           VITE_FIREBASE_API_KEY: ${{ secrets.PUBLIC_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.PUBLIC_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.PUBLIC_FIREBASE_PROJECT_ID }}
@@ -49,27 +49,9 @@ jobs:
           SOURCE_COMMIT=$(git rev-parse HEAD)
           export SOURCE_COMMIT
           node -e 'require("node:fs").writeFileSync("dist/deployment.json", JSON.stringify({commit:process.env.SOURCE_COMMIT,run:"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"})+"\n")'
-      - name: Check out isolated preview publication
-        uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
         with:
-          repository: anicolao/gameroom-previews
-          ref: gh-pages
-          path: site
-          ssh-key: ${{ secrets.PREVIEW_DEPLOY_KEY }}
-      - name: Publish only this preview
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]
-          rm -rf "site/pr-${PR_NUMBER}"
-          mkdir -p "site/pr-${PR_NUMBER}"
-          cp -R dist/. "site/pr-${PR_NUMBER}/"
-          rm -f "site/pr-${PR_NUMBER}/CNAME"
-          cd site
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "Preview PR ${PR_NUMBER}"
-            git push origin HEAD:gh-pages
-          fi
+          name: preview-site
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
