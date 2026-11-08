@@ -29,3 +29,5 @@ main{width:min(1360px,94%);margin:auto;flex:1;padding:28px 0}.room-layout{displa
  .cabinet-stage{width:80%;margin-left:18%;height:calc(80cqw / 1.45);min-height:0;max-height:none;margin-top:max(0px,calc(var(--wall-floor) - 150px - 80cqw / 1.45 * .958))}
 }
 @media(max-width:650px){.den{--scene-height:526px}}
+
+@media(min-width:651px){.room-controls.bga-test{max-height:calc(100dvh - 240px);overflow-y:auto;padding:12px 8px}.bga-test h1{font-size:26px;margin-bottom:12px}.bga-test .seat-picker{margin-bottom:10px;padding-top:8px}.bga-test .seat-option{min-height:28px}.bga-test .hint{margin:8px 0}.bga-test .tables{margin-top:14px;padding-top:10px}}
