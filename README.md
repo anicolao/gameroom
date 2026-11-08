@@ -6,7 +6,7 @@ and chat use an immutable Firestore intent log. The bookshelf reads the same
 
 ## PR preview
 
-[PR #2 preview](https://anicolao.github.io/gameroom/pr-2/) uses the existing
+[PR #2 preview](https://gameroom.boardgamescafe.org/pr-2/) uses the existing
 `launcherui` production Firebase project for both the catalog and room history.
 Anonymous Firebase authentication stays invisible. No admin credentials are sent
 to the browser. This preview creates real rooms and messages when you use it.
@@ -189,8 +189,27 @@ mode strings for editor writes.
 ## Publishing main and PR previews
 
 The Publish Pages workflow publishes merged `main` to
-https://anicolao.github.io/gameroom/ on every push to main. Its manual dispatch
+https://gameroom.boardgamescafe.org/ on every push to main. Its manual dispatch
 also publishes main, even when dispatched from a workflow-fix branch. PR events
 publish only their own `/pr-N/` directory. Both routes preserve the existing PR
 previews and share one deployment concurrency group. Each build includes a
 `deployment.json` identifying its source commit and Actions run.
+
+## Custom domain
+
+Production is https://gameroom.boardgamescafe.org/ (GitHub Pages). Cloudflare DNS
+uses a DNS-only CNAME to `anicolao.github.io`; GitHub owns TLS issuance and HTTPS
+enforcement. Production builds use `/` and new PR previews use `/pr-N/` as their
+Vite base. The Pages repository setting is authoritative for this Actions-hosted
+site; `public/CNAME` records the intended hostname in source.
+
+This is a separate browser origin from `anicolao.github.io`, with separate local
+Auth and preference storage. Existing room invitation codes remain valid, but
+visiting from the new origin signs in with a new anonymous browser identity; it
+does not migrate the old origin's local identity or popup receipts. BGA Boss must
+explicitly approve the new HTTPS origin. Previews under `/pr-N/` still share the
+production origin: before granting unattended extension actions, move unreviewed
+previews to a separate origin. Paths alone do not provide that isolation.
+
+Cloudflare credentials belong in ignored `.env`, never in Vite `VITE_*` variables,
+the published artifact, or repository files.
