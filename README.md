@@ -190,7 +190,8 @@ mode strings for editor writes.
 
 The Publish production workflow publishes merged `main` to
 https://gameroom.boardgamescafe.org/ on every push to main. Its manual dispatch
-also publishes main, even when dispatched from a workflow-fix branch. PR events
+must run from `main`; the production deployment environment permits only that
+branch. PR events
 publish only their own `/pr-N/` directory in the separate
 `anicolao/gameroom-previews` repository, using a deploy key scoped to that repo.
 Previews are served from `anicolao.github.io`; production is served from the
