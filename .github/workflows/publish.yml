@@ -1,0 +1,86 @@
+name: Publish production
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: pages-production
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && github.sha || 'main' }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+      - run: bun install --frozen-lockfile
+      - run: bun run check && bun run test:unit
+      - name: Build with the existing LauncherUI production project
+        env:
+          PUBLIC_BASE_PATH: /
+          VITE_FIREBASE_API_KEY: ${{ secrets.PUBLIC_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.PUBLIC_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.PUBLIC_FIREBASE_APP_ID }}
+          VITE_CATALOGUE_FIREBASE_API_KEY: ${{ secrets.PUBLIC_FIREBASE_API_KEY }}
+          VITE_CATALOGUE_FIREBASE_AUTH_DOMAIN: ${{ secrets.PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          VITE_CATALOGUE_FIREBASE_PROJECT_ID: ${{ secrets.PUBLIC_FIREBASE_PROJECT_ID }}
+          VITE_CATALOGUE_FIREBASE_APP_ID: ${{ secrets.PUBLIC_FIREBASE_APP_ID }}
+          VITE_USE_FIREBASE_EMULATORS: 'false'
+          VITE_CATALOGUE_USE_FIREBASE_EMULATORS: 'false'
+          VITE_CATALOGUE_ASSET_ORIGIN: https://anicolao.github.io/ttlauncher/
+        run: |
+          for variable in VITE_FIREBASE_API_KEY VITE_FIREBASE_AUTH_DOMAIN VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_APP_ID; do
+            test -n "${!variable}" || { echo "Missing production client configuration: $variable"; exit 1; }
+          done
+          bun run build
+          cp LICENSE dist/LICENSE
+      - name: Record the published source
+        run: |
+          SOURCE_COMMIT=$(git rev-parse HEAD)
+          export SOURCE_COMMIT
+          node -e 'require("node:fs").writeFileSync("dist/deployment.json", JSON.stringify({commit:process.env.SOURCE_COMMIT,run:"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"})+"\n")'
+      - name: Check out production publication
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+      - name: Assemble production and safe preview redirects
+        run: |
+          for preview in site/pr-*; do
+            [ -d "$preview" ] || continue
+            name=$(basename "$preview")
+            [[ "$name" =~ ^pr-[0-9]+$ ]] || exit 1
+            rm -rf "$preview"
+            mkdir -p "$preview"
+            printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=https://anicolao.github.io/gameroom-previews/%s/"><a href="https://anicolao.github.io/gameroom-previews/%s/">Open isolated preview</a>\n' "$name" "$name" > "$preview/index.html"
+          done
+          find site -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.nojekyll' ! -name 'pr-*' -exec rm -rf -- {} +
+          cp -R dist/. site/
+          cd site
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish main'
+            git push origin HEAD:gh-pages
+          fi
+          rm -rf .git
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
+        id: deploy

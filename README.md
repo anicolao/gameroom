@@ -188,13 +188,15 @@ mode strings for editor writes.
 
 ## Publishing main and PR previews
 
-The Publish Pages workflow publishes merged `main` to
+The Publish production workflow publishes merged `main` to
 https://gameroom.boardgamescafe.org/ on every push to main. Its manual dispatch
 also publishes main, even when dispatched from a workflow-fix branch. PR events
 publish only their own `/pr-N/` directory in the separate
 `anicolao/gameroom-previews` repository, using a deploy key scoped to that repo.
 Previews are served from `anicolao.github.io`; production is served from the
-custom hostname. Both routes share one deployment concurrency group. Each build includes a
+custom hostname. Production and previews have independent publication queues. The preview
+workflow has a read-only repository token and no production Pages deployment
+permissions. Each build includes a
 `deployment.json` identifying its source commit and Actions run.
 
 ## Custom domain
