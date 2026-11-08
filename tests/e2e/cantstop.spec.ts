@@ -26,7 +26,6 @@ test("Can't Stop launches independent seats and leaves the gathering open",async
  }finally{
   await context.close();await fetch(target,{method:'DELETE',headers:{Authorization:'Bearer owner'}});
   // Remove only this test's guarded demo room, including immutable child records.
-  // Its deterministic code is reused by an older independent cabinet story.
   if(fixtureRoom){
    const base=`http://${host}/v1/projects/demo-gameroom-e2e/databases/(default)/documents/rooms/${fixtureRoom}`;
    for(const collection of ['events','commands']){

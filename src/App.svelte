@@ -1,5 +1,6 @@
 <script lang="ts">
  import {onMount,untrack} from 'svelte';
+ import BgaPanel from './lib/BgaPanel.svelte';
  import GameCabinet from './lib/cabinet/GameCabinet.svelte';
  import type {Game,CatalogSnapshot} from './lib/catalog';
  import {subscribeCatalog} from './lib/catalog-source';
@@ -23,7 +24,8 @@
  const eligible=$derived(present.filter(p=>!p.table));
  const chosen=$derived(selectedFriends(roomState.players,uid,excluded));
  const visible=$derived(catalog.filter(g=>(!readyOnly||g.available)&&g.title.toLowerCase().includes(search.toLowerCase())));
- const invitation=$derived(`${location.origin}${location.pathname}?room=${room}`);
+ const bgaTest=new URLSearchParams(location.search).get('bga')==='1';
+ const invitation=$derived(`${location.origin}${location.pathname}?room=${room}${bgaTest?'&bga=1':''}`);
  const activeTables=$derived(roomState.tables.filter(t=>!t.closed));
  const ownTable=$derived(activeTables.find(t=>t.code===own?.table)??[...activeTables].reverse().find(t=>t.players.includes(uid)));
  // Test-only deployment routing never determines a game's capabilities.
@@ -54,7 +56,7 @@
   try{
    localStorage.setItem('gameroom:name',playerName.trim());
    if(!room){
-    room=roomCode();history.replaceState(null,'',`?room=${room}`);synced=false;
+    room=roomCode();history.replaceState(null,'',`?room=${room}${bgaTest?'&bga=1':''}`);synced=false;
     const s=await services();repo=repository(s.db,room,uid,events=>{roomState=replay(events);synced=true;},e=>{error=e;synced=false;});stop=repo.close;
     await act({type:'room/created',name:roomName.trim(),playerName:playerName.trim()});
    }else if(roomState.revision)await act({type:'player/joined',name:playerName.trim()});
@@ -71,6 +73,11 @@
    else{prepared?.close();prepared=undefined;}
   }catch(e){prepared?.close();prepared=undefined;error=(e as Error).message;}
  }
+ async function publishBga(intent:Extract<Intent,{type:'table/bga-launched'}>){
+  // The host is already viewing the managed BGA tab. Friends use ordinary popup handling.
+  sessionStorage.setItem(launchReceiptKey(room,uid,intent.table),'opened');
+  return await act(intent);
+ }
  function openGame(){
   if(!own||!ownTable)return;
   openTable(gameUrl(gameBase(ownTable),ownTable,own),launchReceiptKey(room,uid,ownTable.code));
@@ -86,10 +93,10 @@
   if(!returnTarget||!joined||!synced||busy)return;
   // Another returning player may win the revision race. Replay the new revision
   // before retrying our own return, rather than permanently consuming the request.
-  if(!own?.table){if(returnRequest)history.replaceState(null,'',`?room=${room}`);returnTarget=null;return;}
+  if(!own?.table){if(returnRequest)history.replaceState(null,'',`?room=${room}${bgaTest?'&bga=1':''}`);returnTarget=null;return;}
   if(own.table!==returnTarget||returnAttempt===roomState.revision)return;
   returnAttempt=roomState.revision;
-  void act({type:'player/returned'}).then(ok=>{if(ok&&returnRequest)history.replaceState(null,'',`?room=${room}`);});
+  void act({type:'player/returned'}).then(ok=>{if(ok&&returnRequest)history.replaceState(null,'',`?room=${room}${bgaTest?'&bga=1':''}`);});
  });
  $effect(()=>{
   if(!joined||!synced||busy||!own?.table)return;
@@ -127,7 +134,7 @@
     {#if catalogState.status==='offline'&&catalog.length}<p class="hint">Offline catalog</p>{/if}
     {#if catalogState.status==='error'}<button class="text-button" onclick={loadCatalog}>Retry games</button>{/if}
    </section>
-   <aside class="room-controls" aria-label={joined?'Selected game':'Room setup'}>
+   <aside class="room-controls" class:bga-test={bgaTest} aria-label={joined?'Selected game':'Room setup'}>
     {#if !joined}
      <form class="room-form" onsubmit={e=>{e.preventDefault();void enter();}}>
       <h1>{room?'Join room':'Create room'}</h1>
@@ -136,10 +143,10 @@
       <button class="gold-button" disabled={busy||!uid||!synced||!playerName.trim()||!room&&!roomName.trim()||!!room&&!roomState.revision}>{room?'Join room':'Create room'}</button>
       {#if room&&!roomState.revision&&synced}<p class="hint">Room not found. Check the invitation.</p>{/if}
      </form>
-    {:else if selected}
+    {:else if selected||ownTable?.provider==='bga'}
      <div class="game-controls">
-      <h1>{selected.title}</h1>{#if selected.players}<p class="game-meta">{selected.players} · {selected.duration}</p>{/if}
-      {#if selected.available}
+      <h1>{ownTable?.provider==='bga'?ownTable.title:selected?.title}</h1>{#if selected?.players}<p class="game-meta">{selected.players} · {selected?.duration}</p>{/if}
+      {#if selected?.available||ownTable?.provider==='bga'}
        {#if ownTable}
         <p class="table-players">{ownTable.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>
         <button class="gold-button" onclick={openGame}>Open {ownTable.title} {@render icon('arrow',17)}</button>
@@ -149,9 +156,10 @@
         <fieldset class="seat-picker"><legend>Players</legend><label class="seat-option"><input type="checkbox" checked disabled/><span>{own?.name} (you)</span></label>{#each eligible.filter(p=>p.id!==uid) as player}<label class="seat-option"><input type="checkbox" checked={chosen.includes(player.id)} onchange={()=>choose(player.id)} disabled={!chosen.includes(player.id)&&chosen.length>=3}/><span>{player.name}</span></label>{/each}</fieldset>
         <button class="gold-button" disabled={busy||!synced} onclick={launch}>Play {selected.title} {@render icon('arrow',17)}</button>
        {/if}
-      {:else}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button><p class="hint" data-testid="external-tab-status">{externalBlocked?'Your browser didn’t open the game. Try the button again.':'Opens separately in a new tab.'}</p>{/if}
+      {:else if selected}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button><p class="hint" data-testid="external-tab-status">{externalBlocked?'Your browser didn’t open the game. Try the button again.':'Opens separately in a new tab.'}</p>{/if}
      </div>
     {/if}
+    {#if joined&&bgaTest&&(ownTable?.provider!=='bga'||ownTable.host===uid)}<BgaPanel {room} {uid} players={[uid,...chosen]} sharedRequests={roomState.tables.flatMap(t=>t.requestId?[t.requestId]:[])} canLaunch={!busy&&synced&&!own?.table} publish={publishBga}/>{/if}
     {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{table.title}</strong><p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
    </aside>
   </div>

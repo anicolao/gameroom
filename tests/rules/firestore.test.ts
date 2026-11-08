@@ -11,7 +11,7 @@ type TestDb=ReturnType<ReturnType<RulesTestEnvironment['authenticatedContext']>[
 function append(db:TestDb,room:string,actor:string,intent:Intent,before=initialState()){
  const after=apply(before,actor,intent),root=doc(db,'rooms',room),id=`intent-${after.revision}`,batch=writeBatch(db);
  batch.set(root,{owner:after.host,members:after.players.map(p=>p.id),present:after.players.filter(p=>p.present).map(p=>p.id),revision:after.revision});
- batch.set(doc(root,'events',String(after.revision)),{version:intent.type==='table/catalog-launched'?VERSION:1,id,sequence:after.revision,actor,intent});batch.set(doc(root,'commands',id),{sequence:after.revision});
+ batch.set(doc(root,'events',String(after.revision)),{version:intent.type==='table/bga-launched'?VERSION:intent.type==='table/catalog-launched'?2:1,id,sequence:after.revision,actor,intent});batch.set(doc(root,'commands',id),{sequence:after.revision});
  return {commit:()=>batch.commit(),after};
 }
 async function create(){const db=env.authenticatedContext('alex').firestore(),write=append(db,'ABCD1234','alex',{type:'room/created',name:'Friday friends',playerName:'Alex'});await assertSucceeds(write.commit());return {db,state:write.after};}
@@ -73,4 +73,16 @@ test('protocol 2 accepts catalog-selected launches and rejects unsafe destinatio
  }
  const write=append(db,'ABCD1234','alex',intent,state);await assertSucceeds(write.commit());
  const event=(await getDoc(doc(db,'rooms','ABCD1234','events','2'))).data();expect(event?.version).toBe(2);expect(event?.intent.game).toEqual(intent.game);
+});
+test('v3 BGA publications require an exact token-free BGA destination, selected present participants and immutable attribution',async()=>{
+ const {db,state}=await create(),root=doc(db,'rooms','ABCD1234');
+ const intent:Intent={type:'table/bga-launched',table:'AABB1122',players:['alex'],requestId:'12345678-0000-4000-8000-000000000000',game:{id:'bga:11',title:"Can't Stop (BGA)",url:'https://boardgamearena.com/table?table=123456'}};
+ for(const [version,url,players] of [[2,intent.game.url,['alex']],[3,'https://evil.example/table?table=123',['alex']],[3,intent.game.url+'&token=secret',['alex']],[3,intent.game.url,['alex','absent']]] as const){
+  const batch=writeBatch(db);batch.set(root,{owner:'alex',members:['alex'],present:['alex'],revision:2});
+  batch.set(doc(root,'events','2'),{version,id:'bga-publication',sequence:2,actor:'alex',intent:{...intent,players:[...players],game:{...intent.game,url}}});batch.set(doc(root,'commands','bga-publication'),{sequence:2});await assertFails(batch.commit());
+ }
+ const write=append(db,'ABCD1234','alex',intent,state);await assertSucceeds(write.commit());
+ expect((await getDoc(doc(root,'events','2'))).data()?.version).toBe(3);
+ await assertFails(setDoc(doc(root,'events','2'),{version:3,id:'overwrite',sequence:2,actor:'alex',intent}));
+ const old=writeBatch(db);old.set(root,{owner:'alex',members:['alex'],present:['alex'],revision:3});old.set(doc(root,'events','3'),{version:2,id:'downgrade',sequence:3,actor:'alex',intent:{type:'message/sent',text:'hi'}});old.set(doc(root,'commands','downgrade'),{sequence:3});await assertFails(old.commit());
 });

@@ -59,7 +59,7 @@ jobs:
           repository: anicolao/cantstop
           ref: 43b5e61ab0a86dadba1f74b22c860fb170c056cf # Replayable game and URL adapter
           path: cantstop
-      - run: apt-get update && apt-get install -y --no-install-recommends unzip
+      - run: apt-get update && apt-get install -y --no-install-recommends unzip zip
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.10
