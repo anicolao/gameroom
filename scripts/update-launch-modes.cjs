@@ -25,7 +25,7 @@ const modes={cribbage:'integrated',Istanbul:'new-tab',RRpr:'new-tab',gotfive:'ne
   if(existing.fields.GameroomEnabled?.stringValue!=='integrated')throw Error('Can’t Stop already exists; review its document before changing it.');
  }else{
   if(documents.some(d=>d.name.endsWith('/cantstop')))throw Error('The cantstop ID is already in use.');
-  writes.push({update:{name:'projects/launcherui/databases/(default)/documents/Applications/cantstop',fields:{Title:{stringValue:"Can't Stop"},Hidden:{booleanValue:true},WebURL:{stringValue:'https://anicolao.github.io/cantstop/'},GameroomEnabled:{stringValue:'integrated'},Icon:{stringValue:'https://anicolao.github.io/gameroom/pr-2/art/covers/cantstop.png'}}},currentDocument:{exists:false}});
+  writes.push({update:{name:'projects/launcherui/databases/(default)/documents/Applications/cantstop',fields:{Title:{stringValue:"Can't Stop"},Hidden:{booleanValue:true},WebURL:{stringValue:'https://anicolao.github.io/cantstop/'},GameroomEnabled:{stringValue:'integrated'},Icon:{stringValue:'https://gameroom.boardgamescafe.org/art/covers/cantstop.png'}}},currentDocument:{exists:false}});
   console.log('cantstop: add integrated, Gameroom-only entry');
  }
  if(!process.argv.includes('--apply')){console.log(`Dry run: ${writes.length} targeted edits. Use --apply to commit.`);return;}

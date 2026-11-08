@@ -20,8 +20,8 @@ jobs:
       pages: write
       id-token: write
     environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      name: ${{ github.event_name == 'pull_request' && 'github-pages-previews' || 'github-pages' }}
+      url: ${{ github.event_name == 'pull_request' && format('https://anicolao.github.io/gameroom-previews/pr-{0}/', github.event.pull_request.number) || steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,7 +33,7 @@ jobs:
       - run: bun run check && bun run test:unit
       - name: Build with the existing LauncherUI production project
         env:
-          PUBLIC_BASE_PATH: ${{ github.event_name == 'pull_request' && format('/pr-{0}/', github.event.pull_request.number) || '/' }}
+          PUBLIC_BASE_PATH: ${{ github.event_name == 'pull_request' && format('/gameroom-previews/pr-{0}/', github.event.pull_request.number) || '/' }}
           VITE_FIREBASE_API_KEY: ${{ secrets.PUBLIC_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.PUBLIC_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.PUBLIC_FIREBASE_PROJECT_ID }}
@@ -56,19 +56,33 @@ jobs:
           SOURCE_COMMIT=$(git rev-parse HEAD)
           export SOURCE_COMMIT
           node -e 'require("node:fs").writeFileSync("dist/deployment.json", JSON.stringify({commit:process.env.SOURCE_COMMIT,run:"https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"})+"\n")'
-      - name: Assemble the site and retain PR previews
+      - name: Check out the publication repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event_name == 'pull_request' && 'anicolao/gameroom-previews' || github.repository }}
+          ref: gh-pages
+          path: site
+          ssh-key: ${{ github.event_name == 'pull_request' && secrets.PREVIEW_DEPLOY_KEY || '' }}
+      - name: Assemble production or an isolated preview
         env:
           PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
         run: |
-          git fetch origin gh-pages
-          git worktree add site origin/gh-pages
           if [ -n "$PR_NUMBER" ]; then
             [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]
             rm -rf "site/pr-${PR_NUMBER}"
             mkdir -p "site/pr-${PR_NUMBER}"
             cp -R dist/. "site/pr-${PR_NUMBER}/"
+            rm -f "site/pr-${PR_NUMBER}/CNAME"
           else
-            # Root files come from main; keep every existing PR preview directory.
+            # Historical preview paths contain only redirects to another origin.
+            for preview in site/pr-*; do
+              [ -d "$preview" ] || continue
+              name=$(basename "$preview")
+              [[ "$name" =~ ^pr-[0-9]+$ ]] || exit 1
+              rm -rf "$preview"
+              mkdir -p "$preview"
+              printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=https://anicolao.github.io/gameroom-previews/%s/"><a href="https://anicolao.github.io/gameroom-previews/%s/">Open isolated preview</a>\n' "$name" "$name" > "$preview/index.html"
+            done
             find site -mindepth 1 -maxdepth 1 ! -name '.git' ! -name '.nojekyll' ! -name 'pr-*' -exec rm -rf -- {} +
             cp -R dist/. site/
           fi
@@ -80,10 +94,13 @@ jobs:
             git commit -m "Publish ${PR_NUMBER:+PR }${PR_NUMBER:-main}"
             git push origin HEAD:gh-pages
           fi
-          rm .git
+          rm -rf .git
       - uses: actions/configure-pages@v5
+        if: github.event_name != 'pull_request'
       - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
         with:
           path: site
       - uses: actions/deploy-pages@v4
+        if: github.event_name != 'pull_request'
         id: deploy
