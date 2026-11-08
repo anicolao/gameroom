@@ -3,10 +3,11 @@ import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {resolve,join} from 'node:path';
 import {chromiumArgs} from './browser-options';
+export const bgaFixtureArgs=[...chromiumArgs.filter(arg=>!arg.startsWith('--host-resolver-rules')),"--host-resolver-rules=MAP boardgamearena.com ~NOTFOUND, MAP en.boardgamearena.com ~NOTFOUND, MAP gameroom.test 127.0.0.1"];
 export const trustedOrigin='https://gameroom.boardgamescafe.org';
 export async function bgaExtension(){
  const folder=await mkdtemp(join(tmpdir(),'gameroom-bga-extension-')),extension=resolve('extension/bga-boss');
- const context=await chromium.launchPersistentContext(folder,{channel:'chromium',headless:true,viewport:{width:1180,height:820},deviceScaleFactor:1,locale:'en-CA',timezoneId:'America/Toronto',args:[...chromiumArgs.filter(arg=>!arg.startsWith('--host-resolver-rules')),"--host-resolver-rules=MAP boardgamearena.com ~NOTFOUND, MAP en.boardgamearena.com ~NOTFOUND, MAP gameroom.test 127.0.0.1",`--disable-extensions-except=${extension}`,`--load-extension=${extension}`],ignoreDefaultArgs:['--disable-popup-blocking']});
+ const context=await chromium.launchPersistentContext(folder,{channel:'chromium',headless:true,viewport:{width:1180,height:820},deviceScaleFactor:1,locale:'en-CA',timezoneId:'America/Toronto',args:[...bgaFixtureArgs,`--disable-extensions-except=${extension}`,`--load-extension=${extension}`],ignoreDefaultArgs:['--disable-popup-blocking']});
  const worker=context.serviceWorkers()[0]??await context.waitForEvent('serviceworker');
  const id=new URL(worker.url()).hostname;
  return {context,id,worker,async close(){await context.close();await rm(folder,{recursive:true,force:true});}};

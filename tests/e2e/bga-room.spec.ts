@@ -1,7 +1,8 @@
 import {test,expect,type BrowserContext} from '@playwright/test';
 import {TestStepHelper} from './helpers/test-step-helper';
-import {bgaExtension,fixtureBga,approve,trustedOrigin} from './helpers/bga-extension';
+import {bgaExtension,fixtureBga,approve,trustedOrigin,bgaFixtureArgs} from './helpers/bga-extension';
 import {deterministicRoom,profile,waitForInactive} from './helpers/launch';
+test.use({launchOptions:{args:bgaFixtureArgs,ignoreDefaultArgs:['--disable-popup-blocking']}});
 async function proxyRoom(context:BrowserContext){
  // HTTPS fixture origin accesses only the local Firebase emulators. Grant the
  // browser's explicit loopback-network permission rather than disabling checks.
@@ -51,6 +52,8 @@ test('BGA room shares one captured table with an independent friend and keeps ch
   expect(extension.context.pages().filter(p=>p.url().startsWith('https://boardgamearena.com/table'))).toHaveLength(1);
   await capture('shared','Both selected profiles receive the same BGA table and a reopen control');
   const popup=guestContext.waitForEvent('page');await guest.getByRole('button',{name:"Open Can't Stop (BGA)",exact:true}).click();const guestBga=await popup;
+  await guestBga.goto('https://boardgamearena.com/table?table=12345678');
+  await expect(guestBga.getByRole('heading',{name:'BGA fixture',exact:true})).toBeVisible();
   await expect(guestBga).toHaveURL('https://boardgamearena.com/table?table=12345678');expect(await guestBga.evaluate(()=>window.opener===null)).toBe(true);
   await capture('opened','The friend opens the exact BGA URL without an extension or Gameroom parameters');
   await host.reload();await expect(host.getByTestId('bga-status')).toHaveText('Table shared with room.');

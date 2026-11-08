@@ -38,7 +38,7 @@ test('shared catalog updates, hides games and opens URL-only games without group
 });
 
 test('enclosed 3D cabinet selects real boxes and browses by wheel, keyboard and touch',async({page},info)=>{
- const story=new TestStepHelper(info,'CABINET');await deterministicRoom(page,500);
+ const story=new TestStepHelper(info,'CABINET');await deterministicRoom(page,5000);
  const extra=[['drm','DRM'],['gotfive','Got Five'],['pantheon','Pantheon'],['rebelprincess','Rebel Princess']];
  const filler=Array.from({length:12},(_,i)=>`collection-${i}`);
  try{

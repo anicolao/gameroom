@@ -143,10 +143,10 @@
       <button class="gold-button" disabled={busy||!uid||!synced||!playerName.trim()||!room&&!roomName.trim()||!!room&&!roomState.revision}>{room?'Join room':'Create room'}</button>
       {#if room&&!roomState.revision&&synced}<p class="hint">Room not found. Check the invitation.</p>{/if}
      </form>
-    {:else if selected}
+    {:else if selected||ownTable?.provider==='bga'}
      <div class="game-controls">
-      <h1>{bgaTest&&ownTable?.provider==='bga'?ownTable.title:selected.title}</h1>{#if selected.players}<p class="game-meta">{selected.players} · {selected.duration}</p>{/if}
-      {#if selected.available||bgaTest&&ownTable?.provider==='bga'}
+      <h1>{ownTable?.provider==='bga'?ownTable.title:selected?.title}</h1>{#if selected?.players}<p class="game-meta">{selected.players} · {selected?.duration}</p>{/if}
+      {#if selected?.available||ownTable?.provider==='bga'}
        {#if ownTable}
         <p class="table-players">{ownTable.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>
         <button class="gold-button" onclick={openGame}>Open {ownTable.title} {@render icon('arrow',17)}</button>
@@ -156,7 +156,7 @@
         <fieldset class="seat-picker"><legend>Players</legend><label class="seat-option"><input type="checkbox" checked disabled/><span>{own?.name} (you)</span></label>{#each eligible.filter(p=>p.id!==uid) as player}<label class="seat-option"><input type="checkbox" checked={chosen.includes(player.id)} onchange={()=>choose(player.id)} disabled={!chosen.includes(player.id)&&chosen.length>=3}/><span>{player.name}</span></label>{/each}</fieldset>
         <button class="gold-button" disabled={busy||!synced} onclick={launch}>Play {selected.title} {@render icon('arrow',17)}</button>
        {/if}
-      {:else}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button><p class="hint" data-testid="external-tab-status">{externalBlocked?'Your browser didn’t open the game. Try the button again.':'Opens separately in a new tab.'}</p>{/if}
+      {:else if selected}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button><p class="hint" data-testid="external-tab-status">{externalBlocked?'Your browser didn’t open the game. Try the button again.':'Opens separately in a new tab.'}</p>{/if}
      </div>
     {/if}
     {#if joined&&bgaTest&&(ownTable?.provider!=='bga'||ownTable.host===uid)}<BgaPanel {room} {uid} players={[uid,...chosen]} sharedRequests={roomState.tables.flatMap(t=>t.requestId?[t.requestId]:[])} canLaunch={!busy&&synced&&!own?.table} publish={publishBga}/>{/if}
