@@ -55,10 +55,14 @@ test('BGA room shares one captured table with an independent friend and keeps ch
   await guestBga.goto('https://boardgamearena.com/table?table=12345678');
   await expect(guestBga.getByRole('heading',{name:'BGA fixture',exact:true})).toBeVisible();
   await expect(guestBga).toHaveURL('https://boardgamearena.com/table?table=12345678');expect(await guestBga.evaluate(()=>window.opener===null)).toBe(true);
-  await capture('opened','The friend opens the exact BGA URL without an extension or Gameroom parameters');
+  // Return through a real room control after the cross-site popup; this also
+  // ensures the room compositor presents the conversation before capture.
+  await guest.getByRole('button',{name:'Room conversation',exact:true}).click();
+  await expect(guest.getByRole('region',{name:'Room conversation',exact:true})).toBeVisible();
+  await capture('opened','The friend opens the exact BGA URL and continues using the room');
   await host.reload();await expect(host.getByTestId('bga-status')).toHaveText('Table shared with room.');
   expect(extension.context.pages().filter(p=>p.url().startsWith('https://boardgamearena.com/table'))).toHaveLength(1);
-  await host.getByRole('button',{name:'Room conversation',exact:true}).click();await guest.getByRole('button',{name:'Room conversation',exact:true}).click();
+  await host.getByRole('button',{name:'Room conversation',exact:true}).click();
   await host.getByRole('textbox',{name:'Message',exact:true}).fill('Meet you at the BGA table.');await host.getByRole('button',{name:'Send message',exact:true}).click();
   await expect(guest.getByText('Meet you at the BGA table.',{exact:true})).toBeVisible();
   await capture('chat','Reload creates no duplicate BGA tab and room chat continues');

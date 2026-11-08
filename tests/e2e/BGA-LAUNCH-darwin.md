@@ -66,19 +66,19 @@ Viewpoint: **Sam**
 
 - [x] Both independent profiles remain in the gathering
 
-## The friend opens the exact BGA URL without an extension or Gameroom parameters
+## The friend opens the exact BGA URL and continues using the room
 
 Viewpoint: **Alex**
 
-![The friend opens the exact BGA URL without an extension or Gameroom parameters](./screenshots/008-opened-alex-darwin.png)
+![The friend opens the exact BGA URL and continues using the room](./screenshots/008-opened-alex-darwin.png)
 
 - [x] Both independent profiles remain in the gathering
 
-## The friend opens the exact BGA URL without an extension or Gameroom parameters
+## The friend opens the exact BGA URL and continues using the room
 
 Viewpoint: **Sam**
 
-![The friend opens the exact BGA URL without an extension or Gameroom parameters](./screenshots/009-opened-sam-darwin.png)
+![The friend opens the exact BGA URL and continues using the room](./screenshots/009-opened-sam-darwin.png)
 
 - [x] Both independent profiles remain in the gathering
 

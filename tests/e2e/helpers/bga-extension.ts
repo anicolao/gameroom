@@ -25,5 +25,10 @@ export async function message(page:Page|Frame,id:string,request:unknown){
  }),{id,request});
 }
 export async function approve(context:BrowserContext,id:string,requestId:string,action='Open BGA to create table'){
- const page=await context.newPage();await page.goto(`chrome-extension://${id}/approve.html?request=${requestId}`);await page.getByRole('button',{name:action,exact:true}).click();await expect(page.getByRole('status')).not.toBeEmpty();return page;
+ const url=`chrome-extension://${id}/approve.html?request=${requestId}`;
+ await expect.poll(()=>context.pages().filter(page=>page.url()===url).length).toBe(1);
+ const page=context.pages().find(page=>page.url()===url)!;
+ await page.getByRole('button',{name:action,exact:true}).click();
+ await expect(page.getByRole('status')).toContainText(action==='Deny'?'Request denied.':'BGA opened.');
+ await page.close();
 }

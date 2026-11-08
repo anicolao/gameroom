@@ -12,14 +12,18 @@
  let mounted=true,timer:ReturnType<typeof setTimeout>|undefined;
  function remember(){sessionStorage.setItem(key,JSON.stringify(pending));}
  async function check(){
-  if(!pending||checking)return;
-  clearTimeout(timer);
-  checking=true;error='';
-  try{op=operation(await bossMessage(pending.extension,{version:1,method:'operations.get',requestId:pending.id}),pending.id);}
-  catch(e){error=(e as Error).message;}
+  const current=pending;
+  if(!current||checking)return;
+  clearTimeout(timer);checking=true;error='';
+  try{
+   const next=operation(await bossMessage(current.extension,{version:1,method:'operations.get',requestId:current.id}),current.id);
+   if(!mounted||pending?.id!==current.id)return;
+   op=next;
+  }catch(e){if(mounted&&pending?.id===current.id)error=(e as Error).message;}
   finally{checking=false;}
-  if(mounted&&op?.status==='succeeded'&&canLaunch&&!published)await share();
-  if(mounted&&!error&&op&&!['succeeded','cancelled','unknown'].includes(op.status))timer=setTimeout(()=>void check(),1500);
+  if(!mounted||pending?.id!==current.id)return;
+  if(op?.status==='succeeded'&&canLaunch&&!published)await share();
+  if(!error&&op&&!['succeeded','cancelled','unknown'].includes(op.status))timer=setTimeout(()=>void check(),1500);
  }
  async function start(){
   if(pending||!canLaunch||checking)return;
@@ -58,8 +62,8 @@
  {:else}
   <p data-testid="bga-status" aria-live="polite">{published?'Table shared with room.':op?.status==='succeeded'?'BGA table found. Share it with the selected players.':op?.status==='needs_approval'?'Approve this request in the BGA Boss window.':op?.status==='waiting_for_table'?'Create a table in the BGA tab. Its address will appear here automatically.':op?.status==='cancelled'?'Request denied.':op?.status==='unknown'?'BGA tab unavailable. Check BGA before starting another request.':'Checking BGA Boss…'}</p>
   {#if op?.status==='succeeded'&&!published}<button class="gold-button" disabled={!canLaunch} onclick={share}>Share BGA table with room</button>{/if}
-  {#if !published}<button class="text-button" disabled={checking} onclick={check}>Check same request</button>{/if}
-  <button class="text-button" disabled={checking} onclick={reset}>{published?'Finish this request':'Discard request (check BGA first)'}</button>
+  {#if !published}<button class="text-button" onclick={check}>Check same request</button>{/if}
+  <button class="text-button" onclick={reset}>{published?'Finish this request':'Discard request (check BGA first)'}</button>
  {/if}
  {#if error}<p role="alert">{error}</p>{/if}
 </section>
