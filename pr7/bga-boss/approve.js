@@ -1,11 +1,11 @@
 const status=document.querySelector('#status');
-document.querySelector('#extension-id').textContent='Extension ID: '+chrome.runtime.id;
+
 const wanted=new URLSearchParams(location.search).get('request');
 const requests=await chrome.runtime.sendMessage({method:'pending'});
 if(!Array.isArray(requests)){status.textContent='Could not read pending requests.';}
 else {
  const items=requests.filter(op=>!wanted||op.requestId===wanted);
- if(!items.length)status.textContent='No pending requests. Use this extension ID in Gameroom’s BGA test launcher.';
+ if(!items.length)status.textContent='No pending requests. Open Gameroom to set up a BGA table.';
  for(const op of items){
   const section=document.createElement('section'),title=document.createElement('h2'),client=document.createElement('p');
   title.textContent=op.title;client.textContent='Request from '+op.client;section.append(title,client);

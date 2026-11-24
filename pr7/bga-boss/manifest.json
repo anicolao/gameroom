@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "BGA Boss — Gameroom test bridge",
-  "version": "0.1.0",
+  "name": "BGA Boss \u2014 Gameroom test bridge",
+  "version": "0.1.1",
   "description": "Open a BGA game, capture its table URL, and return it to an approved Gameroom page. Host only.",
   "permissions": [
     "storage"
