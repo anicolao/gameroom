@@ -12,6 +12,11 @@ export async function bgaExtension(){
  const id=new URL(worker.url()).hostname;
  return {context,id,worker,async close(){await context.close();await rm(folder,{recursive:true,force:true});}};
 }
+export async function bgaGuest(){
+ const folder=await mkdtemp(join(tmpdir(),'gameroom-bga-guest-'));
+ const context=await chromium.launchPersistentContext(folder,{channel:'chromium',headless:true,viewport:{width:1180,height:820},deviceScaleFactor:1,locale:'en-CA',timezoneId:'America/Toronto',args:bgaFixtureArgs,ignoreDefaultArgs:['--disable-popup-blocking']});
+ return {context,async close(){await context.close();await rm(folder,{recursive:true,force:true});}};
+}
 export async function fixtureBga(context:BrowserContext){
  await context.route(/^https:\/\/(?:en\.)?boardgamearena\.com\//,route=>{
   const url=new URL(route.request().url());

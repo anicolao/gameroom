@@ -2,7 +2,7 @@ import {test,expect} from 'bun:test';
 import {clientKey,validateRequest,capturedTable} from '../extension/bga-boss/policy.js';
 import {apply,initialState,replay,type RoomEvent} from '../src/lib/engine';
 import {gameUrl} from '../src/lib/launch';
-import {bgaDestination,operation} from '../src/lib/bga-boss';
+import {BGA_BOSS_ID,bgaDestination,operation} from '../src/lib/bga-boss';
 const requestId='12345678-0000-4000-8000-000000000000';
 const sender={url:'https://gameroom.boardgamescafe.org/pr7/?room=AABB1122',origin:'https://gameroom.boardgamescafe.org',frameId:0,tab:{id:4}};
 test('bridge trusts only the exact HTTPS origin, top frame and explicit preview entry paths',()=>{
@@ -32,4 +32,11 @@ test('BGA publication is a v3 host decision, preserves the exact external table 
  for(const url of ['https://evil.example/table?table=123','https://boardgamearena.com/table?table=123&token=secret'])expect(()=>apply(replay([first]),'host',{...launch.intent,game:{id:'bga:11',title:'BGA',url}})).toThrow();
  const legacy=apply(apply(initialState(),'host',first.intent),'host',{type:'table/catalog-launched',table:'ABCD1234',players:['host'],game:{id:'no-provider',title:'Any game',url:'https://boardgamearena.com/'}});
  expect(legacy.tables[0].provider).toBeUndefined();expect(new URL(gameUrl(legacy.tables[0].url,legacy.tables[0],legacy.players[0])).searchParams.get('launch')).toBe('create');
+});
+
+test('automatic discovery uses the stable manifest ID across unpacked install locations',async()=>{
+ const manifest=await Bun.file('extension/bga-boss/manifest.json').json();
+ const hash=new Bun.CryptoHasher('sha256').update(Buffer.from(manifest.key,'base64')).digest('hex').slice(0,32);
+ const id=[...hash].map(char=>String.fromCharCode(97+parseInt(char,16))).join('');
+ expect(BGA_BOSS_ID).toBe(id);
 });

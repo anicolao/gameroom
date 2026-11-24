@@ -1,7 +1,7 @@
 import {test,expect,type BrowserContext} from '@playwright/test';
 import {TestStepHelper} from './helpers/test-step-helper';
-import {bgaExtension,fixtureBga,approve,trustedOrigin,bgaFixtureArgs} from './helpers/bga-extension';
-import {deterministicRoom,profile,waitForInactive} from './helpers/launch';
+import {bgaExtension,bgaGuest,fixtureBga,approve,trustedOrigin,bgaFixtureArgs} from './helpers/bga-extension';
+import {deterministicRoom,waitForInactive} from './helpers/launch';
 test.use({launchOptions:{args:bgaFixtureArgs,ignoreDefaultArgs:['--disable-popup-blocking']}});
 async function proxyRoom(context:BrowserContext){
  // HTTPS fixture origin accesses only the local Firebase emulators. Grant the
@@ -13,8 +13,8 @@ async function proxyRoom(context:BrowserContext){
   await route.fulfill({response});
  });await fixtureBga(context);
 }
-test('BGA room shares one captured table with an independent friend and keeps chat and popup recovery',async({browser},info)=>{
- const extension=await bgaExtension(),guestContext=await browser.newContext(profile),story=new TestStepHelper(info,'BGA-LAUNCH');
+test('BGA room shares one captured table with an independent friend and keeps chat and popup recovery',async({},info)=>{
+ const extension=await bgaExtension(),guestProfile=await bgaGuest(),guestContext=guestProfile.context,story=new TestStepHelper(info,'BGA-LAUNCH');
  try{
   await proxyRoom(extension.context);await proxyRoom(guestContext);
   const host=await extension.context.newPage(),guest=await guestContext.newPage();
@@ -23,7 +23,11 @@ test('BGA room shares one captured table with an independent friend and keeps ch
   await expect(host.getByTestId('friend')).toHaveCount(1);const invitation=host.url();
   await guest.goto(invitation);await guest.getByRole('textbox',{name:'Your name'}).fill('Sam');await guest.getByRole('button',{name:'Join room',exact:true}).click();
   await expect(host.getByTestId('friend')).toHaveCount(2);
-  await host.getByRole('textbox',{name:'BGA Boss extension ID'}).fill(extension.id);
+  await expect(host.getByTestId('bga-connection')).toHaveText('BGA Boss connected.');
+  await expect(guest.getByTestId('bga-connection')).toHaveText('Install BGA Boss to host a BGA table.');
+  for(const page of [host,guest])await expect(page.getByRole('textbox',{name:'BGA Boss extension ID'})).toHaveCount(0);
+  await expect(host.getByRole('button',{name:"Set up Can't Stop on BGA",exact:true})).toBeEnabled();
+  await expect(guest.getByRole('button',{name:"Set up Can't Stop on BGA",exact:true})).toBeDisabled();
   const capture=async(id:string,description:string,mobileGuest=false)=>{
    for(const [page,name] of [[host,'Alex'],[guest,'Sam']] as const)await story.step(id,page,name,description,[{spec:'Both independent profiles remain in the gathering',check:async()=>{await expect(page).toHaveURL(invitation);await expect(page.getByTestId('friend')).toHaveCount(2);}}],false,mobileGuest&&name==='Sam');
   };
@@ -67,5 +71,5 @@ test('BGA room shares one captured table with an independent friend and keeps ch
   await capture('chat','Reload creates no duplicate BGA tab and room chat continues');
   await guest.getByRole('button',{name:'Close conversation',exact:true}).click();await guest.setViewportSize({width:390,height:844});
   await capture('mobile','The mobile friend retains a usable reopen control',true);story.finish();
- }finally{await guestContext.close();await extension.close();}
+ }finally{await guestProfile.close();await extension.close();}
 });

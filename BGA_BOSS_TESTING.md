@@ -36,7 +36,7 @@ separate ordinary verification. CI keeps the pinned Linux ARM64 browser image.
 
 ## Live acceptance — pending user test
 
-- [ ] Install the preview ZIP unpacked in Chrome; enter its extension ID.
+- [ ] Install the preview ZIP unpacked in Chrome; return to Gameroom and confirm automatic detection.
 - [ ] Host and friend sign into independent BGA accounts.
 - [ ] Select the intended players, set up Can't Stop, and approve only this request.
 - [ ] Create an unadvertised realtime table on BGA, checking its actual privacy/access settings.

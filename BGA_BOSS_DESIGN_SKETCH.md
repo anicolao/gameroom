@@ -322,3 +322,9 @@ that result and design explicit invitation support next.
 The install guide and extension ZIP are included in each preview build at
 `bga-boss-install.html` and `bga-boss.zip`. Inspect and approve these first-stage
 results before adding automatic creation, invitations or match start.
+
+Gameroom discovers the extension by calling `capabilities.get` at its stable
+manifest-key-derived ID. No manual ID, registration, injected page script or
+additional permission is needed. Returning to Gameroom checks the connection
+again, including after installation or re-enabling the extension. Approval of a
+particular BGA preparation request remains a separate extension-owned action.
