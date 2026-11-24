@@ -20,6 +20,8 @@ jobs:
   publish:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
+    outputs:
+      artifact_id: ${{ steps.artifact.outputs.artifact_id }}
     env:
       PREVIEW_RUN_ID: ${{ github.event.workflow_run.id || inputs.preview_run_id || '' }}
     permissions:
@@ -29,7 +31,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: https://gameroom.boardgamescafe.org/
     steps:
       - uses: actions/checkout@v4
         with:
@@ -107,10 +109,22 @@ jobs:
       - uses: actions/configure-pages@v5
         if: env.PREVIEW_RUN_ID == '' || steps.preview.outputs.publish == 'true'
       - uses: actions/upload-pages-artifact@v3
+        id: artifact
         if: env.PREVIEW_RUN_ID == '' || steps.preview.outputs.publish == 'true'
         with:
           path: site
-      # Use REST artifact discovery; the runtime artifact service returns an empty list here.
-      - uses: actions/deploy-pages@f33f41b675f0ab2dc5a6863c9a170fe83af3571e # v4.0.0
-        if: env.PREVIEW_RUN_ID == '' || steps.preview.outputs.publish == 'true'
+  deploy:
+    needs: publish
+    if: needs.publish.outputs.artifact_id != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      # Upload must finish in a completed job before Pages consumes its artifact.
+      - uses: actions/deploy-pages@f33f41b675f0ab2dc5a6863c9a170fe83af3571e # v4.0.0, REST artifact discovery
         id: deploy
