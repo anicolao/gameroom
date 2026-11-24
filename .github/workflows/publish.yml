@@ -110,6 +110,7 @@ jobs:
         if: env.PREVIEW_RUN_ID == '' || steps.preview.outputs.publish == 'true'
         with:
           path: site
-      - uses: actions/deploy-pages@v4
+      # Use REST artifact discovery; the runtime artifact service returns an empty list here.
+      - uses: actions/deploy-pages@f33f41b675f0ab2dc5a6863c9a170fe83af3571e # v4.0.0
         if: env.PREVIEW_RUN_ID == '' || steps.preview.outputs.publish == 'true'
         id: deploy
