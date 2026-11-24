@@ -3,8 +3,10 @@ import {TestStepHelper} from './helpers/test-step-helper';
 import {deterministicRoom,openRoom} from './helpers/launch';
 const project='demo-gameroom-catalogue-e2e';
 async function change(id:string,data?:Record<string,unknown>){
+ const host=process.env.FIRESTORE_EMULATOR_HOST??'127.0.0.1:8199';
+ if(!/^127\.0\.0\.1:\d+$/.test(host)||!project.startsWith('demo-'))throw new Error('Use a local demo catalog.');
  const fields=Object.fromEntries(Object.entries(data??{}).map(([key,value])=>[key,typeof value==='boolean'?{booleanValue:value}:{stringValue:value}]));
- const response=await fetch(`http://127.0.0.1:8199/v1/projects/${project}/databases/(default)/documents/Applications/${id}`,{method:data?'PATCH':'DELETE',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},...(data?{body:JSON.stringify({fields})}:{})});
+ const response=await fetch(`http://${host}/v1/projects/${project}/databases/(default)/documents/Applications/${id}`,{method:data?'PATCH':'DELETE',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},...(data?{body:JSON.stringify({fields})}:{})});
  expect(response.ok).toBe(true);
 }
 async function clickBox(page:Page,title:string){
