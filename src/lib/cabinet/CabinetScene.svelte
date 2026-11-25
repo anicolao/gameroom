@@ -46,13 +46,17 @@
  const belt=$derived(tracks[variant==='cabinet'?1:0]);
  onMount(()=>{
   let disposed=false,environment:WebGLRenderTarget|undefined;
+  // Chrome may discard a background tab's presented WebGL surface. Request a
+  // fresh frame when returning from a game; this canvas otherwise draws on demand.
+  const refresh=()=>{if(document.visibilityState==='visible'){assetRevision++;invalidate();}};
+  document.addEventListener('visibilitychange',refresh);window.addEventListener('focus',refresh);window.addEventListener('pageshow',refresh);
   scene.background=roomBackdrop?new Color('#182b24'):null;renderer.setClearColor('#182b24',roomBackdrop?1:0);renderer.toneMappingExposure=1.15;
   void Promise.all([loadCabinetMaterials(invalidate),new HDRLoader().loadAsync(`${import.meta.env.BASE_URL}materials/studio.hdr`)]).then(([lib,hdr])=>{
    if(disposed){lib.dispose();hdr.dispose();return;}
    const pmrem=new PMREMGenerator(renderer);environment=pmrem.fromEquirectangular(hdr);hdr.dispose();pmrem.dispose();scene.environment=environment.texture;scene.environmentIntensity=.42;
    library=lib;environmentReady=true;invalidate();
   }).catch(error=>{if(!disposed)onError(error);console.error('Shelf materials:',error);});
-  return()=>{disposed=true;library?.dispose();environment?.dispose();};
+  return()=>{disposed=true;document.removeEventListener('visibilitychange',refresh);window.removeEventListener('focus',refresh);window.removeEventListener('pageshow',refresh);library?.dispose();environment?.dispose();};
  });
  $effect(()=>{const p=position,lib=library;if(lib){lib.rubber.offset.x=p*34/(mode==='catalogue'?cabinetCarriers:carriers);invalidate();}});
  onDestroy(()=>{[deck,front,cabinetDeck,cabinetFront,...tracks.flatMap(t=>Object.values(t))].forEach(g=>g.dispose());});

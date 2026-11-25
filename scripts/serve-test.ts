@@ -2,7 +2,7 @@ import {cribbagePath,cantstopPath,cribbageEnv,localEnv} from './environment';
 import {waitForLaunchContract} from './launch-contract';
 const cribbage=process.argv[2]==='cribbage',cantstop=process.argv[2]==='cantstop',game=cribbage||cantstop,cwd=cribbage?cribbagePath:cantstop?cantstopPath:process.cwd();
 const projectId=cribbage?'demo-cribbage-e2e':cantstop?'demo-cantstop-e2e':'demo-gameroom-e2e';
-const env={...(game?cribbageEnv:localEnv),VITE_CATALOGUE_FIREBASE_PROJECT_ID:'demo-gameroom-catalogue-e2e',VITE_FIREBASE_PROJECT_ID:projectId,VITE_FIREBASE_AUTH_DOMAIN:`${projectId}.firebaseapp.com`,VITE_FIREBASE_APP_ID:`${projectId}-app`,VITE_FIREBASE_AUTH_EMULATOR_PORT:'9299',VITE_FIRESTORE_EMULATOR_PORT:'8199'};
+const env={...(game?cribbageEnv:localEnv),VITE_CATALOGUE_FIREBASE_PROJECT_ID:'demo-gameroom-catalogue-e2e',VITE_FIREBASE_PROJECT_ID:projectId,VITE_FIREBASE_AUTH_DOMAIN:`${projectId}.firebaseapp.com`,VITE_FIREBASE_APP_ID:`${projectId}-app`,VITE_FIREBASE_AUTH_EMULATOR_PORT:process.env.FIREBASE_AUTH_EMULATOR_HOST?.split(':').at(-1)??'9299',VITE_FIRESTORE_EMULATOR_PORT:process.env.FIRESTORE_EMULATOR_HOST?.split(':').at(-1)??'8199'};
 // Keep test bundles separate from production builds and the running development stack.
 const outDir='.firebase/e2e-build';
 const build=Bun.spawn(['bun','run','build','--outDir',outDir],{cwd,env,stdout:'inherit',stderr:'inherit'});

@@ -8,7 +8,7 @@
     "dev": "vite --host 0.0.0.0 --port 5199 --strictPort",
     "dev:local": "bun scripts/local.ts",
     "check": "svelte-check --tsconfig tsconfig.json",
-    "build": "vite build",
+    "build": "bun scripts/build.ts",
     "preview": "vite preview --host 0.0.0.0 --port 4199 --strictPort",
     "test:unit": "bun test tests/*.test.ts",
     "test:rules": "bun scripts/emulators.ts rules",

@@ -90,6 +90,7 @@ service cloud.firestore {
      && request.resource.data.version in [1,2] && (request.resource.data.intent.type!='table/catalog-launched' || request.resource.data.version==2) && request.resource.data.id is string && request.resource.data.id.matches('[A-Za-z0-9_-]{1,128}')
      && request.resource.data.actor==request.auth.uid && request.resource.data.sequence is int && intent(request.resource.data.intent)
      && sequence==string(request.resource.data.sequence)
+     && (!exists(root(room)) || get(event(room,get(root(room)).data.revision)).data.version<=request.resource.data.version)
      && getAfter(root(room)).data.revision==request.resource.data.sequence
      && request.auth.uid in getAfter(root(room)).data.members
      && (!exists(root(room)) || getAfter(root(room)).data.revision==get(root(room)).data.revision+1)
