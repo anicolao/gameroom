@@ -6,6 +6,10 @@ Persistent rooms for friends, with games opened in separate tabs. Room history
 and chat use an immutable Firestore intent log. The bookshelf reads the same
 `Applications` catalog as [ttlauncher](https://github.com/anicolao/ttlauncher).
 
+The proposed installed-app experience is specified in
+[Seamless MVP design](SEAMLESS_MVP_DESIGN.md). It is a design proposal; the
+current implementation still opens games in separate tabs.
+
 ## PR preview
 
 [PR #2 preview](https://gameroom.boardgamescafe.org/pr2/) uses the existing
