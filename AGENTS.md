@@ -1,5 +1,7 @@
 # gameroom
 
+Read [VISION.md](VISION.md) for the product direction guiding this work.
+
 Use Bun. Keep the gathering persistent across independent games; Cribbage is the
 first URL integration. The cozy game den is the visual direction. Keep controls
 as accessible HTML over environmental artwork.

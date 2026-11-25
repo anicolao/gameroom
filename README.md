@@ -1,5 +1,7 @@
 # gameroom
 
+Read [the product vision](VISION.md) for the experience we are building toward.
+
 Persistent rooms for friends, with games opened in separate tabs. Room history
 and chat use an immutable Firestore intent log. The bookshelf reads the same
 `Applications` catalog as [ttlauncher](https://github.com/anicolao/ttlauncher).
