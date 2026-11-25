@@ -4,6 +4,13 @@ Persistent rooms for friends, with games opened in separate tabs. Room history
 and chat use an immutable Firestore intent log. The bookshelf reads the same
 `Applications` catalog as [ttlauncher](https://github.com/anicolao/ttlauncher).
 
+## Paused BGA experiment
+
+[PR #7](https://github.com/anicolao/gameroom/pull/7) is paused. Read
+[BGA_BOSS_RESUME.md](BGA_BOSS_RESUME.md) before resuming: the current extension
+captures a table URL after manual creation on BGA; automated creation and live
+private-table access have not been verified.
+
 ## PR preview
 
 [PR #2 preview](https://gameroom.boardgamescafe.org/pr2/) uses the existing

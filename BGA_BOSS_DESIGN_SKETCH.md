@@ -1,5 +1,8 @@
 # BGA Boss: design sketch
 
+> Paused 2026-11-25. Read [BGA_BOSS_RESUME.md](BGA_BOSS_RESUME.md) for the
+> actual implementation, verified observations and unresolved automation work.
+
 Status: proposed; this document does not implement or enable BGA integration.
 
 BGA Boss is a small Chrome extension that lets an explicitly approved Gameroom

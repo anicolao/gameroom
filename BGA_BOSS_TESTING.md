@@ -1,5 +1,9 @@
 # BGA Boss preview test
 
+**Paused 2026-11-25.** See [the resume handoff](BGA_BOSS_RESUME.md) before
+continuing. Fixture tests cover the bridge; automated live BGA creation and
+private-table access have not been established.
+
 Open the PR preview with `?bga=1`. The preview contains a downloadable unpacked
 extension and [install instructions](docs/bga-boss-install.html). Only the host
 installs BGA Boss. Create a fresh room on that preview, invite another browser
@@ -36,7 +40,8 @@ separate ordinary verification. CI keeps the pinned Linux ARM64 browser image.
 
 ## Live acceptance — pending user test
 
-- [ ] Install the preview ZIP unpacked in Chrome; return to Gameroom and confirm automatic detection.
+- [x] User reported installing the extension and seeing automatic detection.
+- [x] Host-only setup opened the BGA Can’t Stop game page. No table creation or capture was reported.
 - [ ] Host and friend sign into independent BGA accounts.
 - [ ] Select the intended players, set up Can't Stop, and approve only this request.
 - [ ] Create an unadvertised realtime table on BGA, checking its actual privacy/access settings.
