@@ -165,7 +165,7 @@
         <fieldset class="seat-picker"><legend>Players</legend><label class="seat-option"><input type="checkbox" checked disabled/><span>{own?.name} (you)</span></label>{#each eligible.filter(p=>p.id!==uid) as player}<label class="seat-option"><input type="checkbox" checked={chosen.includes(player.id)} onchange={()=>choose(player.id)} disabled={!chosen.includes(player.id)&&chosen.length>=3}/><span>{player.name}</span></label>{/each}</fieldset>
         <button class="gold-button" disabled={busy||!synced} onclick={launch}>Play {selected.title} {@render icon('arrow',17)}</button>
        {/if}
-      {:else}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button>{/if}
+      {:else}<button class="gold-button" data-launch-url={selected.launchUrl} onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button>{/if}
      </div>
     {/if}
     {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{table.title}</strong>{#if ownTable?.code===table.code&&selectedTable?.code!==table.code}<button class="text-button" onclick={()=>openGame(table)}>Open {table.title}</button>{/if}<p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
