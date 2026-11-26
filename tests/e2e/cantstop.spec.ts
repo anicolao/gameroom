@@ -21,8 +21,9 @@ test("Can't Stop launches independent seats in shared game frames",async({page,b
   for(const [view] of rooms){await inGame(view,'4499');await expect(gameFrame(view).locator('.seat-list li')).toHaveCount(2);}
   const code=(await gameURL(page)).searchParams.get('table');expect((await gameURL(friend)).searchParams.get('table')).toBe(code);
   for(const [view,name] of rooms)await story.step('cantstop-frame-lobby',view,name,'Both profiles automatically enter the same Can’t Stop table',[{spec:'There are two independently authenticated seats and no extra tabs',check:async()=>{await expect(gameFrame(view).locator('.seat-list li')).toHaveCount(2);expect(view.context().pages()).toHaveLength(1);}}],'lobby');
+  await page.bringToFront();
   await gameFrame(page).getByRole('button',{name:'Start game',exact:true}).click();
-  for(const [view] of rooms){await expect(gameFrame(view).locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');await expect(gameFrame(view).locator('[data-ready]')).toHaveAttribute('data-ready','true');}
+  for(const [view] of rooms){await view.bringToFront();await expect(gameFrame(view).locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');await expect(gameFrame(view).locator('[data-ready]')).toHaveAttribute('data-ready','true');}
   const revision=await gameFrame(friend).locator('.game-shell').getAttribute('data-revision');await friend.reload();
   for(const [view,name] of rooms)await story.step('cantstop-frame-game',view,name,'Both game frames show the same playable Can’t Stop table',[{spec:'Reload retains the same seats and replay revision',check:async()=>{await expect(gameFrame(view).locator('.game-shell')).toHaveAttribute('data-revision',revision!);await expect(gameFrame(view).locator('[data-table-view]')).toHaveAttribute('data-phone','false');expect((await gameURL(view)).searchParams.get('table')).toBe(code);}}],true);
   for(const [view] of rooms)await showRoom(view);
@@ -30,6 +31,7 @@ test("Can't Stop launches independent seats in shared game frames",async({page,b
   // A previous integrated table must not replace the newly selected box's action.
   const before=await (await fetch(jaipur,{headers:{Authorization:'Bearer owner'}})).json() as {fields:{WebURL:{stringValue:string}}};previousJaipur=before.fields.WebURL.stringValue;
   const external='https://games.example.test/second?keep=original';await setJaipur(external);await select('Jaipur');
+  await expect(page.getByRole('button',{name:'Open Jaipur',exact:true})).toHaveAttribute('data-launch-url',external);
   await expect(page.getByRole('heading',{name:'Jaipur',exact:true})).toBeVisible();
   const outbound=page.context().waitForEvent('request',r=>r.url()===external);
   await page.getByRole('button',{name:'Open Jaipur',exact:true}).click();expect((await outbound).url()).toBe(external);
