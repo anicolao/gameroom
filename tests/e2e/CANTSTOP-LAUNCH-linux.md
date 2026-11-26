@@ -40,7 +40,7 @@ Viewpoint: **Alex**
 
 ![The gathering stays mounted underneath the game](./screenshots/004-cantstop-frame-room-alex-linux.png)
 
-- [x] The original invitation, friends and reopen control remain available
+- [x] The original invitation, room members and recent game remain available
 
 ## The gathering stays mounted underneath the game
 
@@ -48,4 +48,4 @@ Viewpoint: **Sam**
 
 ![The gathering stays mounted underneath the game](./screenshots/005-cantstop-frame-room-sam-linux.png)
 
-- [x] The original invitation, friends and reopen control remain available
+- [x] The original invitation, room members and recent game remain available

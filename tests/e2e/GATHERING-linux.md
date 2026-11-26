@@ -10,114 +10,146 @@ Viewpoint: **Alex**
 
 - [x] The collection and room form are ready
 
-## Friends are included in the next game by default
+## The whole room plays together
 
 Viewpoint: **Alex**
 
-![Friends are included in the next game by default](./screenshots/001-friends-arrive-alex-linux.png)
+![The whole room plays together](./screenshots/001-friends-arrive-alex-linux.png)
 
-- [x] Both friends are present and selected
+- [x] Both members are present with no player-selection controls
 
-## Friends are included in the next game by default
+## The whole room plays together
 
 Viewpoint: **Sam**
 
-![Friends are included in the next game by default](./screenshots/002-friends-arrive-sam-linux.png)
+![The whole room plays together](./screenshots/002-friends-arrive-sam-linux.png)
 
-- [x] Both friends are present and selected
+- [x] Both members are present with no player-selection controls
 
-## One Play action opens both game overlays without popups
+## One Play action opens the same game for both members
 
 Viewpoint: **Alex**
 
-![One Play action opens both game overlays without popups](./screenshots/003-frame-seated-alex-linux.png)
+![One Play action opens the same game for both members](./screenshots/003-frame-seated-alex-linux.png)
 
-- [x] Both URL-named seats share one table and only the host can deal
+- [x] URL-named seats share one game and only its original creator can deal
 
-## One Play action opens both game overlays without popups
+## One Play action opens the same game for both members
 
 Viewpoint: **Sam**
 
-![One Play action opens both game overlays without popups](./screenshots/004-frame-seated-sam-linux.png)
+![One Play action opens the same game for both members](./screenshots/004-frame-seated-sam-linux.png)
 
-- [x] Both URL-named seats share one table and only the host can deal
+- [x] URL-named seats share one game and only its original creator can deal
 
-## Room chat continues while the game is hidden
+## The guest closes the game for the entire room
 
 Viewpoint: **Alex**
 
-![Room chat continues while the game is hidden](./screenshots/005-frame-chat-alex-linux.png)
+![The guest closes the game for the entire room](./screenshots/005-shared-close-alex-linux.png)
 
-- [x] Messages arrive without reopening or unloading either frame
+- [x] Both members return to one recent game link
 
-## Room chat continues while the game is hidden
+## The guest closes the game for the entire room
 
 Viewpoint: **Sam**
 
-![Room chat continues while the game is hidden](./screenshots/006-frame-chat-sam-linux.png)
+![The guest closes the game for the entire room](./screenshots/006-shared-close-sam-linux.png)
 
-- [x] Messages arrive without reopening or unloading either frame
+- [x] Both members return to one recent game link
 
-## The host deals a real private two-player hand
+## Chat belongs to the persistent room
 
 Viewpoint: **Alex**
 
-![The host deals a real private two-player hand](./screenshots/007-frame-hand-alex-linux.png)
+![Chat belongs to the persistent room](./screenshots/007-room-chat-alex-linux.png)
+
+- [x] The message and recent game are shared without reopening a game
+
+## Chat belongs to the persistent room
+
+Viewpoint: **Sam**
+
+![Chat belongs to the persistent room](./screenshots/008-room-chat-sam-linux.png)
+
+- [x] The message and recent game are shared without reopening a game
+
+## A recent game reopens its original URL for everyone
+
+Viewpoint: **Alex**
+
+![A recent game reopens its original URL for everyone](./screenshots/009-game-reopened-alex-linux.png)
+
+- [x] The same two seats return to the same game code with no extra tabs
+
+## A recent game reopens its original URL for everyone
+
+Viewpoint: **Sam**
+
+![A recent game reopens its original URL for everyone](./screenshots/010-game-reopened-sam-linux.png)
+
+- [x] The same two seats return to the same game code with no extra tabs
+
+## The reopened game can deal a real private hand
+
+Viewpoint: **Alex**
+
+![The reopened game can deal a real private hand](./screenshots/011-frame-hand-alex-linux.png)
 
 - [x] The other hand has six face-down cards
 
-## The host deals a real private two-player hand
+## The reopened game can deal a real private hand
 
 Viewpoint: **Sam**
 
-![The host deals a real private two-player hand](./screenshots/008-frame-hand-sam-linux.png)
+![The reopened game can deal a real private hand](./screenshots/012-frame-hand-sam-linux.png)
 
 - [x] The other hand has six face-down cards
 
-## Reload restores one overlay and the existing game
+## Reload follows the room’s current game
 
 Viewpoint: **Alex**
 
-![Reload restores one overlay and the existing game](./screenshots/009-frame-reload-alex-linux.png)
+![Reload follows the room’s current game](./screenshots/013-frame-reload-alex-linux.png)
 
-- [x] The same two seats and dealt hand survive without extra tabs
+- [x] The original URLs, seats and dealt hand survive
 
-## Reload restores one overlay and the existing game
+## Reload follows the room’s current game
 
 Viewpoint: **Sam**
 
-![Reload restores one overlay and the existing game](./screenshots/010-frame-reload-sam-linux.png)
+![Reload follows the room’s current game](./screenshots/014-frame-reload-sam-linux.png)
 
-- [x] The same two seats and dealt hand survive without extra tabs
+- [x] The original URLs, seats and dealt hand survive
 
-## Friends leave the table from the persistent room
+## A shared close stays closed after reload
 
 Viewpoint: **Alex**
 
-![Friends leave the table from the persistent room](./screenshots/011-frame-left-alex-linux.png)
+![A shared close stays closed after reload](./screenshots/015-closed-game-reload-alex-linux.png)
 
-- [x] Both return to the shelves and their game frames are cleared
+- [x] The game remains a recent link without a finished-versus-resumable status
 
-## Friends leave the table from the persistent room
+## A shared close stays closed after reload
 
 Viewpoint: **Sam**
 
-![Friends leave the table from the persistent room](./screenshots/012-frame-left-sam-linux.png)
+![A shared close stays closed after reload](./screenshots/016-closed-game-reload-sam-linux.png)
 
-- [x] Both return to the shelves and their game frames are cleared
+- [x] The game remains a recent link without a finished-versus-resumable status
 
-## A later launch opens a fresh shared game automatically
+## The bookshelf starts a new game for the same room
 
 Viewpoint: **Alex**
 
-![A later launch opens a fresh shared game automatically](./screenshots/013-frame-next-alex-linux.png)
+![The bookshelf starts a new game for the same room](./screenshots/017-new-room-game-alex-linux.png)
 
-- [x] Closed receipts from the previous table do not block the new table
+- [x] A fresh game code opens for both profiles and the previous game stays in history
 
-## A later launch opens a fresh shared game automatically
+## The bookshelf starts a new game for the same room
 
 Viewpoint: **Sam**
 
-![A later launch opens a fresh shared game automatically](./screenshots/014-frame-next-sam-linux.png)
+![The bookshelf starts a new game for the same room](./screenshots/018-new-room-game-sam-linux.png)
 
-- [x] Closed receipts from the previous table do not block the new table
+- [x] A fresh game code opens for both profiles and the previous game stays in history
