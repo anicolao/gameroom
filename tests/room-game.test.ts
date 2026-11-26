@@ -6,7 +6,7 @@ function room(){return apply(apply(initialState(),'alex',{type:'room/created',na
 function launch(){return apply(room(),'alex',{type:'game/launched',code:'AABB1122',game:choice});}
 test('one room has one shared game and later arrivals join that same game',()=>{
  const started=launch(),game=currentGame(started)!;
- expect(game.players).toEqual(['alex','sam']);expect(started.activeGame).toBe(3);expect(started.protocol).toBe(3);
+ expect(game.players).toEqual(['alex','sam']);expect(started.activeGame).toBe(3);expect(started.protocol).toBe(4);
  const joined=apply(started,'lee',{type:'player/joined',name:'Alex'});
  expect(currentGame(joined)?.players).toEqual(['alex','sam','lee']);expect(joined.activeGame).toBe(3);
  const late=new URL(roomGameUrl(game.url,currentGame(joined)!,joined.players[2]));
@@ -54,17 +54,34 @@ test('versioned decisions rebuild recent links without changing legacy table rep
  ];
  const legacy=replay(log);expect(legacy.players[0].table).toBe('AABB1122');expect(legacy.tables[0].closed).toBe(false);expect(currentGame(legacy)).toBeUndefined();
  expect(recentGames(legacy)[0]).toMatchObject({sequence:2,code:'AABB1122',url:choice.url});
- log.push({version:3,id:'reopen',sequence:3,actor:'alex',intent:{type:'game/reopened',game:2}});
+ log.push({version:4,id:'reopen',sequence:3,actor:'alex',intent:{type:'game/reopened',game:2}});
  const migrated=replay(log);expect(migrated.players[0].table).toBeNull();expect(migrated.tables).toEqual(legacy.tables);expect(currentGame(migrated)?.code).toBe('AABB1122');
  expect(replay(JSON.parse(JSON.stringify(log)))).toEqual(migrated);
  expect(()=>apply(migrated,'alex',{type:'table/closed',table:'AABB1122'},2)).toThrow();
 });
-test('protocol 3 rejects subgroup commands, unsafe links and computed outcomes',()=>{
+test('protocol 4 rejects subgroup commands, unsafe links and computed outcomes',()=>{
  expect(()=>apply(room(),'alex',{type:'table/launched',table:'AABB1122',players:['alex']})).toThrow('one shared game');
  for(const url of ['javascript:alert(1)','http://games.example/','https://user:secret@games.example/'])expect(()=>apply(room(),'alex',{type:'game/launched',code:'AABB1122',game:{...choice,url}})).toThrow('valid game URL');
  expect(()=>apply(room(),'alex',{type:'game/launched',code:'AABB1122',game:{...choice,winner:'alex'}})).toThrow();
  expect(()=>apply(room(),'alex',{type:'game/closed',game:1,result:'finished'})).toThrow();
  const choices:[string,Intent][]=[['alex',{type:'room/created',name:'Friends',playerName:'Alex'}],['sam',{type:'player/joined',name:'Sam'}],['sam',{type:'game/launched',code:'AABB1122',game:choice}],['alex',{type:'game/closed',game:3}],['alex',{type:'game/reopened',game:3}]];
- const log:RoomEvent[]=choices.map(([actor,intent],i)=>({version:3,id:`decision-${i}`,sequence:i+1,actor,intent}));
+ const log:RoomEvent[]=choices.map(([actor,intent],i)=>({version:4,id:`decision-${i}`,sequence:i+1,actor,intent}));
  expect(replay(log).games).toHaveLength(1);expect(currentGame(replay(log))?.host).toBe('sam');
 });
+
+ test('the reserved BGA v3 history keeps its original semantics and reopens its exact URL',()=>{
+ const game={id:'cantstop',title:"Can’t Stop",url:'https://boardgamearena.com/table?table=12345'},requestId='aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+ const log:RoomEvent[]=[
+  {version:3,id:'room',sequence:1,actor:'alex',intent:{type:'room/created',name:'Friends',playerName:'Alex'}},
+  {version:3,id:'bga',sequence:2,actor:'alex',intent:{type:'table/bga-launched',table:'AABB1122',players:['alex'],game,requestId}}
+ ];
+ const old=replay(log);expect(old.tables[0]).toEqual({code:'AABB1122',game:'cantstop',title:game.title,url:game.url,host:'alex',players:['alex'],closed:false,provider:'bga',requestId});
+ expect(old.players[0].table).toBe('AABB1122');expect(currentGame(old)).toBeUndefined();
+ const returned=apply(old,'alex',{type:'player/returned'},3);
+ expect(()=>apply(returned,'alex',{...log[1].intent,table:'CCDD3344'},3)).toThrow('already shared');
+ const reopened=apply(old,'alex',{type:'game/reopened',game:2});
+ expect(roomGameUrl(game.url,currentGame(reopened)!,reopened.players[0])).toBe(game.url);
+ expect(reopened.tables).toEqual(old.tables);expect(reopened.protocol).toBe(4);
+ expect(()=>apply(old,'alex',{type:'game/reopened',game:2},3)).toThrow('protocol version 4');
+ expect(()=>replay([{...log[0],version:5 as never}])).toThrow();
+ });

@@ -86,7 +86,7 @@ The canonical room state is replayed from ordered immutable
 `rooms/{roomCode}/events/{sequence}` records:
 
 ```ts
-{ version: 3, id, sequence, actor, intent }
+{ version: 4, id, sequence, actor, intent }
 ```
 
 Choices are room creation, joining/leaving, launching/closing/reopening the room’s
@@ -96,7 +96,7 @@ Metadata indexes membership and revision for atomic validation, without replacin
 the log. Catalog snapshots and game outcomes do not enter the room event stream.
 Names are preferences; Firebase UIDs remain game-specific identities.
 
-Protocol 3 gives each room one current game. `game/launched` records the chosen
+Protocol 4 gives each room one current game. `game/launched` records the chosen
 catalog identity, title, URL, mode and generated external game code. `game/closed`
 and `game/reopened` reference that original launch's sequence number. Reopening
 uses the saved address and creator, even if the catalog has subsequently changed.
@@ -106,7 +106,7 @@ from intents; no game outcomes or computed room snapshots are stored.
 
 Versions 1 and 2 retain their original replay semantics. Their historical game
 launches appear as recent links in the new UI; no historical records are rewritten.
-The first v3 reopen or launch selects one game for the entire room. Closed games
+The first v4 reopen or launch selects one game for the entire room. Closed games
 stay closed on reload; an open room game reopens automatically in one iframe.
 Legacy return URLs remain accepted, while new game URLs omit them.
 
@@ -207,11 +207,11 @@ then compare every decoded RGBA byte at the normal renderer quality.
 
 ## Catalog launch modes and replay
 
-New `game/launched` decisions use protocol 3 and record the selected catalog
+New `game/launched` decisions use protocol 4 and record the selected catalog
 identity, title, WebURL and explicit launch mode. All present members participate.
 Reopening and replay use that recorded destination and original game creator,
-even if the catalog changes. Versions 1 and 2 retain their original meaning;
-histories can upgrade to version 3 but cannot downgrade. No external game results
+even if the catalog changes. Versions 1 and 2, and the reserved BGA version 3, retain their original meaning;
+histories can upgrade to version 4 but cannot downgrade. No external game results
 enter the room log.
 
 Can’t Stop already implements `launch=create|join`, `table`, and `name`. Tests

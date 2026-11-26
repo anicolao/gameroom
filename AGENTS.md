@@ -30,13 +30,13 @@ as accessible HTML over environmental artwork.
   Joining an active room opens its current game without restarting other frames.
   Reload follows the canonical current-game decision; no local hidden/dismissed
   receipts or Return to game control exist. Escape opens/closes the menu.
-- Protocol 3 records game/launched, game/closed and game/reopened decisions. The
+- Protocol 4 records game/launched, game/closed and game/reopened decisions. The
   metadata `game` pointer indexes the original launch event sequence for atomic
-  validation; it is never an alternate source of truth. Preserve v1/v2 replay
+  validation; it is never an alternate source of truth. Preserve v1/v2/v3 replay
   semantics and immutable histories. Legacy launches remain recent links.
 - Keep Gameroom mounted underneath the sandboxed cross-origin frame. Games need
   no back link. Validate the source window and exact origin for close messages;
-  a valid request closes the room's game through an attributed v3 intent.
+  a valid request closes the room's game through an attributed v4 intent.
 - Test shared close/reopen, late arrivals, stable external URLs and identities,
   recurring games, continued room chat, reload and profiles sharing a name.
 - Use a Git worktree for sibling-game changes; preserve other active branches and

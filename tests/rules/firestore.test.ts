@@ -115,9 +115,9 @@ test('one shared game is indexed atomically and any present member can close and
 test('game index changes cannot be forged or point to a non-launch event',async()=>{
  const {db,state}=await create();
  function write(before:State,intent:Intent,game:number|null){
-  const root=doc(db,'rooms','ABCD1234'),sequence=before.revision+1,id=`v3-${sequence}`,batch=writeBatch(db);
+  const root=doc(db,'rooms','ABCD1234'),sequence=before.revision+1,id=`v4-${sequence}`,batch=writeBatch(db);
   batch.set(root,{owner:before.host,members:before.players.map(p=>p.id),present:before.players.filter(p=>p.present).map(p=>p.id),revision:sequence,game});
-  batch.set(doc(root,'events',String(sequence)),{version:3,id,sequence,actor:'alex',intent});batch.set(doc(root,'commands',id),{sequence});return batch.commit();
+  batch.set(doc(root,'events',String(sequence)),{version:4,id,sequence,actor:'alex',intent});batch.set(doc(root,'commands',id),{sequence});return batch.commit();
  }
  const launch:Intent={type:'game/launched',code:'AABB1122',game:{id:'cribbage',title:'Cribbage',url:'https://games.example/cribbage/',mode:'integrated'}};
  await assertFails(write(state,launch,999));await assertSucceeds(write(state,launch,2));
@@ -131,12 +131,22 @@ test('game index changes cannot be forged or point to a non-launch event',async(
  const closed=apply(playing,'alex',{type:'game/closed',game:2});
  await assertFails(write(closed,{type:'game/reopened',game:99},99));await assertSucceeds(write(closed,{type:'game/reopened',game:2},2));
 });
-test('a v3 room can reopen an immutable legacy launch and cannot downgrade afterwards',async()=>{
+test('a v4 room can reopen an immutable legacy launch and cannot downgrade afterwards',async()=>{
  const {db,state}=await create();const old:Intent={type:'table/catalog-launched',table:'AABB1122',players:['alex'],game:{id:'cribbage',title:'Cribbage',url:'https://games.example/cribbage/'}};
  const legacy=append(db,'ABCD1234','alex',old,state);await assertSucceeds(legacy.commit());
  let events:import('../../src/lib/engine').RoomEvent[]=[];
  const repo=repository(db as unknown as Firestore,'ABCD1234','alex',next=>events=next,error=>{throw Error(error);},memoryStorage());
- try{await until(()=>events.length===2);await repo.append({type:'game/reopened',game:2});expect(events.at(-1)?.version).toBe(3);expect((await getDoc(doc(db,'rooms','ABCD1234'))).data()?.game).toBe(2);
+ try{await until(()=>events.length===2);await repo.append({type:'game/reopened',game:2});expect(events.at(-1)?.version).toBe(4);expect((await getDoc(doc(db,'rooms','ABCD1234'))).data()?.game).toBe(2);
   const batch=writeBatch(db),root=doc(db,'rooms','ABCD1234');batch.set(root,{owner:'alex',members:['alex'],present:['alex'],revision:4});batch.set(doc(root,'events','4'),{version:2,id:'downgrade',sequence:4,actor:'alex',intent:{type:'message/sent',text:'old client'}});batch.set(doc(root,'commands','downgrade'),{sequence:4});await assertFails(batch.commit());
  }finally{repo.close();}
+});
+
+test('reserved v3 BGA decisions remain writable and their original URLs can migrate to v4',async()=>{
+ const {db,state}=await create(),root=doc(db,'rooms','ABCD1234');
+ const intent:Intent={type:'table/bga-launched',table:'AABB1122',players:['alex'],game:{id:'cantstop',title:"Can’t Stop",url:'https://boardgamearena.com/table?table=12345'},requestId:'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'};
+ const batch=writeBatch(db);batch.set(root,{owner:'alex',members:['alex'],present:['alex'],revision:2});batch.set(doc(root,'events','2'),{version:3,id:'bga',sequence:2,actor:'alex',intent});batch.set(doc(root,'commands','bga'),{sequence:2});await assertSucceeds(batch.commit());
+ let events:import('../../src/lib/engine').RoomEvent[]=[];
+ const repo=repository(db as unknown as Firestore,'ABCD1234','alex',next=>events=next,error=>{throw Error(error);},memoryStorage());
+ try{await until(()=>events.length===2);await repo.append({type:'game/reopened',game:2});expect(events.at(-1)?.version).toBe(4);expect((await getDoc(root)).data()?.game).toBe(2);expect(apply(apply(state,'alex',intent,3),'alex',{type:'game/reopened',game:2}).games[0].url).toBe(intent.game.url);}
+ finally{repo.close();}
 });
