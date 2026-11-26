@@ -2,74 +2,98 @@
 
 Real Firestore and Auth emulators; independent browser identities. Desktop captures are 1180×820 at 1×; mobile captures are 390×844 with full-page capture. Every decoded RGBA byte must match. No masks, pixel tolerance, screenshot resizing or retries. Baselines are generated explicitly and verified in a separate run.
 
-## Three friends are included in the game by default
+## The room includes friends and an explicitly excluded observer
 
 Viewpoint: **Alex**
 
-![Three friends are included in the game by default](./screenshots/000-three-friends-alex-darwin.png)
+![The room includes friends and an explicitly excluded observer](./screenshots/000-frame-friends-alex-darwin.png)
 
-- [x] All three friends share one room
+- [x] All four profiles share the gathering
 
-## Three friends are included in the game by default
+## The room includes friends and an explicitly excluded observer
 
 Viewpoint: **Sam**
 
-![Three friends are included in the game by default](./screenshots/001-three-friends-sam-darwin.png)
+![The room includes friends and an explicitly excluded observer](./screenshots/001-frame-friends-sam-darwin.png)
 
-- [x] All three friends share one room
+- [x] All four profiles share the gathering
 
-## Three friends are included in the game by default
+## The room includes friends and an explicitly excluded observer
 
 Viewpoint: **Lee**
 
-![Three friends are included in the game by default](./screenshots/002-three-friends-lee-darwin.png)
+![The room includes friends and an explicitly excluded observer](./screenshots/002-frame-friends-lee-darwin.png)
 
-- [x] All three friends share one room
+- [x] All four profiles share the gathering
 
-## Every gathering tab stays open with a reopen control
+## The room includes friends and an explicitly excluded observer
+
+Viewpoint: **Observer**
+
+![The room includes friends and an explicitly excluded observer](./screenshots/003-frame-friends-observer-darwin.png)
+
+- [x] All four profiles share the gathering
+
+## One host click opens three overlays with distinct game seats
 
 Viewpoint: **Alex**
 
-![Every gathering tab stays open with a reopen control](./screenshots/003-room-open-sam-lee-alex-darwin.png)
+![One host click opens three overlays with distinct game seats](./screenshots/004-auto-frames-lee-sam-alex-darwin.png)
 
-- [x] No guest click was needed and only one game tab opened per profile
+- [x] Each selected profile shares the table without opening any tabs
 
-## One host click opens all three game tabs when popups are permitted
+## One host click opens three overlays with distinct game seats
+
+Viewpoint: **Sam**
+
+![One host click opens three overlays with distinct game seats](./screenshots/005-auto-frames-lee-sam-sam-darwin.png)
+
+- [x] Each selected profile shares the table without opening any tabs
+
+## One host click opens three overlays with distinct game seats
+
+Viewpoint: **Lee**
+
+![One host click opens three overlays with distinct game seats](./screenshots/006-auto-frames-lee-sam-lee-darwin.png)
+
+- [x] Each selected profile shares the table without opening any tabs
+
+## The excluded profile stays in the room
+
+Viewpoint: **Observer**
+
+![The excluded profile stays in the room](./screenshots/007-excluded-frame-lee-sam-observer-darwin.png)
+
+- [x] Intended participation excludes the observer from game launch
+
+## Closing the table clears every selected frame
 
 Viewpoint: **Alex**
 
-![One host click opens all three game tabs when popups are permitted](./screenshots/004-auto-seats-sam-lee-alex-darwin.png)
+![Closing the table clears every selected frame](./screenshots/008-closed-frames-lee-sam-alex-darwin.png)
 
-- [x] Each URL names the right player and shares the table
+- [x] All four friends remain gathered with no game frames or extra tabs
 
-## Every gathering tab stays open with a reopen control
-
-Viewpoint: **Sam**
-
-![Every gathering tab stays open with a reopen control](./screenshots/005-room-open-sam-lee-sam-darwin.png)
-
-- [x] No guest click was needed and only one game tab opened per profile
-
-## One host click opens all three game tabs when popups are permitted
+## Closing the table clears every selected frame
 
 Viewpoint: **Sam**
 
-![One host click opens all three game tabs when popups are permitted](./screenshots/006-auto-seats-sam-lee-sam-darwin.png)
+![Closing the table clears every selected frame](./screenshots/009-closed-frames-lee-sam-sam-darwin.png)
 
-- [x] Each URL names the right player and shares the table
+- [x] All four friends remain gathered with no game frames or extra tabs
 
-## Every gathering tab stays open with a reopen control
-
-Viewpoint: **Lee**
-
-![Every gathering tab stays open with a reopen control](./screenshots/007-room-open-sam-lee-lee-darwin.png)
-
-- [x] No guest click was needed and only one game tab opened per profile
-
-## One host click opens all three game tabs when popups are permitted
+## Closing the table clears every selected frame
 
 Viewpoint: **Lee**
 
-![One host click opens all three game tabs when popups are permitted](./screenshots/008-auto-seats-sam-lee-lee-darwin.png)
+![Closing the table clears every selected frame](./screenshots/010-closed-frames-lee-sam-lee-darwin.png)
 
-- [x] Each URL names the right player and shares the table
+- [x] All four friends remain gathered with no game frames or extra tabs
+
+## Closing the table clears every selected frame
+
+Viewpoint: **Observer**
+
+![Closing the table clears every selected frame](./screenshots/011-closed-frames-lee-sam-observer-darwin.png)
+
+- [x] All four friends remain gathered with no game frames or extra tabs

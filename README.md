@@ -37,7 +37,9 @@ Cribbage and Can’t Stop are integrated production examples: `Hidden: true`,
 Enable either or both surfaces in the ttlauncher catalogue editor. Automated tests and development seed only emulators.
 
 The Cribbage group adapter merged in [Cribbage PR #11](https://github.com/anicolao/cribbage/pull/11).
-CI pins its reviewed merge commit; group launches use the canonical game URL.
+CI pins that reviewed adapter and renderer with the secure-ID fix from
+[Cribbage PR #14](https://github.com/anicolao/cribbage/pull/14), so a real HTTP
+ancestor also works without a crypto shim. Group launches use the canonical game URL.
 
 ## Local development
 
