@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {TestStepHelper} from './helpers/test-step-helper';
+import {gameFrame,gameURL,inGame,showRoom} from './helpers/launch';
 
 test('HTTP origin without native randomUUID creates a room and persists launch commands',async({page},info)=>{
  const story=new TestStepHelper(info,'HTTP-ORIGIN'),errors:string[]=[];
@@ -20,18 +21,17 @@ test('HTTP origin without native randomUUID creates a room and persists launch c
  await page.getByRole('button',{name:'Send message'}).click();
  await expect(page.getByText('Secure random bytes work here.',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Close conversation'}).click();
- const roomUrl=page.url(),opened=page.context().waitForEvent('page');
+ const roomUrl=page.url();
  await page.getByRole('button',{name:'Play Cribbage',exact:true}).click();
- const game=await opened;
- await expect(game).toHaveURL(/127\.0\.0\.1:4397\/\?table=/);
- const url=new URL(game.url());
+ await inGame(page);
+ const url=await gameURL(page);
  expect(url.searchParams.get('table')).toMatch(/^[A-F0-9]{8}$/);
  expect(url.searchParams.get('name')).toBe('Dev');expect(url.searchParams.get('launch')).toBe('create');
- await expect(game.locator('[data-player] h2')).toHaveText(['Dev']);
- expect(await game.evaluate(()=>window.opener===null)).toBe(true);expect(url.searchParams.has('returnTo')).toBe(false);
- await expect(page).toHaveURL(roomUrl);await game.close();
+ await expect(gameFrame(page).locator('[data-player] h2')).toHaveText(['Dev']);
+ expect(page.context().pages()).toHaveLength(1);expect(url.searchParams.has('returnTo')).toBe(false);
+ await expect(page).toHaveURL(roomUrl);await showRoom(page);
  await page.getByRole('button',{name:'Leave table',exact:true}).click();
- await story.step('http-launch',page,'Dev','The game opens separately while the original HTTP room stays connected',[{spec:'The native UUID API is still absent and the saved game remains resumable',check:async()=>{
+ await story.step('http-launch',page,'Dev','The game opens in a frame while the original HTTP room stays connected',[{spec:'The native UUID API is still absent and the saved game remains resumable',check:async()=>{
   expect(await page.evaluate(()=>typeof crypto.randomUUID)).toBe('undefined');
   await expect(page.getByRole('button',{name:'Open Cribbage',exact:true})).toBeVisible();
   await expect(page.getByTestId('friend')).toContainText('In room');

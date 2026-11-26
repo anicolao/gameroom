@@ -9,4 +9,4 @@ import './style.css';
 const target=document.getElementById('app')!;
 if(/\/dev\/(shelves|animations)\/?$/.test(location.pathname)){
  void Promise.all([import('./lab/ConveyorLab.svelte'),import('./lab/lab.css')]).then(([{default:Lab}])=>mount(Lab,{target}));
-}else mount(App,{target,props:{frameLab:import.meta.env.DEV&&/\/dev\/frames\/?$/.test(location.pathname)}});
+}else mount(App,{target});

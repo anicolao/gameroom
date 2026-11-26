@@ -1,7 +1,7 @@
 # Game menu image
 
 `game-menu.png` is the transparent walnut-and-brass corner menu button used by the
-local frame study. Generated with the built-in image_gen tool on 2026-11-25, then
+default game overlay. Generated with the built-in image_gen tool on 2026-11-25, then
 resampled to 128×128 with Sharp for delivery; alpha is preserved. The rendering
 and three dots are part of the image, not HTML or CSS artwork. The surrounding
 HTML button supplies accessible naming, keyboard interaction and a 44px target.

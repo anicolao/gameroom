@@ -1,15 +1,14 @@
 <script lang="ts">
  import {onMount,untrack} from 'svelte';
  import GameCabinet from './lib/cabinet/GameCabinet.svelte';
- import GameFrameLab,{type FrameRequest,type FrameState} from './lab/GameFrameLab.svelte';
- let {frameLab=false}: {frameLab?:boolean}=$props();
+ import GameFrame,{type FrameRequest,type FrameState} from './lib/GameFrame.svelte';
  import type {Game,CatalogSnapshot} from './lib/catalog';
  import {subscribeCatalog} from './lib/catalog-source';
  import {initialState,replay,type Intent,type State,type Table} from './lib/engine';
  import {services} from './lib/firebase';
  import {repository} from './lib/repository';
  import {gameUrl,roomCode,selectedFriends,launchReceiptKey} from './lib/launch';
- import {prepareGameTab,navigateGameTab} from './lib/game-tab';
+ import {validateFrameURL} from './lib/game-frame';
  let roomState=$state<State>(initialState()),uid=$state(''),room=$state(new URLSearchParams(location.search).get('room')??'');
  let playerName=$state(localStorage.getItem('gameroom:name')??''),roomName=$state('Game room'),error=$state(''),busy=$state(false),synced=$state(false),copied=$state(false);
  let catalogState=$state<CatalogSnapshot>({status:'loading',games:[],rejected:0}),selectedId=$state('');
@@ -36,15 +35,17 @@
  const returnRequest=new URLSearchParams(location.search).get('returned');
  let returnTarget=$state(returnRequest);
  let returnAttempt=$state(-1);
- let prepared:Window|null|undefined;
- let tabStatus=$state<'opened'|'blocked'|''>(''),externalBlocked=$state(false);
  let frameRequest=$state<FrameRequest|null>(null),frameAttempt='',frameSequence=0;
  function frameStatus(key:string,state:FrameState){sessionStorage.setItem(key,state);}
  function openFrame(table:Table,destination:string,key:string,hidden=false){
-  frameRequest={id:++frameSequence,key,title:table.title,url:destination,hidden};
+  const url=validateFrameURL(destination,location.origin,import.meta.env.VITE_USE_FIREBASE_EMULATORS==='true');
+  frameRequest={id:++frameSequence,scope:'table',key,title:table.title,url,hidden};
   frameStatus(key,hidden?'hidden':'opened');
  }
- function openExternal(game:Game){externalBlocked=!navigateGameTab(prepareGameTab(),game.launchUrl);}
+ function openExternal(game:Game){
+  try{const url=validateFrameURL(game.launchUrl,location.origin);frameRequest={id:++frameSequence,scope:'catalog',key:`gameroom:catalog-frame:${room}:${uid}:${game.id}`,title:game.title,url};}
+  catch(e){error=(e as Error).message;}
+ }
  const paths:Record<string,string>={home:'m3 10 9-7 9 7v10H3Zm6 10v-7h6v7',search:'m21 21-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',people:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.9M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8m8-7a4 4 0 0 1 0 8',clock:'M12 8v4l3 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',link:'m10 13 4-4m-6 7-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2 1 1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0',chat:'M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z',arrow:'M5 12h14m-6-6 6 6-6 6',leaf:'M20 3C8 2 2 8 5 15c7 5 15-1 15-12ZM4 21 15 9',exit:'M9 4H3v16h6m5-13 5 5-5 5m-5-5h10'};
  function connect(){
   stop();synced=false;
@@ -74,20 +75,13 @@
   try{
    const players=[uid,...chosen.filter(id=>id!==uid&&eligible.some(p=>p.id===id))];
    const table=roomCode();
-   prepared=frameLab?undefined:prepareGameTab();
    if(await act({type:'table/catalog-launched',table,players,game:{id:selected.id,title:selected.title,url:selected.launchUrl}}))excluded=[];
-   else{prepared?.close();prepared=undefined;}
-  }catch(e){prepared?.close();prepared=undefined;error=(e as Error).message;}
+  }catch(e){error=(e as Error).message;}
  }
  function openGame(){
   if(!own||!ownTable)return;
   const destination=gameUrl(gameBase(ownTable),ownTable,own),key=launchReceiptKey(room,uid,ownTable.code);
-  if(frameLab)openFrame(ownTable,destination,`${key}:frame`);
-  else openTable(destination,key);
- }
- function openTable(destination:string,key:string,tab:Window|null=prepareGameTab()){
-  tabStatus=navigateGameTab(tab,destination)?'opened':'blocked';
-  sessionStorage.setItem(key,tabStatus);
+  try{openFrame(ownTable,destination,`${key}:frame`);}catch(e){error=(e as Error).message;}
  }
  function choose(id:string){excluded=excluded.includes(id)?excluded.filter(p=>p!==id):[...excluded,id];}
  async function sendMessage(){if(await act({type:'message/sent',text:message.trim()}))message='';}
@@ -102,8 +96,8 @@
   void act({type:'player/returned'}).then(ok=>{if(ok&&returnRequest)history.replaceState(null,'',`?room=${room}`);});
  });
  $effect(()=>{
-  if(!frameLab||joined&&own?.table&&activeTables.some(t=>t.code===own.table))return;
-  untrack(()=>{frameRequest=null;frameAttempt='';});
+  if(joined&&own?.table&&activeTables.some(t=>t.code===own.table))return;
+  untrack(()=>{if(joined&&frameRequest?.scope==='catalog')return;frameRequest=null;frameAttempt='';});
  });
  $effect(()=>{
   if(!joined||!synced||busy||!own?.table)return;
@@ -112,19 +106,11 @@
   const destination=gameUrl(gameBase(table),table,player),key=launchReceiptKey(room,uid,table.code);
   untrack(()=>{
    try{
-    if(frameLab){
-     const frameKey=`${key}:frame`;
-     if(frameAttempt===frameKey)return;
-     frameAttempt=frameKey;
-     const receipt=sessionStorage.getItem(frameKey);
-     if(receipt!=='closed')openFrame(table,destination,frameKey,receipt==='hidden');
-     return;
-    }
-    const receipt=sessionStorage.getItem(key);
-    if(receipt){tabStatus=receipt==='blocked'?'blocked':'opened';return;}
-    // Only the host has a tab prepared during a user gesture. Guests may be blocked.
-    if(table.host===uid){const tab=prepared===undefined?prepareGameTab():prepared;prepared=undefined;openTable(destination,key,tab);}
-    else openTable(destination,key);
+    const frameKey=`${key}:frame`;
+    if(frameAttempt===frameKey)return;
+    frameAttempt=frameKey;
+    const receipt=sessionStorage.getItem(frameKey);
+    if(receipt!=='closed')openFrame(table,destination,frameKey,receipt==='hidden');
    }catch(e){error=(e as Error).message;}
   });
  });
@@ -160,21 +146,20 @@
      </form>
     {:else if selected}
      <div class="game-controls">
-      <h1>{frameLab&&ownTable?ownTable.title:selected.title}</h1>{#if selected.players&&!(frameLab&&ownTable)}<p class="game-meta">{selected.players} · {selected.duration}</p>{/if}
-      {#if selected.available||frameLab&&ownTable}
+      <h1>{ownTable?ownTable.title:selected.title}</h1>{#if selected.players&&!ownTable}<p class="game-meta">{selected.players} · {selected.duration}</p>{/if}
+      {#if selected.available||ownTable}
        {#if ownTable}
         <p class="table-players">{ownTable.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>
         <button class="gold-button" onclick={openGame}>Open {ownTable.title} {@render icon('arrow',17)}</button>
-        <p class="hint" data-testid="game-tab-status" aria-live="polite">{frameLab?'Opens here. Use the corner menu to return to the room.':tabStatus==='blocked'?'Your browser didn’t open the game. Use the button above.':'Opens in a new tab.'}</p>
+        <p class="hint">Use the corner menu to return to the room.</p>
         {#if own?.table}<button class="text-button" disabled={busy} onclick={leaveTable}>Leave table</button>{/if}
        {:else}
         <fieldset class="seat-picker"><legend>Players</legend><label class="seat-option"><input type="checkbox" checked disabled/><span>{own?.name} (you)</span></label>{#each eligible.filter(p=>p.id!==uid) as player}<label class="seat-option"><input type="checkbox" checked={chosen.includes(player.id)} onchange={()=>choose(player.id)} disabled={!chosen.includes(player.id)&&chosen.length>=3}/><span>{player.name}</span></label>{/each}</fieldset>
         <button class="gold-button" disabled={busy||!synced} onclick={launch}>Play {selected.title} {@render icon('arrow',17)}</button>
        {/if}
-      {:else}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button><p class="hint" data-testid="external-tab-status">{externalBlocked?'Your browser didn’t open the game. Try the button again.':'Opens separately in a new tab.'}</p>{/if}
+      {:else}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button>{/if}
      </div>
     {/if}
-    {#if frameLab}<GameFrameLab game={selected} request={frameRequest} preview={!joined} onStateChange={frameStatus}/>{/if}
     {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{table.title}</strong><p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
    </aside>
   </div>
@@ -183,5 +168,6 @@
   <footer class="gathering"><div class="friends">{#each present as player,i}<div class="friend" data-testid="friend"><div class="avatar avatar-{i%4}">{player.name.slice(0,1).toUpperCase()}</div><span><strong>{player.name}{player.id===uid?' (you)':''}</strong><small>{player.table?`${roomState.tables.find(t=>t.code===player.table)?.title??'Game'} table`:'In room'}</small></span></div>{/each}</div><div class="room-actions"><button class:pressed={showChat} aria-label="Room conversation" aria-expanded={showChat} onclick={()=>showChat=!showChat}>{@render icon('chat',20)}</button><button aria-label="Leave room" disabled={busy} onclick={()=>act({type:'player/left'})}>{@render icon('exit',20)}</button></div></footer>
   {#if showChat}<section class="chat-panel" aria-label="Room conversation"><div class="chat-heading"><h2>Chat</h2><button aria-label="Close conversation" onclick={()=>showChat=false}>×</button></div><div class="messages" aria-live="polite">{#each roomState.messages as m}<p><strong>{roomState.players.find(p=>p.id===m.actor)?.name}</strong><span>{m.text}</span></p>{/each}</div><form onsubmit={e=>{e.preventDefault();void sendMessage();}}><input aria-label="Message" placeholder="Message" maxlength="280" bind:value={message}/><button aria-label="Send message" disabled={busy||!message.trim()}>{@render icon('arrow',20)}</button></form></section>{/if}
  {/if}
+ <GameFrame request={frameRequest} onStateChange={frameStatus}/>
  <div class="sr-only" role="status" data-status={synced&&!busy?'synced':'waiting'}>{synced?'Room connected':'Connecting to the room'}</div>
 </div>

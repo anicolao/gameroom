@@ -1,4 +1,4 @@
-/** Shared Applications catalogue: Gameroom is opt-in and uses only WebURL. */
+/** Shared catalog: `new-tab` is the legacy spelling for URL-only entries. All games use frames. */
 export type Game={id:string;title:string;iconSrc:string|null;launchUrl:string;mode:'integrated'|'new-tab';available:boolean;artKey:string;players?:string;duration?:string};
 export type CatalogSnapshot={status:'loading'|'current'|'offline'|'empty'|'error';games:Game[];rejected:number};
 export function httpsUrl(value:unknown):string|null{

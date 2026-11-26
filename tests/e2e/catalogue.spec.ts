@@ -1,6 +1,6 @@
 import {test,expect,type Page} from '@playwright/test';
 import {TestStepHelper} from './helpers/test-step-helper';
-import {deterministicRoom,openRoom} from './helpers/launch';
+import {deterministicRoom,openRoom,dismissGame,showRoom} from './helpers/launch';
 const project='demo-gameroom-catalogue-e2e';
 async function change(id:string,data?:Record<string,unknown>){
  const host=process.env.FIRESTORE_EMULATOR_HOST??'127.0.0.1:8199';
@@ -26,10 +26,12 @@ test('shared catalog updates, hides games and opens URL-only games without group
   await story.step('live-entry',page,'Reader','A catalog document arrives through the Firestore subscription',[{spec:'Five games fit together in the enclosed cabinet',check:async()=>{await expect(page.getByRole('button',{name:/Select /})).toHaveCount(5);await expect(page.getByRole('slider',{name:'Browse game shelves'})).toHaveCount(0);}}]);
   await page.getByRole('textbox',{name:'Search games'}).fill('aardvark');
   await clickBox(page,'Aardvark');
-  const tab=page.context().waitForEvent('page'),request=page.context().waitForEvent('request',r=>r.url()===target);
+  const request=page.context().waitForEvent('request',r=>r.url()===target);
   await page.getByRole('button',{name:'Open Aardvark',exact:true}).click();
-  const [external,outbound]=await Promise.all([tab,request]);expect(outbound.url()).toBe(target);await external.close();
-  await story.step('url-only',page,'Reader','A URL-only entry opens separately without invented group support',[{spec:'The original room stays open and no group table was recorded',check:async()=>{await expect(page).toHaveURL(roomUrl);await expect(page.getByRole('region',{name:'Room tables'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Play Cribbage',exact:true})).toHaveCount(0);await expect(page.getByTestId('external-tab-status')).toContainText('separately');}}]);
+  const outbound=await request;expect(outbound.url()).toBe(target);await expect(page.locator('.game-window iframe')).toHaveAttribute('src',target);expect(page.context().pages()).toHaveLength(1);await showRoom(page);
+  await page.getByRole('button',{name:'Room conversation',exact:true}).click();await page.getByRole('textbox',{name:'Message',exact:true}).fill('The URL-only game stays open.');await page.getByRole('button',{name:'Send message',exact:true}).click();await expect(page.getByText('The URL-only game stays open.',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Close conversation',exact:true}).click();
+  await story.step('url-only',page,'Reader','A URL-only entry uses the overlay without invented group support',[{spec:'The original room stays open and no group table was recorded',check:async()=>{await expect(page).toHaveURL(roomUrl);await expect(page.getByRole('region',{name:'Room tables'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Play Cribbage',exact:true})).toHaveCount(0);expect(page.context().pages()).toHaveLength(1);await expect(page.locator('.game-window iframe')).toHaveAttribute('src',target);await expect(page.getByRole('dialog')).not.toBeVisible();}}]);
+  await page.locator('.game-return button').first().click();await dismissGame(page);
   await page.getByRole('textbox',{name:'Search games'}).fill('');
   const keyboardChoice=page.getByRole('button',{name:'Select Cribbage',exact:true});await keyboardChoice.focus();await keyboardChoice.press('Enter');await keyboardChoice.blur();await expect(page.getByRole('heading',{name:'Cribbage',exact:true})).toBeVisible();
   await change('fresh',{Title:'Aardvark',WebURL:target,GameroomEnabled:'disabled',Hidden:true});await change('bad',{Title:'Bad URL',WebURL:'javascript:alert(1)',GameroomEnabled:'new-tab'});
