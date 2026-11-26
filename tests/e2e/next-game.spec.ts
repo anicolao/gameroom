@@ -32,6 +32,12 @@ test('Different catalog games remain launchable after the first table',async({pa
   await story.step('next-group-selection',page,'Alex','The next integrated game has its own Play action',[{spec:'The host’s current friend is included by default',check:async()=>{await expect(page.getByRole('heading',{name:"Can't Stop",exact:true})).toBeVisible();await expect(page.getByRole('button',{name:"Play Can't Stop",exact:true})).toBeEnabled();await expect(page.getByRole('checkbox',{name:'Sam',exact:true})).toBeChecked();}}]);
   await page.getByRole('button',{name:"Play Can't Stop",exact:true}).click();
   for(const [view] of rooms){await expect(view.locator('.game-window iframe')).toHaveAttribute('src',/4499/);await inGame(view,'4499');await expect(gameFrame(view).locator('.seat-list li')).toHaveCount(2);}
+  // Reopen the committed two-seat state rather than capturing the guest's
+  // transient one-seat paint. This also verifies the second launch's receipt.
+  const second=(await gameURL(friend)).href;
+  await friend.reload({waitUntil:'domcontentloaded'});await inGame(friend,'4499');
+  expect((await gameURL(friend)).href).toBe(second);
+  await expect(gameFrame(friend).locator('.seat-list li')).toHaveCount(2);
   for(const [view,name] of rooms)await story.step('next-different-game',view,name,'One Play action moves both profiles into the next game',[{spec:'Both profiles share a new Can’t Stop table and the old room table is closed',check:async()=>{expect((await gameURL(view)).searchParams.get('table')).not.toBe(first);await expect(gameFrame(view).locator('.seat-list li')).toHaveCount(2);expect(view.context().pages()).toHaveLength(1);await expect(view.locator('.table-row')).toHaveCount(1);}}],'lobby');
   expect((await gameURL(page)).searchParams.get('table')).toBe((await gameURL(friend)).searchParams.get('table'));
   story.finish();
