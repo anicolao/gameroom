@@ -10,10 +10,10 @@ Viewpoint: **Dev**
 
 - [x] The room has a valid code and its create command is committed to Firestore
 
-## The game opens separately while the original HTTP room stays connected
+## The game opens in a frame while the original HTTP room stays connected
 
 Viewpoint: **Dev**
 
-![The game opens separately while the original HTTP room stays connected](./screenshots/001-http-launch-dev-darwin.png)
+![The game opens in a frame while the original HTTP room stays connected](./screenshots/001-http-launch-dev-darwin.png)
 
 - [x] The native UUID API is still absent and the saved game remains resumable

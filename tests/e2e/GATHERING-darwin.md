@@ -26,122 +26,98 @@ Viewpoint: **Sam**
 
 - [x] Both friends are present and selected
 
-## Gameroom stays open while Cribbage uses another tab
+## One Play action opens both game overlays without popups
 
 Viewpoint: **Alex**
 
-![Gameroom stays open while Cribbage uses another tab](./screenshots/003-room-stays-alex-darwin.png)
+![One Play action opens both game overlays without popups](./screenshots/003-frame-seated-alex-darwin.png)
 
-- [x] The room remains on its invitation URL and offers a game button
+- [x] Both URL-named seats share one table and only the host can deal
 
-## Gameroom stays open while Cribbage uses another tab
+## One Play action opens both game overlays without popups
 
 Viewpoint: **Sam**
 
-![Gameroom stays open while Cribbage uses another tab](./screenshots/004-room-stays-sam-darwin.png)
+![One Play action opens both game overlays without popups](./screenshots/004-frame-seated-sam-darwin.png)
 
-- [x] The room remains on its invitation URL and offers a game button
+- [x] Both URL-named seats share one table and only the host can deal
 
-## The host table opens directly from the Play click
-
-Viewpoint: **Alex**
-
-![The host table opens directly from the Play click](./screenshots/005-host-waits-alex-darwin.png)
-
-- [x] The host name is populated without a game-side Join click
-
-## The fallback click joins the same table with the URL name
+## Room chat continues while the game is hidden
 
 Viewpoint: **Alex**
 
-![The fallback click joins the same table with the URL name](./screenshots/006-seated-alex-darwin.png)
+![Room chat continues while the game is hidden](./screenshots/005-frame-chat-alex-darwin.png)
 
-- [x] Two players are seated with only Alex able to deal
+- [x] Messages arrive without reopening or unloading either frame
 
-## The fallback click joins the same table with the URL name
+## Room chat continues while the game is hidden
 
 Viewpoint: **Sam**
 
-![The fallback click joins the same table with the URL name](./screenshots/007-seated-sam-darwin.png)
+![Room chat continues while the game is hidden](./screenshots/006-frame-chat-sam-darwin.png)
 
-- [x] Two players are seated with only Alex able to deal
+- [x] Messages arrive without reopening or unloading either frame
 
-## Room chat continues with both game tabs open
-
-Viewpoint: **Alex**
-
-![Room chat continues with both game tabs open](./screenshots/008-chat-during-game-alex-darwin.png)
-
-- [x] The shared message arrives in both room profiles
-
-## Room chat continues with both game tabs open
-
-Viewpoint: **Sam**
-
-![Room chat continues with both game tabs open](./screenshots/009-chat-during-game-sam-darwin.png)
-
-- [x] The shared message arrives in both room profiles
-
-## The host deals a real two-player hand
+## The host deals a real private two-player hand
 
 Viewpoint: **Alex**
 
-![The host deals a real two-player hand](./screenshots/010-first-hand-alex-darwin.png)
+![The host deals a real private two-player hand](./screenshots/007-frame-hand-alex-darwin.png)
 
-- [x] Both hands have six cards and the other hand remains private
+- [x] The other hand has six face-down cards
 
-## The host deals a real two-player hand
+## The host deals a real private two-player hand
 
 Viewpoint: **Sam**
 
-![The host deals a real two-player hand](./screenshots/011-first-hand-sam-darwin.png)
+![The host deals a real private two-player hand](./screenshots/008-frame-hand-sam-darwin.png)
 
-- [x] Both hands have six cards and the other hand remains private
+- [x] The other hand has six face-down cards
 
-## Reload does not open duplicate game tabs
+## Reload restores one overlay and the existing game
 
 Viewpoint: **Alex**
 
-![Reload does not open duplicate game tabs](./screenshots/012-no-duplicate-alex-darwin.png)
+![Reload restores one overlay and the existing game](./screenshots/009-frame-reload-alex-darwin.png)
 
-- [x] A manual reopen button remains available and no new tab was spawned
+- [x] The same two seats and dealt hand survive without extra tabs
 
-## Reload does not open duplicate game tabs
+## Reload restores one overlay and the existing game
 
 Viewpoint: **Sam**
 
-![Reload does not open duplicate game tabs](./screenshots/013-no-duplicate-sam-darwin.png)
+![Reload restores one overlay and the existing game](./screenshots/010-frame-reload-sam-darwin.png)
 
-- [x] A manual reopen button remains available and no new tab was spawned
+- [x] The same two seats and dealt hand survive without extra tabs
 
-## Friends leave the table directly from the persistent room
+## Friends leave the table from the persistent room
 
 Viewpoint: **Alex**
 
-![Friends leave the table directly from the persistent room](./screenshots/014-left-table-alex-darwin.png)
+![Friends leave the table from the persistent room](./screenshots/011-frame-left-alex-darwin.png)
 
-- [x] Both friends are by the shelves
+- [x] Both return to the shelves and their game frames are cleared
 
-## Friends leave the table directly from the persistent room
+## Friends leave the table from the persistent room
 
 Viewpoint: **Sam**
 
-![Friends leave the table directly from the persistent room](./screenshots/015-left-table-sam-darwin.png)
+![Friends leave the table from the persistent room](./screenshots/012-frame-left-sam-darwin.png)
 
-- [x] Both friends are by the shelves
+- [x] Both return to the shelves and their game frames are cleared
 
-## A later game opens a fresh shared table
+## A later launch opens a fresh shared game automatically
 
 Viewpoint: **Alex**
 
-![A later game opens a fresh shared table](./screenshots/016-next-game-alex-darwin.png)
+![A later launch opens a fresh shared game automatically](./screenshots/013-frame-next-alex-darwin.png)
 
-- [x] Both profiles reach the same new table while their rooms remain open
+- [x] Closed receipts from the previous table do not block the new table
 
-## A later game opens a fresh shared table
+## A later launch opens a fresh shared game automatically
 
 Viewpoint: **Sam**
 
-![A later game opens a fresh shared table](./screenshots/017-next-game-sam-darwin.png)
+![A later launch opens a fresh shared game automatically](./screenshots/014-frame-next-sam-darwin.png)
 
-- [x] Both profiles reach the same new table while their rooms remain open
+- [x] Closed receipts from the previous table do not block the new table
