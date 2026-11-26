@@ -53,3 +53,33 @@ presentations. Direct links open each with its intended initial camera:
 Copy setup link includes the chosen variant along with the camera and motion
 settings. These alternatives remain available for iteration; product baselines cover the
 enclosed cabinet in the launcher.
+
+## Game frame study
+
+`/dev/frames` (development only) mounts the real room UI with a **Frame study**
+control below the room/game controls. Choose a catalog game, then use **Try … in
+room** to load its exact WebURL in an overlaid sandboxed iframe. This is a manual
+visual study, not a group launch or an assertion that the game supports embedding.
+It does not append a launch intent or change the existing separate-tab flow.
+The catalog still uses the configured shared adapter; room actions remain real.
+
+The title bar supports expand, **Room** (hide without unloading), return, and
+close (remove the frame). Room chat is layered above the game; the room itself
+stays mounted. Use the standard local demo environment for multi-profile room
+experiments; loading a production game URL uses that game's normal backend.
+Some external games may prohibit framing or require additional auth support.
+
+`window.close()` does not close an iframe. A cooperating game may request local
+frame dismissal with:
+
+```js
+window.parent.postMessage(
+  {type: 'gameroom:close', version: 1},
+  'http://127.0.0.1:5599', // Exact parent origin for this local study.
+);
+```
+
+The parent accepts this only from the currently framed window at the configured
+game origin. This is only a UI dismissal, not a room/table leave event. The title
+bar's close button always works without any game-side integration. No window.close
+shim, credentials bridge, or automatic embed capability detection is installed.
