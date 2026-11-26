@@ -64,6 +64,7 @@ service cloud.firestore {
    || (i.type in ['player/left','player/returned'] && i.keys().hasOnly(['type']))
    || (i.type=='message/sent' && i.keys().hasOnly(['type','text']) && shortText(i.text,280))
    || (i.type=='table/closed' && i.keys().hasOnly(['type','table']) && i.table.matches('[A-F0-9]{8}'))
+   || (i.type=='table/bga-launched' && i.keys().hasAll(['type','table','players','game','requestId']) && i.keys().hasOnly(['type','table','players','game','requestId']) && i.requestId is string && i.requestId.matches('[a-f0-9-]{36}') && i.table.matches('[A-F0-9]{8}') && i.game is map && i.game.keys().hasAll(['id','title','url']) && i.game.keys().hasOnly(['id','title','url']) && shortText(i.game.id,128) && shortText(i.game.title,120) && i.game.url is string && i.game.url.matches('^https://boardgamearena[.]com/table[?]table=[1-9][0-9]{0,14}$') && i.players is list && i.players.size()>=1 && i.players.size()<=4 && i.players.toSet().size()==i.players.size() && request.auth.uid in i.players)
    || (i.type in ['game/closed','game/reopened'] && i.keys().hasOnly(['type','game']) && i.game is int && i.game>0)
    || (i.type=='game/launched' && i.keys().hasOnly(['type','code','game']) && i.code is string && i.code.matches('[A-F0-9]{8}') && i.game is map && i.game.keys().hasAll(['id','title','url','mode']) && i.game.keys().hasOnly(['id','title','url','mode']) && shortText(i.game.id,128) && shortText(i.game.title,120) && i.game.url is string && i.game.url.matches('^https://[^@\\s]+$') && i.game.mode in ['integrated','new-tab'])
    || (i.type in ['table/launched','table/catalog-launched'] && ((i.type=='table/launched' && i.keys().hasOnly(['type','table','players'])) || (i.type=='table/catalog-launched' && i.keys().hasOnly(['type','table','players','game']) && i.game is map && i.game.keys().hasAll(['id','title','url']) && i.game.keys().hasOnly(['id','title','url']) && shortText(i.game.id,128) && shortText(i.game.title,120) && i.game.url is string && i.game.url.matches('^https://[^@\\s]+$'))) && i.table.matches('[A-F0-9]{8}') && i.players is list && i.players.size()>=1 && i.players.size()<=4 && i.players.toSet().size()==i.players.size() && request.auth.uid in i.players)
@@ -82,10 +83,10 @@ service cloud.firestore {
    function gameIndex(room){
     let next=request.resource.data;let e=getAfter(event(room,next.revision)).data;
     let oldGame=resource.data.get('game',null);let nextGame=next.get('game',null);
-    return e.version<3 ? !('game' in next) : ('game' in next && (
+    return e.version<4 ? !('game' in next) : ('game' in next && (
      e.intent.type=='game/launched' ? nextGame==next.revision
      : e.intent.type=='game/closed' ? oldGame==e.intent.game && nextGame==null
-     : e.intent.type=='game/reopened' ? nextGame==e.intent.game && nextGame!=oldGame && exists(event(room,e.intent.game)) && get(event(room,e.intent.game)).data.intent.type in ['table/launched','table/catalog-launched','game/launched']
+     : e.intent.type=='game/reopened' ? nextGame==e.intent.game && nextGame!=oldGame && exists(event(room,e.intent.game)) && get(event(room,e.intent.game)).data.intent.type in ['table/launched','table/catalog-launched','table/bga-launched','game/launched']
      : nextGame==oldGame
     ));
    }
@@ -100,9 +101,10 @@ service cloud.firestore {
    match /events/{sequence} {
     allow read: if signedIn();
     allow create: if signedIn() && request.resource.data.keys().hasOnly(['version','id','sequence','actor','intent'])
-     && request.resource.data.version in [1,2,3] && (request.resource.data.intent.type!='table/catalog-launched' || request.resource.data.version==2)
-     && (!(request.resource.data.intent.type in ['table/launched','table/catalog-launched','table/closed','player/returned']) || request.resource.data.version<3)
-     && (!(request.resource.data.intent.type in ['game/launched','game/closed','game/reopened']) || request.resource.data.version==3)
+     && request.resource.data.version in [1,2,3,4] && (request.resource.data.intent.type!='table/catalog-launched' || request.resource.data.version>=2 && request.resource.data.version<4)
+     && (!(request.resource.data.intent.type in ['table/launched','table/catalog-launched','table/bga-launched','table/closed','player/returned']) || request.resource.data.version<4)
+     && (!(request.resource.data.intent.type in ['game/launched','game/closed','game/reopened']) || request.resource.data.version==4)
+     && (request.resource.data.intent.type!='table/bga-launched' || request.resource.data.version==3)
      && request.resource.data.id is string && request.resource.data.id.matches('[A-Za-z0-9_-]{1,128}')
      && request.resource.data.actor==request.auth.uid && request.resource.data.sequence is int && intent(request.resource.data.intent)
      && sequence==string(request.resource.data.sequence)
@@ -111,7 +113,7 @@ service cloud.firestore {
      && request.auth.uid in getAfter(root(room)).data.members
      && (!exists(root(room)) || getAfter(root(room)).data.revision==get(root(room)).data.revision+1)
      && getAfter(/databases/$(database)/documents/rooms/$(room)/commands/$(request.resource.data.id)).data.sequence==request.resource.data.sequence
-     && (!(request.resource.data.intent.type in ['table/launched','table/catalog-launched']) || request.resource.data.intent.players.hasOnly(getAfter(root(room)).data.present));
+     && (!(request.resource.data.intent.type in ['table/launched','table/catalog-launched','table/bga-launched']) || request.resource.data.intent.players.hasOnly(getAfter(root(room)).data.present));
    }
    match /commands/{id} {
     allow get: if signedIn();

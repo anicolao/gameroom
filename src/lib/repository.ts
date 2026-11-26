@@ -30,7 +30,7 @@ export function repository(db:Firestore,room:string,actor:string,accept:(events:
     if(revision!==pending.expectedRevision)throw new Error('The room changed. Try again.');
     const version=pending.version??2,before=replay(canonicalEvents),next=apply(before,actor,pending.intent,version);
     const event:RoomEvent={version,id:pending.id,sequence:next.revision,actor,intent:pending.intent};
-    tx.set(root,{owner:next.host,members:next.players.map(p=>p.id),present:next.players.filter(p=>p.present).map(p=>p.id),revision:next.revision,...(version===3?{game:next.activeGame}:{})});
+    tx.set(root,{owner:next.host,members:next.players.map(p=>p.id),present:next.players.filter(p=>p.present).map(p=>p.id),revision:next.revision,...(version===4?{game:next.activeGame}:{})});
     tx.set(doc(root,'events',String(event.sequence)),event);tx.set(ackRef,{sequence:event.sequence});
     return [...canonicalEvents,event];
    });
