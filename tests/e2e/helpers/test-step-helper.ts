@@ -25,16 +25,19 @@ export class TestStepHelper{
    for(const check of checks)await test.step(check.spec,check.check);
    await page.mouse.move(0,0);
    if(!game)await expect(page.getByTestId('cabinet')).toHaveAttribute('data-ready','true',{timeout:120000});
-   const assetsReady=async()=>{
-    await document.fonts.ready;
+   const imagesReady=async()=>{
     await Promise.all([...document.images].map(image=>image.decode()));
     const backgrounds=new Set([...document.querySelectorAll('*')].map(el=>getComputedStyle(el).backgroundImage).flatMap(bg=>[...bg.matchAll(/url\("?([^"\)]+)"?\)/g)].map(m=>m[1])));
     await Promise.all([...backgrounds].map(src=>{const image=new Image();image.src=src;return image.decode();}));
    };
    // Readiness comes from replay, scene and motion signals above, plus decoded
    // assets. Retained cross-origin frames can suspend RAF in either document.
-   await page.evaluate(assetsReady);
-   if(game){const element=await page.locator('.game-window iframe').elementHandle();const frame=await element!.contentFrame();await frame!.evaluate(assetsReady);}
+   const assetsReady=async(label:string,evaluate:(callback:()=>Promise<void>)=>Promise<void>)=>{
+    await test.step(`${label}: fonts decoded`,()=>evaluate(async()=>{await document.fonts.ready;}),{timeout:60000});
+    await test.step(`${label}: images decoded`,()=>evaluate(imagesReady),{timeout:60000});
+   };
+   await assetsReady('Room',callback=>page.evaluate(callback));
+   if(game){const element=await page.locator('.game-window iframe').elementHandle();const frame=await element!.contentFrame();await assetsReady('Game',callback=>frame!.evaluate(callback));}
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow').toBe(true);
    if(!fullPage){
     const layout=await page.evaluate(()=>({height:innerHeight,scrollHeight:document.documentElement.scrollHeight,sections:[...document.querySelectorAll('.topbar,main,.welcome,.detail-panel,.bookcase,.room-note,.gathering,.quiet-footer')].map(el=>({name:el.className,height:el.getBoundingClientRect().height,top:el.getBoundingClientRect().top}))}));
