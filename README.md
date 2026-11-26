@@ -2,13 +2,13 @@
 
 Read [the product vision](VISION.md) for the experience we are building toward.
 
-Persistent rooms for friends, with games opened in separate tabs. Room history
+Persistent rooms for friends, with games opened in full-window overlays. Room history
 and chat use an immutable Firestore intent log. The bookshelf reads the same
 `Applications` catalog as [ttlauncher](https://github.com/anicolao/ttlauncher).
 
 The proposed installed-app experience is specified in
 [Seamless MVP design](SEAMLESS_MVP_DESIGN.md). It is a design proposal; the
-current implementation still opens games in separate tabs.
+current implementation opens games in full-window overlays above the persistent room.
 
 ## PR preview
 
@@ -25,8 +25,10 @@ surface requires its own HTTPS launch URL. Existing records stay tabletop-only
 until an editor enables Gameroom and supplies `WebURL`.
 
 `integrated` entries use the shared create/join URL protocol for group launch,
-regardless of URL, title, or document ID. `new-tab` entries have
-**Open {title}**, which opens the exact WebURL separately. The **Group launch**
+regardless of URL, title, or document ID. The legacy `new-tab` catalog value now
+means URL-only: **Open {title}** loads the exact WebURL in the same overlay for
+that profile, without adding group-join parameters. All games use frames; there
+is no new-tab fallback. The **Group launch**
 filter shows supported integrations. Game boxes are real 3D meshes with painted fronts, printed spines and cardboard
 backs. The selected title appears beside the cabinet.
 
@@ -51,12 +53,16 @@ bun run dev:local
 ```
 
 Open <http://127.0.0.1:5199> in two profiles. Create a room and share its invitation.
-Available friends are included in a Cribbage launch. The host opens a blank tab
-from the Play click before waiting for Firestore; guests try when the committed
-launch arrives. A blocked profile gets **Open Cribbage**. The room and chat stay
-open, and games need no back link. The host clicks **Deal** once everyone is seated.
-**Open Cribbage** also reopens a closed game tab. **Leave table** returns a player
-to the room; **Close table** lets the group choose again.
+Available friends are included in a Cribbage launch. One **Play** action commits
+the shared launch intent; every selected profile automatically opens its own
+create/join URL in a full-window sandboxed iframe. No popup permission is needed.
+A rendered walnut-and-brass menu sits at the bottom-right edge, with a 44px touch
+target. **Return to room** hides the frame without unloading it; **Close game**
+dismisses it locally. Gameroom and chat stay mounted. **Open Cribbage** restores
+or reopens the current game. **Leave table** frees your seat in the gathering;
+**Close table** clears every participant's overlay so the group can choose again.
+The host clicks **Deal** once everyone is seated. Games need no back link.
+
 
 Local development runs real Auth/Firestore emulators, with separate room, game,
 and catalog demo projects. Its four Applications records are emulator fixtures,
@@ -85,11 +91,21 @@ Metadata indexes membership and revision for atomic validation, without replacin
 the log. Catalog snapshots and game outcomes do not enter the room event stream.
 Names are preferences; Firebase UIDs remain game-specific identities.
 
-Tab receipts are local to a profile, room, and table. An opened or blocked attempt
-is not repeated on replay/reload. Explicit reopening remains available. A new
-table permits a new attempt. Each game loses its opener before navigation.
-Opening a tab does not prove that a remote game loaded or that a player joined.
-Historical return URLs remain supported, but new launches do not send one.
+Frame receipts are local to a profile, room and table. Replay never reopens a
+hidden or dismissed game. Reload restores one open/hidden frame for the current
+table; explicit reopening remains available after dismissal. A new table gets
+its own receipt. Closing a frame does not mean leaving its table. Frame visibility
+is not proof of remote game activity. Historical return URLs remain supported;
+new launches omit them. The intent protocol is unchanged because this is a
+presentation change, not a change to recorded participation or replay semantics.
+
+Games keep a different origin from Gameroom. The iframe sandbox permits scripts,
+its own origin and forms, without popups, top navigation, microphone or camera.
+A game can request local dismissal with a versioned `gameroom:close` message;
+the parent validates both the source window and exact game origin. `window.close()`
+does not remove a frame. Sites which refuse embedding remain unsupported in this
+experience; Gameroom does not open a separate tab as a fallback.
+
 
 ## Shared production rules
 
@@ -113,12 +129,14 @@ project IDs. They run alongside development without stopping it or clearing its
 room data. Rules tests cover both standalone and combined production rules.
 
 E2E uses full Chromium with its native popup blocker, plus a separate explicitly
-permitted-popup case. Stories cover group launch, blocked fallback, names,
-privacy after a real deal, continued room chat, reopen/reload, simultaneous leave,
+permitted-popup case. Both verify that frame launches create no tabs. Stories
+cover automatic group launch, exclusions, URL-only frames, names,
+privacy after a real deal, continued room chat, hide/dismiss/reopen/reload, simultaneous leave,
 recurring launches, same-name profiles, mobile search, a genuine insecure HTTP
 origin without a UUID shim, and live catalog hide/update behavior and native 3D cabinet interactions. The
-URL-only test observes the exact outbound browser request without pretending
-that an unknown external game implements group seating.
+URL-only test observes the exact iframe request without pretending that an unknown
+external game implements group seating. Captures include the parent overlay and
+real embedded game, after both documents report readiness.
 
 Every decoded RGBA byte must match. There are no masks, tolerance, or retries.
 Reference generation is explicit with `bun run test:e2e:update`; review its

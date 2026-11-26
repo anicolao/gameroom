@@ -10,19 +10,23 @@ export class TestStepHelper{
  async step(id:string,page:Page,player:string,description:string,checks:Verification[],game=false,fullPage=false){
   await test.step(`${player}: ${description}`,async()=>{
    await page.bringToFront();
-   try{await expect(page.getByRole('status')).toHaveAttribute('data-status','synced');}
+   try{await expect(page.locator('[role=status][data-status]')).toHaveAttribute('data-status','synced');}
    catch(e){await this.info.attach('readiness-dom',{body:await page.content(),contentType:'text/html'});throw e;}
    if(!game)await expect(page.getByTestId('catalogue')).toHaveAttribute('data-status',/current|empty|offline|error/);
-   if(game)await expect(page.locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');
+   const embedded=page.frameLocator('.game-window iframe');
+   if(game){await expect(page.getByRole('dialog')).toBeVisible();await expect(embedded.locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');}
    for(const check of checks)await test.step(check.spec,check.check);
    await page.mouse.move(0,0);
    if(!game)await expect(page.getByTestId('cabinet')).toHaveAttribute('data-ready','true',{timeout:120000});
-   await page.evaluate(async()=>{
+   const assetsReady=async()=>{
     await document.fonts.ready;
+    await Promise.all([...document.images].map(image=>image.decode()));
     const backgrounds=new Set([...document.querySelectorAll('*')].map(el=>getComputedStyle(el).backgroundImage).flatMap(bg=>[...bg.matchAll(/url\("?([^"\)]+)"?\)/g)].map(m=>m[1])));
     await Promise.all([...backgrounds].map(src=>{const image=new Image();image.src=src;return image.decode();}));
     await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
-   });
+   };
+   await page.evaluate(assetsReady);
+   if(game){const element=await page.locator('.game-window iframe').elementHandle();const frame=await element!.contentFrame();await frame!.evaluate(assetsReady);}
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow').toBe(true);
    if(!fullPage){
     const layout=await page.evaluate(()=>({height:innerHeight,scrollHeight:document.documentElement.scrollHeight,sections:[...document.querySelectorAll('.topbar,main,.welcome,.detail-panel,.bookcase,.room-note,.gathering,.quiet-footer')].map(el=>({name:el.className,height:el.getBoundingClientRect().height,top:el.getBoundingClientRect().top}))}));

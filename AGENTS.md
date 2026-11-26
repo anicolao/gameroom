@@ -19,13 +19,20 @@ as accessible HTML over environmental artwork.
   never identities. Keep game-specific Firebase
   UIDs and event logs inside each game.
 - A launch records intended participation. Do not label it as verified game activity.
-- Include available friends by default. Keep Gameroom open while games use separate
-  tabs. Attempt opening for every selected profile; if blocked, offer Open Cribbage
-  from a direct user click. Open the host's blank tab before awaiting Firestore.
-  Sever the opener before navigating games. Keep an explicit reopen control and
-  per-table attempt receipts so replay/reload never spawns duplicate tabs. Games
-  must not need a back link. Test actual browser popup blocking, permitted popups,
-  recurring launches, continued room chat and profiles sharing a display name.
+- Include available friends by default. Integrated games open automatically in one
+  sandboxed, cross-origin iframe per selected profile after the launch commits.
+  Keep Gameroom mounted underneath. The rendered bottom-right menu hides the frame
+  without unloading it, or dismisses it locally; neither action leaves the table.
+  Preserve per-table open/hidden/closed receipts across replay/reload, explicit
+  reopening, and legacy return URLs. Clear the frame on table/room departure or
+  table closure. Games need no back link and cannot close a frame with window.close.
+  Validate both source window and exact origin for game dismissal messages.
+  URL-only entries load their exact WebURL in the same overlay for the requesting
+  profile, without group-join parameters or invented participation. Never open
+  game tabs or offer a new-tab fallback. Keep the legacy `new-tab` catalog spelling
+  for compatibility; it identifies URL-only entries, not presentation. Test with
+  popup blocking and permitted popups, recurring launches, exclusions, continued room chat, iframe
+  reload/dismissal, and profiles sharing a display name.
 - Use a Git worktree for sibling-game changes; preserve other active branches and
   their untracked artifacts. Follow each sibling’s AGENTS.md.
 

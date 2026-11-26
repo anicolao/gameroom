@@ -1,26 +1,20 @@
 <script module lang="ts">
- export type FrameRequest={id:number;key:string;title:string;url:string;hidden?:boolean};
+ export type FrameRequest={id:number;scope:'table'|'catalog';key:string;title:string;url:string;hidden?:boolean};
  export type FrameState='opened'|'hidden'|'closed';
 </script>
 <script lang="ts">
  import {onMount, tick, untrack} from 'svelte';
- import type {Game} from '../lib/catalog';
- let {game,request=null,preview=true,onStateChange=()=>{}}: {game:Game|undefined;request?:FrameRequest|null;preview?:boolean;onStateChange?:(key:string,state:FrameState)=>void}=$props();
+ import {isFrameDismissal} from './game-frame';
+ let {request=null,onStateChange=()=>{}}: {request?:FrameRequest|null;onStateChange?:(key:string,state:FrameState)=>void}=$props();
  let framed=$state<{title:string;url:string;key?:string}|null>(null);
  let minimized=$state(false),menuOpen=$state(false);
  let panel=$state<HTMLDialogElement>();
  let frame=$state<HTMLIFrameElement>();
- let launchButton=$state<HTMLButtonElement>(),menuButton=$state<HTMLButtonElement>();
+ let menuButton=$state<HTMLButtonElement>();
  const visible=$derived(Boolean(framed&&!minimized));
- function open(){
-  if(!game)return;
-  // Standalone preview is available before joining a room only.
-  framed={title:game.title,url:game.launchUrl};minimized=false;menuOpen=false;
-  void tick().then(()=>menuButton?.focus());
- }
  function record(state:FrameState){if(framed?.key)onStateChange(framed.key,state);}
- function close(){record('closed');framed=null;minimized=false;menuOpen=false;void tick().then(()=>launchButton?.focus());}
- function minimize(){record('hidden');menuOpen=false;minimized=true;void tick().then(()=>launchButton?.focus());}
+ function close(){record('closed');framed=null;minimized=false;menuOpen=false;}
+ function minimize(){record('hidden');menuOpen=false;minimized=true;}
  function restore(){record('opened');minimized=false;void tick().then(()=>menuButton?.focus());}
  $effect(()=>{
   const next=request;
@@ -41,9 +35,7 @@
  }
  onMount(()=>{
   function receive(event:MessageEvent){
-   if(!framed||event.source!==frame?.contentWindow||event.origin!==new URL(framed.url).origin)return;
-   const data=event.data;
-   if(data&&typeof data==='object'&&data.type==='gameroom:close'&&data.version===1)close();
+   if(framed&&isFrameDismissal(event,framed.url,frame?.contentWindow??null))close();
   }
   const hideMenu=()=>menuOpen=false;
   window.addEventListener('message',receive);
@@ -51,14 +43,6 @@
   return()=>{window.removeEventListener('message',receive);window.removeEventListener('blur',hideMenu);};
  });
 </script>
-
-{#if preview}
-<div class="frame-lab-controls">
- <p class="study-label">Frame study</p>
- <button class="gold-button" bind:this={launchButton} disabled={!game} onclick={open}>Try {game?.title??'selected game'} in room</button>
- {#if framed}<button class="text-button" onclick={restore}>Return to {framed.title}</button>{/if}
-</div>
-{/if}
 
 {#if framed}
  <dialog bind:this={panel} class="game-window" aria-label={`${framed.title} game window`} oncancel={cancel}>
@@ -77,8 +61,6 @@
 {/if}
 
 <style>
- .frame-lab-controls{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
- .study-label{font-size:11px;color:var(--muted);margin-bottom:10px}
  .game-window{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;background:#15251c;color:#f1e7d1;}
  .game-window::backdrop{background:#15251c}
  iframe{display:block;width:100%;height:100%;border:0;background:#fff}

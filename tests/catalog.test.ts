@@ -12,7 +12,7 @@ test('hidden, missing and unsafe launch targets cannot become clickable games',(
   {id:'ok',data:{GameroomEnabled:'new-tab',Title:'Safe',WebURL:'https://games.example/',Icon:'javascript:alert(1)'}}
  ]);expect(games.map(game=>game.id)).toEqual(['ok']);expect(games[0].iconSrc).toBeNull();expect(rejected).toBe(3);
 });
-test('catalog modes alone select integrated or new-tab behavior',()=>{
+test('catalog modes alone distinguish shared integration from URL-only entries',()=>{
  for(const id of ['cribbage','cantstop','unfamiliar'])for(const url of ['https://games.example/any/','https://anicolao.github.io/cribbage/']){
   expect(parseApplication(id,{GameroomEnabled:'integrated',Title:'Any game',WebURL:url})).toMatchObject({mode:'integrated',available:true,launchUrl:url});
   expect(parseApplication(id,{GameroomEnabled:'new-tab',Title:'Any game',WebURL:url})).toMatchObject({mode:'new-tab',available:false});
