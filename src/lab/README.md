@@ -63,8 +63,10 @@ visual study, not a group launch or an assertion that the game supports embeddin
 It does not append a launch intent or change the existing separate-tab flow.
 The catalog still uses the configured shared adapter; room actions remain real.
 
-The game fills the entire app window. A small **⋯** control in the bottom-left
-corner overlays the iframe; its visible circle is 28px with a 44px touch target.
+The game fills the entire app window. A small rendered walnut-and-brass **⋯** image in the bottom-right corner
+overlays the iframe, tucked against the safe-area edges. Its visible circle is
+about 28px with a 44px touch target. The artwork is `public/art/ui/game-menu.png`;
+its generation prompt is recorded alongside it in `public/art/ui/README.md`.
 It opens **Return to room** (hide without unloading) and **Close game** (remove
 the frame). A native modal dialog keeps keyboard focus out of the covered room.
 Escape closes the menu first, then returns to the room. The room stays mounted.

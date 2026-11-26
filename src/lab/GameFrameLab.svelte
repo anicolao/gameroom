@@ -48,7 +48,7 @@
 {#if framed}
  <dialog bind:this={panel} class="game-window" aria-label={`${framed.title} game window`} oncancel={cancel}>
   <iframe bind:this={frame} src={framed.url} title={`${framed.title} game`} sandbox="allow-scripts allow-same-origin allow-forms" referrerpolicy="no-referrer"></iframe>
-  <button class="menu-trigger" bind:this={menuButton} aria-label="Gameroom controls" aria-expanded={menuOpen} aria-controls="game-room-menu" onclick={()=>menuOpen=!menuOpen}><span aria-hidden="true">⋯</span></button>
+  <button class="menu-trigger" bind:this={menuButton} aria-label="Gameroom controls" aria-expanded={menuOpen} aria-controls="game-room-menu" onclick={()=>menuOpen=!menuOpen}><img src={`${import.meta.env.BASE_URL}art/ui/game-menu.png`} width="36" height="36" alt="" draggable="false"/></button>
   {#if menuOpen}
    <nav id="game-room-menu" class="game-menu" aria-label="Gameroom controls">
     <button onclick={minimize}>Return to room</button>
@@ -67,12 +67,11 @@
  .game-window{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;background:#15251c;color:#f1e7d1;}
  .game-window::backdrop{background:#15251c}
  iframe{display:block;width:100%;height:100%;border:0;background:#fff}
- .menu-trigger{position:absolute;left:max(8px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom));width:44px;height:44px;display:grid;place-items:center;padding:0;color:#fff;border-radius:50%;}
- .menu-trigger::before{content:'';position:absolute;inset:8px;border-radius:50%;background:#17231ed9;border:1px solid #d8c59c70;box-shadow:0 2px 8px #0004;}
- .menu-trigger span{position:relative;font-size:22px;line-height:1;transform:translateY(-3px)}
- .menu-trigger:hover::before,.menu-trigger[aria-expanded=true]::before{background:#17231e;border-color:#eac17b}
+ .menu-trigger{position:absolute;right:env(safe-area-inset-right,0px);bottom:env(safe-area-inset-bottom,0px);width:44px;height:44px;display:flex;align-items:flex-end;justify-content:flex-end;padding:0;border-radius:6px;}
+ .menu-trigger img{display:block;width:36px;height:36px;pointer-events:none}
+ .menu-trigger:hover img,.menu-trigger[aria-expanded=true] img{filter:brightness(1.18)}
  .menu-trigger:focus-visible{outline:2px solid #eac17b;outline-offset:-3px}
- .game-menu{position:absolute;left:max(16px,env(safe-area-inset-left));bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px);display:grid;min-width:180px;padding:5px;background:#1e2923f5;border:1px solid #a58a5b88;border-radius:8px;box-shadow:0 5px 24px #0006;}
+ .game-menu{position:absolute;right:max(4px,env(safe-area-inset-right));bottom:calc(env(safe-area-inset-bottom,0px) + 48px);display:grid;min-width:180px;padding:5px;background:#1e2923f5;border:1px solid #a58a5b88;border-radius:8px;box-shadow:0 5px 24px #0006;}
  .game-menu button{min-height:44px;padding:10px 14px;text-align:left;font-size:13px;border-radius:4px}
  .game-menu button:hover,.game-menu button:focus-visible{background:#dbc18a20}
  .game-return{position:fixed;z-index:8;bottom:108px;left:50%;transform:translateX(-50%);display:flex;max-width:calc(100% - 32px);border:1px solid #a88250;border-radius:7px;background:#322419;box-shadow:0 8px 28px #0008}
