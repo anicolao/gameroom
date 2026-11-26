@@ -11,11 +11,12 @@ test('Different catalog games remain launchable after the first table',async({pa
  const cantstop=await fetch(`${documents}/cantstop`,{method:'PATCH',headers,body:JSON.stringify({fields:{Title:{stringValue:"Can't Stop"},WebURL:{stringValue:'https://anicolao.github.io/cantstop/'},GameroomEnabled:{stringValue:'integrated'}}})});expect(cantstop.ok).toBe(true);
  const before=await (await fetch(`${documents}/jaipur`,{headers})).json() as {fields:{WebURL:{stringValue:string}}};
  async function setJaipur(url:string){const response=await fetch(`${documents}/jaipur?updateMask.fieldPaths=WebURL`,{method:'PATCH',headers,body:JSON.stringify({fields:{WebURL:{stringValue:url}}})});expect(response.ok).toBe(true);}
- async function select(title:string){const button=page.getByRole('button',{name:`Select ${title}`,exact:true});await button.focus();await button.press('Enter');await button.blur();}
+ async function select(title:string){const button=page.getByRole('button',{name:`Select ${title}`,exact:true});await button.focus();await button.press('Enter');await button.blur();await expect(page.getByTestId('cabinet')).toHaveAttribute('data-ready','true');}
  const story=new TestStepHelper(info,'NEXT-GAME'),context=await browser.newContext(profile);
  try{
   await deterministicRoom(page,1200);const friend=await context.newPage();await deterministicRoom(friend,1300);
   const room=await openRoom(page,'Alex');await joinRoom(friend,room,'Sam');await select('Cribbage');
+  await expect(friend.getByTestId('cabinet')).toHaveAttribute('data-ready','true');
   await page.getByRole('button',{name:'Play Cribbage',exact:true}).click();
   const rooms=[[page,'Alex'],[friend,'Sam']] as const;
   for(const [view] of rooms){await inGame(view);await expect(gameFrame(view).locator('[data-player] h2')).toHaveText(['Alex','Sam']);}
