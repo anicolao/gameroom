@@ -1,4 +1,4 @@
-import type {Player,Table} from './engine';
+import type {Player,Table,RoomGame} from './engine';
 import {randomId} from './random-id';
 export function roomCode(){return randomId().replaceAll('-','').slice(0,8).toUpperCase();}
 /** Include available friends by default; exclusions are explicit player choices. */
@@ -12,5 +12,12 @@ export function gameUrl(base:string,table:Table,player:Player,returnTo?:string){
  if(!['http:','https:'].includes(url.protocol))throw new Error('Choose a web address for this game.');
  url.searchParams.set('table',table.code);url.searchParams.set('launch',table.host===player.id?'create':'join');url.searchParams.set('name',player.name);
  if(returnTo)url.searchParams.set('returnTo',returnTo);else url.searchParams.delete('returnTo');
+ return url.href;
+}
+/** Room membership supplies participation; external game identity stays in the game. */
+export function roomGameUrl(base:string,game:RoomGame,player:Player){
+ if(game.mode==='new-tab')return base;
+ const url=new URL(base);
+ url.searchParams.set('table',game.code);url.searchParams.set('launch',game.host===player.id?'create':'join');url.searchParams.set('name',player.name);url.searchParams.delete('returnTo');
  return url.href;
 }

@@ -11,18 +11,31 @@ service cloud.firestore {
    || (i.type in ['player/left','player/returned'] && i.keys().hasOnly(['type']))
    || (i.type=='message/sent' && i.keys().hasOnly(['type','text']) && shortText(i.text,280))
    || (i.type=='table/closed' && i.keys().hasOnly(['type','table']) && i.table.matches('[A-F0-9]{8}'))
+   || (i.type in ['game/closed','game/reopened'] && i.keys().hasOnly(['type','game']) && i.game is int && i.game>0)
+   || (i.type=='game/launched' && i.keys().hasOnly(['type','code','game']) && i.code is string && i.code.matches('[A-F0-9]{8}') && i.game is map && i.game.keys().hasAll(['id','title','url','mode']) && i.game.keys().hasOnly(['id','title','url','mode']) && shortText(i.game.id,128) && shortText(i.game.title,120) && i.game.url is string && i.game.url.matches('^https://[^@\\s]+$') && i.game.mode in ['integrated','new-tab'])
    || (i.type in ['table/launched','table/catalog-launched'] && ((i.type=='table/launched' && i.keys().hasOnly(['type','table','players'])) || (i.type=='table/catalog-launched' && i.keys().hasOnly(['type','table','players','game']) && i.game is map && i.game.keys().hasAll(['id','title','url']) && i.game.keys().hasOnly(['id','title','url']) && shortText(i.game.id,128) && shortText(i.game.title,120) && i.game.url is string && i.game.url.matches('^https://[^@\\s]+$'))) && i.table.matches('[A-F0-9]{8}') && i.players is list && i.players.size()>=1 && i.players.size()<=4 && i.players.toSet().size()==i.players.size() && request.auth.uid in i.players)
   );}
-  function metadata(d){return d.keys().hasOnly(['owner','members','present','revision']) && d.owner is string && d.members is list && d.present is list && d.members.size()>=1 && d.members.size()<=64 && d.present.hasOnly(d.members) && d.owner in d.members && d.revision is int && d.revision>=1;}
+  function metadata(d){return d.keys().hasOnly(['owner','members','present','revision','game']) && d.owner is string && d.members is list && d.present is list && d.members.size()>=1 && d.members.size()<=64 && d.present.hasOnly(d.members) && d.owner in d.members && d.revision is int && d.revision>=1 && (d.get('game',null)==null || (d.game is int && d.game>0 && d.game<=d.revision));}
   match /rooms/{room} {
    // A known invitation permits reading, but not discovering other rooms.
    allow get: if signedIn();
    allow create: if signedIn() && room.matches('[A-F0-9]{8}') && metadata(request.resource.data)
     && request.resource.data.owner==request.auth.uid && request.resource.data.members==[request.auth.uid]
     && request.resource.data.present==[request.auth.uid] && request.resource.data.revision==1
+    && request.resource.data.get('game',null)==null
     && getAfter(event(room,1)).data.intent.type=='room/created' && getAfter(event(room,1)).data.actor==request.auth.uid;
    allow update: if signedIn() && metadata(request.resource.data) && request.resource.data.owner==resource.data.owner
-    && request.resource.data.revision==resource.data.revision+1 && membership(room);
+    && request.resource.data.revision==resource.data.revision+1 && membership(room) && gameIndex(room);
+   function gameIndex(room){
+    let next=request.resource.data;let e=getAfter(event(room,next.revision)).data;
+    let oldGame=resource.data.get('game',null);let nextGame=next.get('game',null);
+    return e.version<3 ? !('game' in next) : ('game' in next && (
+     e.intent.type=='game/launched' ? nextGame==next.revision
+     : e.intent.type=='game/closed' ? oldGame==e.intent.game && nextGame==null
+     : e.intent.type=='game/reopened' ? nextGame==e.intent.game && nextGame!=oldGame && exists(event(room,e.intent.game)) && get(event(room,e.intent.game)).data.intent.type in ['table/launched','table/catalog-launched','game/launched']
+     : nextGame==oldGame
+    ));
+   }
    function membership(room){
     let old=resource.data;let next=request.resource.data;let e=getAfter(event(room,next.revision)).data;
     return e.actor==request.auth.uid && (
@@ -34,7 +47,10 @@ service cloud.firestore {
    match /events/{sequence} {
     allow read: if signedIn();
     allow create: if signedIn() && request.resource.data.keys().hasOnly(['version','id','sequence','actor','intent'])
-     && request.resource.data.version in [1,2] && (request.resource.data.intent.type!='table/catalog-launched' || request.resource.data.version==2) && request.resource.data.id is string && request.resource.data.id.matches('[A-Za-z0-9_-]{1,128}')
+     && request.resource.data.version in [1,2,3] && (request.resource.data.intent.type!='table/catalog-launched' || request.resource.data.version==2)
+     && (!(request.resource.data.intent.type in ['table/launched','table/catalog-launched','table/closed','player/returned']) || request.resource.data.version<3)
+     && (!(request.resource.data.intent.type in ['game/launched','game/closed','game/reopened']) || request.resource.data.version==3)
+     && request.resource.data.id is string && request.resource.data.id.matches('[A-Za-z0-9_-]{1,128}')
      && request.resource.data.actor==request.auth.uid && request.resource.data.sequence is int && intent(request.resource.data.intent)
      && sequence==string(request.resource.data.sequence)
      && (!exists(root(room)) || get(event(room,get(root(room)).data.revision)).data.version<=request.resource.data.version)

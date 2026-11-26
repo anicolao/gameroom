@@ -28,7 +28,7 @@ until an editor enables Gameroom and supplies `WebURL`.
 regardless of URL, title, or document ID. The legacy `new-tab` catalog value now
 means URL-only: **Open {title}** loads the exact WebURL in the same overlay for
 that profile, without adding group-join parameters. All games use frames; there
-is no new-tab fallback. The **Group launch**
+is no new-tab fallback. The **Shared sessions**
 filter shows supported integrations. Game boxes are real 3D meshes with painted fronts, printed spines and cardboard
 backs. The selected title appears beside the cabinet.
 
@@ -55,21 +55,18 @@ bun run dev:local
 ```
 
 Open <http://127.0.0.1:5199> in two profiles. Create a room and share its invitation.
-Available friends are included in a Cribbage launch. One **Play** action commits
-the shared launch intent; every selected profile automatically opens its own
+Every present room member is included in a launch. One **Play** action commits
+the shared launch intent; every member automatically opens their own
 create/join URL in a full-window sandboxed iframe. No popup permission is needed.
 A rendered walnut-and-brass menu sits at the bottom-right edge, with a 44px touch
-target. **Return to room** hides the frame without unloading it; **Close game**
-dismisses it locally. Gameroom and chat stay mounted. **Open Cribbage** restores
-or reopens the current game. **Leave table** frees your seat in the gathering;
-**Close table** clears every participant's overlay so the group can choose again.
-The host clicks **Deal** once everyone is seated. Games need no back link.
-
-Selecting another box always shows that game’s own action. The previous game
-remains reopenable under Tables. When the host starts a different integrated
-game, the room records closing the old table followed by launching the new one;
-available friends and current tablemates are included by default. Another member
-can leave their old table and start a new one with available friends.
+target. Its only action is **Close game**, which returns every member to the room.
+Closing records a shared-view decision; Gameroom does not distinguish a completed
+game from one the group might resume later. **Recent games** reopens the original
+game URLs for everyone, preserving the original creator and external game code.
+Selecting **Play {title}** from the bookshelf starts a new game for the whole room.
+There are no player-selection checkboxes, table controls or local return bubbles.
+A late arrival joins the room's current game; existing members' frames stay loaded.
+The gathering and its chat persist across these choices.
 
 
 Local development runs real Auth/Firestore emulators, with separate room, game,
@@ -89,27 +86,33 @@ The canonical room state is replayed from ordered immutable
 `rooms/{roomCode}/events/{sequence}` records:
 
 ```ts
-{ version: 1, id, sequence, actor, intent }
+{ version: 3, id, sequence, actor, intent }
 ```
 
-Choices are room creation, joining/leaving, launching/closing a game table,
-returning, and sending a message. Acknowledgement documents preserve command IDs
+Choices are room creation, joining/leaving, launching/closing/reopening the room’s
+game, and sending a message. Acknowledgement documents preserve command IDs
 across ambiguous retries; expected revisions serialize concurrent choices.
 Metadata indexes membership and revision for atomic validation, without replacing
 the log. Catalog snapshots and game outcomes do not enter the room event stream.
 Names are preferences; Firebase UIDs remain game-specific identities.
 
-Frame receipts are local to a profile, room and table. Replay never reopens a
-hidden or dismissed game. Reload restores one open/hidden frame for the current
-table; explicit reopening remains available after dismissal. A new table gets
-its own receipt. Closing a frame does not mean leaving its table. Frame visibility
-is not proof of remote game activity. Historical return URLs remain supported;
-new launches omit them. The intent protocol is unchanged because this is a
-presentation change, not a change to recorded participation or replay semantics.
+Protocol 3 gives each room one current game. `game/launched` records the chosen
+catalog identity, title, URL, mode and generated external game code. `game/closed`
+and `game/reopened` reference that original launch's sequence number. Reopening
+uses the saved address and creator, even if the catalog has subsequently changed.
+The metadata `game` field is a nullable launch-sequence index, validated atomically
+with the event and command acknowledgement. The reducer rebuilds all game history
+from intents; no game outcomes or computed room snapshots are stored.
+
+Versions 1 and 2 retain their original replay semantics. Their historical game
+launches appear as recent links in the new UI; no historical records are rewritten.
+The first v3 reopen or launch selects one game for the entire room. Closed games
+stay closed on reload; an open room game reopens automatically in one iframe.
+Legacy return URLs remain accepted, while new game URLs omit them.
 
 Games keep a different origin from Gameroom. The iframe sandbox permits scripts,
 its own origin and forms, without popups, top navigation, microphone or camera.
-A game can request local dismissal with a versioned `gameroom:close` message;
+A game can request closing the shared view with a versioned `gameroom:close` message;
 the parent validates both the source window and exact game origin. `window.close()`
 does not remove a frame. Sites which refuse embedding remain unsupported in this
 experience; Gameroom does not open a separate tab as a fallback.
@@ -138,9 +141,9 @@ room data. Rules tests cover both standalone and combined production rules.
 
 E2E uses full Chromium with its native popup blocker, plus a separate explicitly
 permitted-popup case. Both verify that frame launches create no tabs. Stories
-cover automatic group launch, exclusions, URL-only frames, names,
-privacy after a real deal, continued room chat, hide/dismiss/reopen/reload, simultaneous leave,
-recurring launches, same-name profiles, mobile search, a genuine insecure HTTP
+cover automatic whole-room launch, shared close and recent-game reopening, URL-only
+frames, names, privacy after a real deal, continued room chat, late arrivals, reload,
+recurring games, same-name profiles, mobile search, a genuine insecure HTTP
 origin without a UUID shim, and live catalog hide/update behavior and native 3D cabinet interactions. The
 URL-only test observes the exact iframe request without pretending that an unknown
 external game implements group seating. Captures include the parent overlay and
@@ -204,17 +207,18 @@ then compare every decoded RGBA byte at the normal renderer quality.
 
 ## Catalog launch modes and replay
 
-New `table/catalog-launched` decisions use protocol 2 and record the selected
-catalog document ID, title, WebURL, and intended participants. Reopening and
-replay use that recorded destination even if the catalog changes. Protocol-1
-Cribbage history retains its original meaning; histories may upgrade to version
-2 but cannot downgrade. No external game results enter the room log.
+New `game/launched` decisions use protocol 3 and record the selected catalog
+identity, title, WebURL and explicit launch mode. All present members participate.
+Reopening and replay use that recorded destination and original game creator,
+even if the catalog changes. Versions 1 and 2 retain their original meaning;
+histories can upgrade to version 3 but cannot downgrade. No external game results
+enter the room log.
 
 Can’t Stop already implements `launch=create|join`, `table`, and `name`. Tests
 run the reviewed game checkout in `../cantstop-gameroom-review` (override with
 `CANTSTOP_PATH`) at port 4499, against its own demo Firebase project. The browser
-story checks separate identities, the common table, replay, and the room staying
-open. Its generated cover and exact prompt are documented in
+story checks separate identities, one shared game, replay and a shared close back
+to the persistent room. Its generated cover and exact prompt are documented in
 [design/cantstop-cover.txt](design/cantstop-cover.txt).
 
 The requested production edit is reproducible with

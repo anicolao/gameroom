@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {TestStepHelper} from './helpers/test-step-helper';
 import {chromiumArgs} from './helpers/browser-options';
-import {deterministicRoom,profile,openRoom,joinRoom,gameFrame,gameURL,inGame,showRoom} from './helpers/launch';
+import {deterministicRoom,profile,openRoom,joinRoom,gameFrame,gameURL,inGame,closeRoomGame} from './helpers/launch';
 test.use({launchOptions:{args:chromiumArgs,ignoreDefaultArgs:[]}});
 test("Can't Stop launches independent seats in shared game frames",async({page,browser},info)=>{
  const host=process.env.FIRESTORE_EMULATOR_HOST??'127.0.0.1:8199',project='demo-gameroom-catalogue-e2e';
@@ -22,8 +22,8 @@ test("Can't Stop launches independent seats in shared game frames",async({page,b
   for(const [view] of rooms){await expect(gameFrame(view).locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');await expect(gameFrame(view).locator('[data-ready]')).toHaveAttribute('data-ready','true');}
   const revision=await gameFrame(friend).locator('.game-shell').getAttribute('data-revision');await friend.reload();
   for(const [view,name] of rooms)await story.step('cantstop-frame-game',view,name,'Both game frames show the same playable Can’t Stop table',[{spec:'Reload retains the same seats and replay revision',check:async()=>{await expect(gameFrame(view).locator('.game-shell')).toHaveAttribute('data-revision',revision!);await expect(gameFrame(view).locator('[data-table-view]')).toHaveAttribute('data-phone','false');expect((await gameURL(view)).searchParams.get('table')).toBe(code);}}],true);
-  for(const [view] of rooms)await showRoom(view);
-  for(const [view,name] of rooms)await story.step('cantstop-frame-room',view,name,'The gathering stays mounted underneath the game',[{spec:'The original invitation, friends and reopen control remain available',check:async()=>{await expect(view).toHaveURL(room);await expect(view.getByRole('button',{name:"Open Can't Stop",exact:true})).toBeVisible();await expect(view.getByTestId('friend')).toHaveCount(2);expect(view.context().pages()).toHaveLength(1);}}]);
+  await closeRoomGame(friend,[page]);
+  for(const [view,name] of rooms)await story.step('cantstop-frame-room',view,name,'The gathering stays mounted underneath the game',[{spec:'The original invitation, room members and recent game remain available',check:async()=>{await expect(view).toHaveURL(room);await expect(view.getByRole('button',{name:"Reopen Can't Stop",exact:true})).toBeVisible();await expect(view.getByTestId('friend')).toHaveCount(2);expect(view.context().pages()).toHaveLength(1);}}]);
   story.finish();
  }finally{
   await context.close();await fetch(target,{method:'DELETE',headers:{Authorization:'Bearer owner'}});

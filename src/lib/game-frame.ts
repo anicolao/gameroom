@@ -1,4 +1,4 @@
-/** Only the current game window at its exact origin may dismiss its own surface. */
+/** Only the current game window at its exact origin may request closing the room game. */
 export function isFrameDismissal(event:Pick<MessageEvent,'source'|'origin'|'data'>,destination:string,source:MessageEventSource|null){
  const data=event.data;
  return source!==null&&event.source===source&&event.origin===new URL(destination).origin&&data!==null&&typeof data==='object'&&!Array.isArray(data)&&data.type==='gameroom:close'&&data.version===1;

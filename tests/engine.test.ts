@@ -1,6 +1,8 @@
 import {describe,test,expect} from 'bun:test';
-import {apply,initialState,replay,type Intent,type RoomEvent} from '../src/lib/engine';
+import {apply as applyCurrent,initialState,replay,type Intent,type RoomEvent} from '../src/lib/engine';
 import {gameUrl,selectedFriends,launchReceiptKey} from '../src/lib/launch';
+// These are compatibility tests for the immutable v1/v2 replay contract.
+const apply=(state:Parameters<typeof applyCurrent>[0],actor:string,value:unknown)=>applyCurrent(state,actor,value,2);
 describe('the gathering intent log',()=>{
  const created=apply(initialState(),'alex',{type:'room/created',name:'Friday friends',playerName:'Alex'});
  const joined=apply(created,'sam',{type:'player/joined',name:'Sam'});

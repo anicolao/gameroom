@@ -1,6 +1,6 @@
 import {test,expect,type Page} from '@playwright/test';
 import {TestStepHelper} from './helpers/test-step-helper';
-import {deterministicRoom,openRoom,dismissGame,showRoom} from './helpers/launch';
+import {deterministicRoom,openRoom,closeRoomGame,clickVisibleControl} from './helpers/launch';
 const project='demo-gameroom-catalogue-e2e';
 async function change(id:string,data?:Record<string,unknown>){
  const host=process.env.FIRESTORE_EMULATOR_HOST??'127.0.0.1:8199';
@@ -27,11 +27,11 @@ test('shared catalog updates, hides games and opens URL-only games without group
   await page.getByRole('textbox',{name:'Search games'}).fill('aardvark');
   await clickBox(page,'Aardvark');
   const request=page.context().waitForEvent('request',r=>r.url()===target);
-  await page.getByRole('button',{name:'Open Aardvark',exact:true}).click();
-  const outbound=await request;expect(outbound.url()).toBe(target);await expect(page.locator('.game-window iframe')).toHaveAttribute('src',target);expect(page.context().pages()).toHaveLength(1);await showRoom(page);
-  await page.getByRole('button',{name:'Room conversation',exact:true}).click();await page.getByRole('textbox',{name:'Message',exact:true}).fill('The URL-only game stays open.');await page.getByRole('button',{name:'Send message',exact:true}).click();await expect(page.getByText('The URL-only game stays open.',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Close conversation',exact:true}).click();
-  await story.step('url-only',page,'Reader','A URL-only entry uses the overlay without invented group support',[{spec:'The original room stays open and no group table was recorded',check:async()=>{await expect(page).toHaveURL(roomUrl);await expect(page.getByRole('region',{name:'Room tables'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Play Cribbage',exact:true})).toHaveCount(0);expect(page.context().pages()).toHaveLength(1);await expect(page.locator('.game-window iframe')).toHaveAttribute('src',target);await expect(page.getByRole('dialog')).not.toBeVisible();}}]);
-  await page.locator('.game-return button').first().click();await dismissGame(page);
+  await page.getByRole('button',{name:'Play Aardvark',exact:true}).click();
+  const outbound=await request;expect(outbound.url()).toBe(target);await expect(page.locator('.game-window iframe')).toHaveAttribute('src',target);expect(page.context().pages()).toHaveLength(1);await closeRoomGame(page);
+  await page.getByRole('button',{name:'Room conversation',exact:true}).click();await page.getByRole('textbox',{name:'Message',exact:true}).fill('The room keeps its shared game link.');await page.getByRole('button',{name:'Send message',exact:true}).click();await expect(page.getByText('The room keeps its shared game link.',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Close conversation',exact:true}).click();
+  await story.step('url-only',page,'Reader','A URL-only entry keeps its exact address in the room history',[{spec:'The room stays open and offers one recent link without inventing game-specific joining',check:async()=>{await expect(page).toHaveURL(roomUrl);await expect(page.getByRole('button',{name:'Reopen Aardvark',exact:true})).toHaveCount(1);await expect(page.getByRole('button',{name:'Play Cribbage',exact:true})).toHaveCount(0);expect(page.context().pages()).toHaveLength(1);await expect(page.locator('.game-window iframe')).toHaveCount(0);}}]);
+  await clickVisibleControl(page,page.getByRole('button',{name:'Reopen Aardvark',exact:true}));await expect(page.locator('.game-window iframe')).toHaveAttribute('src',target);await closeRoomGame(page);
   await page.getByRole('textbox',{name:'Search games'}).fill('');
   const keyboardChoice=page.getByRole('button',{name:'Select Cribbage',exact:true});await keyboardChoice.focus();await keyboardChoice.press('Enter');await keyboardChoice.blur();await expect(page.getByRole('heading',{name:'Cribbage',exact:true})).toBeVisible();
   await change('fresh',{Title:'Aardvark',WebURL:target,GameroomEnabled:'disabled',Hidden:true});await change('bad',{Title:'Bad URL',WebURL:'javascript:alert(1)',GameroomEnabled:'new-tab'});
@@ -62,7 +62,7 @@ test('enclosed 3D cabinet selects real boxes and browses by wheel, keyboard and 
   await browse([...Array(5).fill('PageUp'),'ArrowLeft']);
   await story.step('repeat-backward',page,'Reader','Keyboard browsing also repeats through negative positions',[{spec:'Position minus seven reaches the same games from the other direction',check:async()=>{await expect(cabinet).toHaveAttribute('data-position','-7',{timeout:30000});await expect(page.getByRole('button',{name:'Select Istanbul',exact:true})).toHaveCount(1);}}]);
   await clickBox(page,'Pantheon');
-  await story.step('mesh-selection',page,'Reader','A native click on the 3D Pantheon box selects it',[{spec:'The selected box lifts and the independent URL action follows the selection',check:async()=>{await expect(page.getByRole('button',{name:'Open Pantheon',exact:true})).toBeVisible();}}]);
+  await story.step('mesh-selection',page,'Reader','A native click on the 3D Pantheon box selects it',[{spec:'The selected box lifts and the independent URL action follows the selection',check:async()=>{await expect(page.getByRole('button',{name:'Play Pantheon',exact:true})).toBeVisible();}}]);
   for(const [i,id] of filler.entries())await change(id,{Title:`Collection ${String(i+1).padStart(2,'0')}`,WebURL:`https://games.example.test/${id}`,GameroomEnabled:'new-tab',Hidden:true});
   await expect(page.getByRole('button',{name:'All games 20',exact:true})).toBeVisible();
   await expect(cabinet).toHaveAttribute('data-position','0');await expect(cabinet).toHaveAttribute('data-ready','true',{timeout:120000});
