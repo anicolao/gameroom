@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {TestStepHelper} from './helpers/test-step-helper';
-import {gameFrame,gameURL,inGame,showRoom} from './helpers/launch';
+import {gameFrame,gameURL,inGame,showRoom,clickVisibleControl} from './helpers/launch';
 
 test('HTTP origin without native randomUUID creates a room and persists launch commands',async({page},info)=>{
  const story=new TestStepHelper(info,'HTTP-ORIGIN'),errors:string[]=[];
@@ -32,7 +32,9 @@ test('HTTP origin without native randomUUID creates a room and persists launch c
  await expect(page).toHaveURL(roomUrl);await showRoom(page);
  const embedded=await (await page.locator('.game-window iframe').elementHandle())!.contentFrame();
  expect(await embedded!.evaluate(()=>typeof crypto.randomUUID)).toBe('undefined');
- await page.getByRole('button',{name:'Leave table',exact:true}).click();
+ // The retained cross-site frame can keep this parent's compositor throttled
+ // even after its dialog is hidden. Verify real hit testing, then use native input.
+ await clickVisibleControl(page,page.getByRole('button',{name:'Leave table',exact:true}));
  await story.step('http-launch',page,'Dev','The game opens in a frame while the original HTTP room stays connected',[{spec:'The native UUID API is still absent and the saved game remains resumable',check:async()=>{
   expect(await page.evaluate(()=>typeof crypto.randomUUID)).toBe('undefined');
   await expect(page.getByRole('button',{name:'Open Cribbage',exact:true})).toBeVisible();
