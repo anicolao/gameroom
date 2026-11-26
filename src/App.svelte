@@ -1,6 +1,8 @@
 <script lang="ts">
  import {onMount,untrack} from 'svelte';
  import GameCabinet from './lib/cabinet/GameCabinet.svelte';
+ import GameFrameLab from './lab/GameFrameLab.svelte';
+ let {frameLab=false}: {frameLab?:boolean}=$props();
  import type {Game,CatalogSnapshot} from './lib/catalog';
  import {subscribeCatalog} from './lib/catalog-source';
  import {initialState,replay,type Intent,type State,type Table} from './lib/engine';
@@ -152,6 +154,7 @@
       {:else}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button><p class="hint" data-testid="external-tab-status">{externalBlocked?'Your browser didn’t open the game. Try the button again.':'Opens separately in a new tab.'}</p>{/if}
      </div>
     {/if}
+    {#if frameLab}<GameFrameLab game={selected}/>{/if}
     {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{table.title}</strong><p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
    </aside>
   </div>
