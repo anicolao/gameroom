@@ -7,28 +7,33 @@ export function repository(db:Firestore,room:string,actor:string,accept:(events:
  let events:RoomEvent[]=[];
  const unsubscribe=onSnapshot(query(collection(root,'events'),orderBy('sequence')),{includeMetadataChanges:true},snapshot=>{
   if(snapshot.metadata.hasPendingWrites||snapshot.metadata.fromCache)return;
-  try{const next=snapshot.docs.map(d=>d.data() as RoomEvent);replay(next);events=next;accept(next);}catch(e){fail((e as Error).message);}
+  try{const next=snapshot.docs.map(d=>d.data() as RoomEvent);replay(next);if(next.length>=events.length){events=next;accept(next);}}catch(e){fail((e as Error).message);}
  },()=>fail('The room is reconnecting. Check your connection and try again.'));
  async function send(pending:Pending){
   try{
-   await runTransaction(db,async tx=>{
+   const committed=await runTransaction(db,async tx=>{
     const ackRef=doc(root,'commands',pending.id),[meta,ack]=await Promise.all([tx.get(root),tx.get(ackRef)]);
+    const revision=meta.data()?.revision??0;
+    const prefix=events.length<=revision?events:[];
+    const tail=await Promise.all(Array.from({length:revision-prefix.length},(_,i)=>tx.get(doc(root,'events',String(prefix.length+i+1)))));
+    const canonicalEvents=[...prefix,...tail.map(d=>d.data() as RoomEvent)];
     if(ack.exists()){
      const previous=await tx.get(doc(root,'events',String(ack.data().sequence)));
      const canonical=(value:Intent)=>JSON.stringify(Object.entries(value).sort(([a],[b])=>a.localeCompare(b)));
      if(previous.data()?.actor!==actor||canonical(previous.data()?.intent)!==canonical(pending.intent))throw new Error('That action was already used.');
-     return;
+     return canonicalEvents;
     }
-    const revision=meta.data()?.revision??0;
     if(revision!==pending.expectedRevision)throw new Error('The room changed. Try again.');
-    const prefix=events.length<=revision?events:[];
-    const tail=await Promise.all(Array.from({length:revision-prefix.length},(_,i)=>tx.get(doc(root,'events',String(prefix.length+i+1)))));
-    const before=replay([...prefix,...tail.map(d=>d.data() as RoomEvent)]),next=apply(before,actor,pending.intent);
+    const before=replay(canonicalEvents),next=apply(before,actor,pending.intent);
     const event:RoomEvent={version:VERSION,id:pending.id,sequence:next.revision,actor,intent:pending.intent};
     tx.set(root,{owner:next.host,members:next.players.map(p=>p.id),present:next.players.filter(p=>p.present).map(p=>p.id),revision:next.revision});
     tx.set(doc(root,'events',String(event.sequence)),event);tx.set(ackRef,{sequence:event.sequence});
+    return [...canonicalEvents,event];
    });
+   // Only publish log records after the transaction has committed. The next
+   // append must not depend on the watch stream winning the acknowledgement race.
    storage.removeItem(key);
+   if(committed.length>=events.length){events=committed;accept(events);}
   }catch(e){
    if(e instanceof Error&&['The room changed. Try again.','That action was already used.'].includes(e.message))storage.removeItem(key);
    if(typeof e==='object'&&e!==null&&'code' in e&&e.code==='permission-denied'){

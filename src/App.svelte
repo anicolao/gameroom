@@ -21,12 +21,15 @@
  const own=$derived(roomState.players.find(p=>p.id===uid));
  const present=$derived(roomState.players.filter(p=>p.present));
  const joined=$derived(Boolean(own?.present));
- const eligible=$derived(present.filter(p=>!p.table));
- const chosen=$derived(selectedFriends(roomState.players,uid,excluded));
  const visible=$derived(catalog.filter(g=>(!readyOnly||g.available)&&g.title.toLowerCase().includes(search.toLowerCase())));
  const invitation=$derived(`${location.origin}${location.pathname}?room=${room}`);
  const activeTables=$derived(roomState.tables.filter(t=>!t.closed));
- const ownTable=$derived(activeTables.find(t=>t.code===own?.table)??[...activeTables].reverse().find(t=>t.players.includes(uid)));
+ const currentTable=$derived(activeTables.find(t=>t.code===own?.table));
+ const ownTable=$derived(currentTable??[...activeTables].reverse().find(t=>t.players.includes(uid)));
+ const selectedTable=$derived(ownTable?.game===selected?.id?ownTable:undefined);
+ const releasingTable=$derived(currentTable?.host===uid?currentTable.code:undefined);
+ const eligible=$derived(present.filter(p=>!p.table||p.table===releasingTable));
+ const chosen=$derived(selectedFriends(roomState.players,uid,excluded,releasingTable));
  // Test-only deployment routing never determines a game's capabilities.
  function gameBase(table:Table){
   const local=import.meta.env.VITE_CATALOGUE_USE_FIREBASE_EMULATORS==='true'?({cribbage:import.meta.env.VITE_CRIBBAGE_URL,cantstop:import.meta.env.VITE_CANTSTOP_URL,'cantstop-integration':import.meta.env.VITE_CANTSTOP_URL} as Record<string,string|undefined>)[table.game]:undefined;
@@ -74,14 +77,19 @@
   if(busy||!repo||!selected?.available)return;
   try{
    const players=[uid,...chosen.filter(id=>id!==uid&&eligible.some(p=>p.id===id))];
-   const table=roomCode();
-   if(await act({type:'table/catalog-launched',table,players,game:{id:selected.id,title:selected.title,url:selected.launchUrl}}))excluded=[];
+   const table=roomCode(),game={id:selected.id,title:selected.title,url:selected.launchUrl};
+   // Preserve the existing close/return and launch decisions, in canonical order.
+   if(currentTable){
+    const release:Intent=currentTable.host===uid?{type:'table/closed',table:currentTable.code}:{type:'player/returned'};
+    if(!await act(release))return;
+   }
+   if(await act({type:'table/catalog-launched',table,players,game}))excluded=[];
   }catch(e){error=(e as Error).message;}
  }
- function openGame(){
-  if(!own||!ownTable)return;
-  const destination=gameUrl(gameBase(ownTable),ownTable,own),key=launchReceiptKey(room,uid,ownTable.code);
-  try{openFrame(ownTable,destination,`${key}:frame`);}catch(e){error=(e as Error).message;}
+ function openGame(table:Table|undefined=ownTable){
+  if(!own||!table)return;
+  const destination=gameUrl(gameBase(table),table,own),key=launchReceiptKey(room,uid,table.code);
+  try{openFrame(table,destination,`${key}:frame`);}catch(e){error=(e as Error).message;}
  }
  function choose(id:string){excluded=excluded.includes(id)?excluded.filter(p=>p!==id):[...excluded,id];}
  async function sendMessage(){if(await act({type:'message/sent',text:message.trim()}))message='';}
@@ -146,11 +154,11 @@
      </form>
     {:else if selected}
      <div class="game-controls">
-      <h1>{ownTable?ownTable.title:selected.title}</h1>{#if selected.players&&!ownTable}<p class="game-meta">{selected.players} · {selected.duration}</p>{/if}
-      {#if selected.available||ownTable}
-       {#if ownTable}
-        <p class="table-players">{ownTable.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>
-        <button class="gold-button" onclick={openGame}>Open {ownTable.title} {@render icon('arrow',17)}</button>
+      <h1>{selectedTable?selectedTable.title:selected.title}</h1>{#if selected.players&&!selectedTable}<p class="game-meta">{selected.players} · {selected.duration}</p>{/if}
+      {#if selected.available||selectedTable}
+       {#if selectedTable}
+        <p class="table-players">{selectedTable.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>
+        <button class="gold-button" onclick={()=>openGame(selectedTable)}>Open {selectedTable.title} {@render icon('arrow',17)}</button>
         <p class="hint">Use the corner menu to return to the room.</p>
         {#if own?.table}<button class="text-button" disabled={busy} onclick={leaveTable}>Leave table</button>{/if}
        {:else}
@@ -160,7 +168,7 @@
       {:else}<button class="gold-button" onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button>{/if}
      </div>
     {/if}
-    {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{table.title}</strong><p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
+    {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{table.title}</strong>{#if ownTable?.code===table.code&&selectedTable?.code!==table.code}<button class="text-button" onclick={()=>openGame(table)}>Open {table.title}</button>{/if}<p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
    </aside>
   </div>
  </main>

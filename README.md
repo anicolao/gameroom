@@ -65,6 +65,12 @@ or reopens the current game. **Leave table** frees your seat in the gathering;
 **Close table** clears every participant's overlay so the group can choose again.
 The host clicks **Deal** once everyone is seated. Games need no back link.
 
+Selecting another box always shows that game’s own action. The previous game
+remains reopenable under Tables. When the host starts a different integrated
+game, the room records closing the old table followed by launching the new one;
+available friends and current tablemates are included by default. Another member
+can leave their old table and start a new one with available friends.
+
 
 Local development runs real Auth/Firestore emulators, with separate room, game,
 and catalog demo projects. Its four Applications records are emulator fixtures,
