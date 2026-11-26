@@ -17,7 +17,7 @@ test("Can't Stop launches independent seats in shared game frames",async({page,b
   const rooms=[[page,'Alex'],[friend,'Sam']] as const;
   for(const [view] of rooms){await inGame(view,'4499');await expect(gameFrame(view).locator('.seat-list li')).toHaveCount(2);}
   const code=(await gameURL(page)).searchParams.get('table');expect((await gameURL(friend)).searchParams.get('table')).toBe(code);
-  for(const [view,name] of rooms)await story.step('cantstop-frame-lobby',view,name,'Both profiles automatically enter the same Can’t Stop table',[{spec:'There are two independently authenticated seats and no extra tabs',check:async()=>{await expect(gameFrame(view).locator('.seat-list li')).toHaveCount(2);expect(view.context().pages()).toHaveLength(1);}}],true);
+  for(const [view,name] of rooms)await story.step('cantstop-frame-lobby',view,name,'Both profiles automatically enter the same Can’t Stop table',[{spec:'There are two independently authenticated seats and no extra tabs',check:async()=>{await expect(gameFrame(view).locator('.seat-list li')).toHaveCount(2);expect(view.context().pages()).toHaveLength(1);}}],'lobby');
   await gameFrame(page).getByRole('button',{name:'Start game',exact:true}).click();
   for(const [view] of rooms){await expect(gameFrame(view).locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');await expect(gameFrame(view).locator('[data-ready]')).toHaveAttribute('data-ready','true');}
   const revision=await gameFrame(friend).locator('.game-shell').getAttribute('data-revision');await friend.reload();

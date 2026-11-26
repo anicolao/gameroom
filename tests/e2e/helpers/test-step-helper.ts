@@ -7,14 +7,18 @@ type Verification={spec:string;check:()=>Promise<unknown>};
 export class TestStepHelper{
  private steps:string[]=[];
  constructor(private info:TestInfo,private story:string){}
- async step(id:string,page:Page,player:string,description:string,checks:Verification[],game=false,fullPage=false){
+ async step(id:string,page:Page,player:string,description:string,checks:Verification[],game:boolean|'lobby'=false,fullPage=false){
   await test.step(`${player}: ${description}`,async()=>{
    await page.bringToFront();
    try{await expect(page.locator('[role=status][data-status]')).toHaveAttribute('data-status','synced');}
    catch(e){await this.info.attach('readiness-dom',{body:await page.content(),contentType:'text/html'});throw e;}
    if(!game)await expect(page.getByTestId('catalogue')).toHaveAttribute('data-status',/current|empty|offline|error/);
    const embedded=page.frameLocator('.game-window iframe');
-   if(game){await expect(page.getByRole('dialog')).toBeVisible();await expect(embedded.locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');}
+   if(game){
+    await expect(page.getByRole('dialog')).toBeVisible();
+    if(game==='lobby')await expect(embedded.locator('[role=status][data-status]')).toHaveAttribute('data-status','synced');
+    else await expect(embedded.locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');
+   }
    for(const check of checks)await test.step(check.spec,check.check);
    await page.mouse.move(0,0);
    if(!game)await expect(page.getByTestId('cabinet')).toHaveAttribute('data-ready','true',{timeout:120000});
