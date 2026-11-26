@@ -51,7 +51,9 @@ jobs:
         working-directory: cantstop
       - run: |
           E2E_REFERENCE_SEAT_ORDER=sam-lee bun run test:e2e:update
-          E2E_REFERENCE_SEAT_ORDER=lee-sam E2E_GREP='three friends' bun run test:e2e:update
+          if [ -z "$E2E_GREP" ] || bun x playwright test --list --grep "$E2E_GREP" | grep -q 'three friends automatically'; then
+            E2E_REFERENCE_SEAT_ORDER=lee-sam E2E_GREP='three friends' bun run test:e2e:update
+          fi
         env:
           CRIBBAGE_PATH: ../cribbage
           CANTSTOP_PATH: ../cantstop
