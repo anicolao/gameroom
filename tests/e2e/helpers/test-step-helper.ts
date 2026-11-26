@@ -25,17 +25,16 @@ export class TestStepHelper{
    for(const check of checks)await test.step(check.spec,check.check);
    await page.mouse.move(0,0);
    if(!game)await expect(page.getByTestId('cabinet')).toHaveAttribute('data-ready','true',{timeout:120000});
-   const assetsReady=async(waitForPaint:boolean)=>{
+   const assetsReady=async()=>{
     await document.fonts.ready;
     await Promise.all([...document.images].map(image=>image.decode()));
     const backgrounds=new Set([...document.querySelectorAll('*')].map(el=>getComputedStyle(el).backgroundImage).flatMap(bg=>[...bg.matchAll(/url\("?([^"\)]+)"?\)/g)].map(m=>m[1])));
     await Promise.all([...backgrounds].map(src=>{const image=new Image();image.src=src;return image.decode();}));
-    if(waitForPaint)await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
    };
-   // An opaque cross-origin game can suspend its parent's RAF indefinitely.
-   // Decode both documents' assets, but await paint in the visible document.
-   await page.evaluate(assetsReady,!game);
-   if(game){const element=await page.locator('.game-window iframe').elementHandle();const frame=await element!.contentFrame();await frame!.evaluate(assetsReady,true);}
+   // Readiness comes from replay, scene and motion signals above, plus decoded
+   // assets. Retained cross-origin frames can suspend RAF in either document.
+   await page.evaluate(assetsReady);
+   if(game){const element=await page.locator('.game-window iframe').elementHandle();const frame=await element!.contentFrame();await frame!.evaluate(assetsReady);}
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow').toBe(true);
    if(!fullPage){
     const layout=await page.evaluate(()=>({height:innerHeight,scrollHeight:document.documentElement.scrollHeight,sections:[...document.querySelectorAll('.topbar,main,.welcome,.detail-panel,.bookcase,.room-note,.gathering,.quiet-footer')].map(el=>({name:el.className,height:el.getBoundingClientRect().height,top:el.getBoundingClientRect().top}))}));
