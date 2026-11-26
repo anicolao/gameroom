@@ -126,6 +126,12 @@ images, then run an ordinary verification command. Linux references use the
 pinned ARM64 Playwright container. `E2E_GREP` selects a focused story. Production
 catalog access is checked separately from automated emulator tests.
 
+When another workspace occupies the default test emulator ports, set
+`GAMEROOM_TEST_EMULATOR_CONFIG` to a local Firebase config with free ports and the
+same room rules. Test builds and catalog fixtures use the Auth/Firestore addresses
+provided by `emulators:exec`. Leave running development services and their data
+untouched. The normal config remains `firebase.test.json`.
+
 ## License
 
 GNU GPL version 3. See [LICENSE](LICENSE).
