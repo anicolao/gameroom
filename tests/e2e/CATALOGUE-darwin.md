@@ -10,13 +10,13 @@ Viewpoint: **Reader**
 
 - [x] Five games fit together in the enclosed cabinet
 
-## A URL-only entry uses the overlay without invented group support
+## A URL-only entry keeps its exact address in the room history
 
 Viewpoint: **Reader**
 
-![A URL-only entry uses the overlay without invented group support](./screenshots/001-url-only-reader-darwin.png)
+![A URL-only entry keeps its exact address in the room history](./screenshots/001-url-only-reader-darwin.png)
 
-- [x] The original room stays open and no group table was recorded
+- [x] The room stays open and offers one recent link without inventing game-specific joining
 
 ## Gameroom-disabled and invalid entries disappear without rewriting catalog data
 
