@@ -17,7 +17,6 @@ export async function waitForInactive(page:Page){
 export const gameFrame=(page:Page)=>page.frameLocator('.game-window iframe');
 export async function gameURL(page:Page){return new URL((await page.locator('.game-window iframe').getAttribute('src'))!);}
 export async function inGame(page:Page,port='4397'){
- await page.bringToFront();
  await expect(page.getByRole('dialog')).toBeVisible();
  await expect(page.locator('.game-window iframe')).toHaveCount(1);
  const url=await gameURL(page);expect(url.origin).toBe(`http://127.0.0.1:${port}`);expect(url.searchParams.has('table')).toBe(true);expect(url.searchParams.has('returnTo')).toBe(false);
