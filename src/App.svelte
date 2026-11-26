@@ -57,7 +57,7 @@
  async function copyInvite(){try{await navigator.clipboard.writeText(invitation);copied=true;}catch{error=`Share this room: ${invitation}`;}}
  function launch(game:Game){return act({type:'game/launched',code:roomCode(),game:{id:game.id,title:game.title,url:game.launchUrl,mode:game.mode}});}
  function reopen(game:RoomGame){return act({type:'game/reopened',game:game.sequence});}
- function closeGame(id:string){if(id===frameRequest?.id&&active)return act({type:'game/closed',game:active.sequence});}
+ function closeGame(id:string){if(active&&id===frameRequest?.id&&id===`${room}:${uid}:${active.sequence}:${active.lastAction}`)return act({type:'game/closed',game:active.sequence});}
  async function sendMessage(){if(await act({type:'message/sent',text:message.trim()}))message='';}
  $effect(()=>{
   if(!joined||!active){untrack(()=>{frameRequest=null;frameAttempt='';});return;}
