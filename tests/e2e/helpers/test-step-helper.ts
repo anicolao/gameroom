@@ -17,7 +17,10 @@ export class TestStepHelper{
    if(game){
     await expect(page.getByRole('dialog')).toBeVisible();
     if(game==='lobby')await expect(embedded.locator('[role=status][data-status]')).toHaveAttribute('data-status','synced');
-    else await expect(embedded.locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');
+    else{
+     await expect(embedded.locator('[data-ready]')).toHaveAttribute('data-ready','true');
+     await expect(embedded.locator('[data-table-view]')).toHaveAttribute('data-motion-idle','true');
+    }
    }
    for(const check of checks)await test.step(check.spec,check.check);
    await page.mouse.move(0,0);
