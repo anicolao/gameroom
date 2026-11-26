@@ -24,15 +24,26 @@ export async function inGame(page:Page,port='4397'){
  expect(page.context().pages()).toHaveLength(1);
  return gameFrame(page);
 }
-export async function showRoom(page:Page){
+/** Check the fixed overlay control with native hit testing; no parent RAF dependency. */
+async function openOverlayMenu(page:Page){
  await page.bringToFront();
- await page.getByRole('button',{name:'Gameroom controls',exact:true}).click();
+ const control=page.getByRole('button',{name:'Gameroom controls',exact:true});
+ await expect(control).toBeVisible();await expect(control).toBeEnabled();
+ await expect.poll(()=>control.evaluate(element=>{
+  const box=element.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
+  return hit===element||element.contains(hit);
+ })).toBe(true);
+ const box=(await control.boundingBox())!;
+ await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+ await expect(control).toHaveAttribute('aria-expanded','true');
+}
+export async function showRoom(page:Page){
+ await openOverlayMenu(page);
  await page.getByRole('button',{name:'Return to room',exact:true}).click();
  await expect(page.getByRole('dialog')).not.toBeVisible();
 }
 export async function dismissGame(page:Page){
- await page.bringToFront();
- await page.getByRole('button',{name:'Gameroom controls',exact:true}).click();
+ await openOverlayMenu(page);
  await page.getByRole('button',{name:'Close game',exact:true}).click();
  await expect(page.locator('.game-window iframe')).toHaveCount(0);
 }

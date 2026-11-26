@@ -5,6 +5,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      grep:
+        description: Optional E2E story filter for a manual verification run
+        type: string
+        default: ''
       update_snapshots:
         description: Generate Linux screenshots for review; does not verify them
         type: boolean
@@ -76,6 +80,7 @@ jobs:
         if: inputs.update_snapshots != true
         run: bun run test:e2e
         env:
+          E2E_GREP: ${{ github.event_name == 'workflow_dispatch' && inputs.grep || '' }}
           CRIBBAGE_PATH: ../cribbage
           CANTSTOP_PATH: ../cantstop
       - name: Generate references for review

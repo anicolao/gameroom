@@ -2,8 +2,8 @@ import type {Player,Table} from './engine';
 import {randomId} from './random-id';
 export function roomCode(){return randomId().replaceAll('-','').slice(0,8).toUpperCase();}
 /** Include available friends by default; exclusions are explicit player choices. */
-export function selectedFriends(players:readonly Player[],viewer:string,excluded:readonly string[]){
- return players.filter(p=>p.present&&!p.table&&p.id!==viewer&&!excluded.includes(p.id)).slice(0,3).map(p=>p.id);
+export function selectedFriends(players:readonly Player[],viewer:string,excluded:readonly string[],releasingTable?:string){
+ return players.filter(p=>p.present&&(!p.table||p.table===releasingTable)&&p.id!==viewer&&!excluded.includes(p.id)).slice(0,3).map(p=>p.id);
 }
 export function launchReceiptKey(room:string,player:string,table:string){return `gameroom:opened:${room}:${player}:${table}`;}
 export function gameUrl(base:string,table:Table,player:Player,returnTo?:string){

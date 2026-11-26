@@ -62,3 +62,10 @@ test('catalog launches retain the chosen identity, title and URL through catalog
  for(const url of ['javascript:alert(1)','https://user:secret@example.com/','http://example.com/'])expect(()=>apply(replay([old]),'alex',{...launch.intent,game:{...game,url}})).toThrow('valid game URL');
  expect(()=>apply(replay([old]),'alex',{...launch.intent,game:{...game,outcome:'won'}})).toThrow();
 });
+test('a host moving to the next game can include their current group without pulling other tables',()=>{
+ const player=(id:string,table:string|null=null)=>({id,name:id,present:true,table});
+ const players=[player('host','AAAA1111'),player('friend','AAAA1111'),player('free'),player('busy','BBBB2222')];
+ expect(selectedFriends(players,'host',[])).toEqual(['free']);
+ expect(selectedFriends(players,'host',[],'AAAA1111')).toEqual(['friend','free']);
+ expect(selectedFriends(players,'host',['friend'],'AAAA1111')).toEqual(['free']);
+});

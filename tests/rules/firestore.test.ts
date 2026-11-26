@@ -74,3 +74,18 @@ test('protocol 2 accepts catalog-selected launches and rejects unsafe destinatio
  const write=append(db,'ABCD1234','alex',intent,state);await assertSucceeds(write.commit());
  const event=(await getDoc(doc(db,'rooms','ABCD1234','events','2'))).data();expect(event?.version).toBe(2);expect(event?.intent.game).toEqual(intent.game);
 });
+test('consecutive committed choices can close one game and launch another without waiting for the watch stream',async()=>{
+ let canonical:import('../../src/lib/engine').RoomEvent[]=[];
+ const db=env.authenticatedContext('alex').firestore() as unknown as Firestore;
+ const repo=repository(db,'AABBCCDD','alex',events=>canonical=events,error=>{throw new Error(error);},memoryStorage());
+ try{
+  await repo.append({type:'room/created',name:'Friends',playerName:'Alex'});expect(canonical).toHaveLength(1);
+  await repo.append({type:'table/catalog-launched',table:'AAAA1111',players:['alex'],game:{id:'one',title:'First',url:'https://games.example/one'}});
+  await repo.append({type:'table/closed',table:'AAAA1111'});
+  await repo.append({type:'table/catalog-launched',table:'BBBB2222',players:['alex'],game:{id:'two',title:'Second',url:'https://games.example/two'}});
+  expect(canonical.map(event=>event.sequence)).toEqual([1,2,3,4]);
+  expect(new Set(canonical.map(event=>event.id)).size).toBe(4);
+  expect(canonical[3].intent).toMatchObject({type:'table/catalog-launched',table:'BBBB2222',game:{id:'two'}});
+  const saved=await getDocs(collection(db,'rooms','AABBCCDD','events'));expect(saved.size).toBe(4);
+ }finally{repo.close();}
+});
