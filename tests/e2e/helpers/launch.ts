@@ -1,4 +1,4 @@
-import {expect,type Page} from '@playwright/test';
+import {expect,type Page,type Locator} from '@playwright/test';
 export async function deterministicRoom(page:Page,start=0){
  await page.addInitScript((start)=>{
   Object.defineProperty(crypto,'randomUUID',{configurable:true,value:()=>{const n=Number(sessionStorage.getItem('poc-sequence')??start)+1;sessionStorage.setItem('poc-sequence',String(n));return `${n.toString(16).padStart(8,'0')}-0000-4000-8000-000000000000`;}});
@@ -24,10 +24,9 @@ export async function inGame(page:Page,port='4397'){
  expect(page.context().pages()).toHaveLength(1);
  return gameFrame(page);
 }
-/** Check the fixed overlay control with native hit testing; no parent RAF dependency. */
-async function openOverlayMenu(page:Page){
+/** Check overlay controls with native hit testing; no occluded-parent RAF dependency. */
+async function clickOverlayControl(page:Page,control:Locator){
  await page.bringToFront();
- const control=page.getByRole('button',{name:'Gameroom controls',exact:true});
  await expect(control).toBeVisible();await expect(control).toBeEnabled();
  await expect.poll(()=>control.evaluate(element=>{
   const box=element.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
@@ -35,16 +34,20 @@ async function openOverlayMenu(page:Page){
  })).toBe(true);
  const box=(await control.boundingBox())!;
  await page.mouse.click(box.x+box.width/2,box.y+box.height/2);
+}
+async function openOverlayMenu(page:Page){
+ const control=page.getByRole('button',{name:'Gameroom controls',exact:true});
+ await clickOverlayControl(page,control);
  await expect(control).toHaveAttribute('aria-expanded','true');
 }
 export async function showRoom(page:Page){
  await openOverlayMenu(page);
- await page.getByRole('button',{name:'Return to room',exact:true}).click();
+ await clickOverlayControl(page,page.getByRole('button',{name:'Return to room',exact:true}));
  await expect(page.getByRole('dialog')).not.toBeVisible();
 }
 export async function dismissGame(page:Page){
  await openOverlayMenu(page);
- await page.getByRole('button',{name:'Close game',exact:true}).click();
+ await clickOverlayControl(page,page.getByRole('button',{name:'Close game',exact:true}));
  await expect(page.locator('.game-window iframe')).toHaveCount(0);
 }
 export async function openRoom(page:Page,name:string){
