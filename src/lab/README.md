@@ -63,10 +63,12 @@ visual study, not a group launch or an assertion that the game supports embeddin
 It does not append a launch intent or change the existing separate-tab flow.
 The catalog still uses the configured shared adapter; room actions remain real.
 
-The title bar supports expand, **Room** (hide without unloading), return, and
-close (remove the frame). Room chat is layered above the game; the room itself
-stays mounted. Use the standard local demo environment for multi-profile room
-experiments; loading a production game URL uses that game's normal backend.
+The game fills the entire app window. A small **⋯** control in the bottom-left
+corner overlays the iframe; its visible circle is 28px with a 44px touch target.
+It opens **Return to room** (hide without unloading) and **Close game** (remove
+the frame). A native modal dialog keeps keyboard focus out of the covered room.
+Escape closes the menu first, then returns to the room. The room stays mounted.
+Use the standard local demo environment for multi-profile room experiments; loading a production game URL uses that game's normal backend.
 Some external games may prohibit framing or require additional auth support.
 
 `window.close()` does not close an iframe. A cooperating game may request local
@@ -80,6 +82,6 @@ window.parent.postMessage(
 ```
 
 The parent accepts this only from the currently framed window at the configured
-game origin. This is only a UI dismissal, not a room/table leave event. The title
-bar's close button always works without any game-side integration. No window.close
+game origin. This is only a UI dismissal, not a room/table leave event.
+The overlay's close control always works without any game-side integration. No window.close
 shim, credentials bridge, or automatic embed capability detection is installed.
