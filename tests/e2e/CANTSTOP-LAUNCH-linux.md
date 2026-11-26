@@ -2,34 +2,50 @@
 
 Real Firestore and Auth emulators; independent browser identities. Desktop captures are 1180×820 at 1×; mobile captures are 390×844 with full-page capture. Every decoded RGBA byte must match. No masks, pixel tolerance, screenshot resizing or retries. Baselines are generated explicitly and verified in a separate run.
 
-## The room stays open with a Can’t Stop reopen control
+## Both profiles automatically enter the same Can’t Stop table
 
 Viewpoint: **Alex**
 
-![The room stays open with a Can’t Stop reopen control](./screenshots/000-room-stays-open-alex-linux.png)
+![Both profiles automatically enter the same Can’t Stop table](./screenshots/000-cantstop-frame-lobby-alex-linux.png)
 
-- [x] The gathering keeps both players and reopens the chosen game
+- [x] There are two independently authenticated seats and no extra tabs
 
-## The room stays open with a Can’t Stop reopen control
+## Both profiles automatically enter the same Can’t Stop table
 
 Viewpoint: **Sam**
 
-![The room stays open with a Can’t Stop reopen control](./screenshots/001-room-stays-open-sam-linux.png)
+![Both profiles automatically enter the same Can’t Stop table](./screenshots/001-cantstop-frame-lobby-sam-linux.png)
 
-- [x] The gathering keeps both players and reopens the chosen game
+- [x] There are two independently authenticated seats and no extra tabs
 
-## Both independent identities see the same playable Can’t Stop table
+## Both game frames show the same playable Can’t Stop table
 
 Viewpoint: **Alex**
 
-![Both independent identities see the same playable Can’t Stop table](./screenshots/002-same-game-alex-linux.png)
+![Both game frames show the same playable Can’t Stop table](./screenshots/002-cantstop-frame-game-alex-linux.png)
 
-- [x] Reopening retains two seats and the same replay revision
+- [x] Reload retains the same seats and replay revision
 
-## Both independent identities see the same playable Can’t Stop table
+## Both game frames show the same playable Can’t Stop table
 
 Viewpoint: **Sam**
 
-![Both independent identities see the same playable Can’t Stop table](./screenshots/003-same-game-sam-linux.png)
+![Both game frames show the same playable Can’t Stop table](./screenshots/003-cantstop-frame-game-sam-linux.png)
 
-- [x] Reopening retains two seats and the same replay revision
+- [x] Reload retains the same seats and replay revision
+
+## The gathering stays mounted underneath the game
+
+Viewpoint: **Alex**
+
+![The gathering stays mounted underneath the game](./screenshots/004-cantstop-frame-room-alex-linux.png)
+
+- [x] The original invitation, friends and reopen control remain available
+
+## The gathering stays mounted underneath the game
+
+Viewpoint: **Sam**
+
+![The gathering stays mounted underneath the game](./screenshots/005-cantstop-frame-room-sam-linux.png)
+
+- [x] The original invitation, friends and reopen control remain available

@@ -10,11 +10,11 @@ Viewpoint: **Reader**
 
 - [x] Five games fit together in the enclosed cabinet
 
-## A URL-only entry opens separately without invented group support
+## A URL-only entry uses the overlay without invented group support
 
 Viewpoint: **Reader**
 
-![A URL-only entry opens separately without invented group support](./screenshots/001-url-only-reader-linux.png)
+![A URL-only entry uses the overlay without invented group support](./screenshots/001-url-only-reader-linux.png)
 
 - [x] The original room stays open and no group table was recorded
 
