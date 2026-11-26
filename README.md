@@ -12,7 +12,7 @@ current implementation opens games in full-window overlays above the persistent 
 
 ## PR preview
 
-[PR #2 preview](https://gameroom.boardgamescafe.org/pr2/) uses the existing
+[PR #12 preview](https://gameroom.boardgamescafe.org/pr12/) uses the existing
 `launcherui` production Firebase project for both the catalog and room history.
 Anonymous Firebase authentication stays invisible. No admin credentials are sent
 to the browser. This preview creates real rooms and messages when you use it.
@@ -26,8 +26,9 @@ until an editor enables Gameroom and supplies `WebURL`.
 
 `integrated` entries use the shared create/join URL protocol for group launch,
 regardless of URL, title, or document ID. The legacy `new-tab` catalog value now
-means URL-only: **Open {title}** loads the exact WebURL in the same overlay for
-that profile, without adding group-join parameters. All games use frames; there
+means URL-only: **Play {title}** opens the exact saved WebURL in an overlay for
+every present room member. The external game handles joining; Gameroom adds no
+create/join parameters. All games use frames; there
 is no new-tab fallback. The **Shared sessions**
 filter shows supported integrations. Game boxes are real 3D meshes with painted fronts, printed spines and cardboard
 backs. The selected title appears beside the cabinet.
@@ -104,8 +105,8 @@ The metadata `game` field is a nullable launch-sequence index, validated atomica
 with the event and command acknowledgement. The reducer rebuilds all game history
 from intents; no game outcomes or computed room snapshots are stored.
 
-Versions 1 and 2 retain their original replay semantics. Their historical game
-launches appear as recent links in the new UI; no historical records are rewritten.
+Versions 1–3 retain their original replay semantics, including the reserved BGA
+history. Their historical game launches appear as recent links in the new UI; no historical records are rewritten.
 The first v4 reopen or launch selects one game for the entire room. Closed games
 stay closed on reload; an open room game reopens automatically in one iframe.
 Legacy return URLs remain accepted, while new game URLs omit them.
