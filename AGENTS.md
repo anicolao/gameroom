@@ -19,20 +19,26 @@ as accessible HTML over environmental artwork.
   never identities. Keep game-specific Firebase
   UIDs and event logs inside each game.
 - A launch records intended participation. Do not label it as verified game activity.
-- Include available friends by default. Integrated games open automatically in one
-  sandboxed, cross-origin iframe per selected profile after the launch commits.
-  Keep Gameroom mounted underneath. The rendered bottom-right menu hides the frame
-  without unloading it, or dismisses it locally; neither action leaves the table.
-  Preserve per-table open/hidden/closed receipts across replay/reload, explicit
-  reopening, and legacy return URLs. Clear the frame on table/room departure or
-  table closure. Games need no back link and cannot close a frame with window.close.
-  Validate both source window and exact origin for game dismissal messages.
-  URL-only entries load their exact WebURL in the same overlay for the requesting
-  profile, without group-join parameters or invented participation. Never open
-  game tabs or offer a new-tab fallback. Keep the legacy `new-tab` catalog spelling
-  for compatibility; it identifies URL-only entries, not presentation. Test with
-  popup blocking and permitted popups, recurring launches, exclusions, continued room chat, iframe
-  reload/dismissal, and profiles sharing a display name.
+- Each room is one group with at most one current game. A launch includes every
+  present member; there are no subgroups, table controls or player-selection lists.
+  Integrated games use create/join URLs; URL-only entries open their exact WebURL
+  for every member, without claiming automatic seating. Keep the legacy `new-tab`
+  catalog value for compatibility, but never open tabs or offer a tab fallback.
+- The rendered corner menu has only Close game. Any present member can close it
+  for the entire room. This records closing the shared view, never a game outcome.
+  Recent games reopen the original game code, saved URL and creator for everyone.
+  Joining an active room opens its current game without restarting other frames.
+  Reload follows the canonical current-game decision; no local hidden/dismissed
+  receipts or Return to game control exist. Escape opens/closes the menu.
+- Protocol 3 records game/launched, game/closed and game/reopened decisions. The
+  metadata `game` pointer indexes the original launch event sequence for atomic
+  validation; it is never an alternate source of truth. Preserve v1/v2 replay
+  semantics and immutable histories. Legacy launches remain recent links.
+- Keep Gameroom mounted underneath the sandboxed cross-origin frame. Games need
+  no back link. Validate the source window and exact origin for close messages;
+  a valid request closes the room's game through an attributed v3 intent.
+- Test shared close/reopen, late arrivals, stable external URLs and identities,
+  recurring games, continued room chat, reload and profiles sharing a name.
 - Use a Git worktree for sibling-game changes; preserve other active branches and
   their untracked artifacts. Follow each sibling’s AGENTS.md.
 

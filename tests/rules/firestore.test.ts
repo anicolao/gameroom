@@ -9,9 +9,9 @@ beforeEach(async()=>{await env.clearFirestore();});
 afterAll(async()=>{await env.cleanup();});
 type TestDb=ReturnType<ReturnType<RulesTestEnvironment['authenticatedContext']>['firestore']>;
 function append(db:TestDb,room:string,actor:string,intent:Intent,before=initialState()){
- const after=apply(before,actor,intent),root=doc(db,'rooms',room),id=`intent-${after.revision}`,batch=writeBatch(db);
+ const version=intent.type==='table/catalog-launched'?2:1,after=apply(before,actor,intent,version),root=doc(db,'rooms',room),id=`intent-${after.revision}`,batch=writeBatch(db);
  batch.set(root,{owner:after.host,members:after.players.map(p=>p.id),present:after.players.filter(p=>p.present).map(p=>p.id),revision:after.revision});
- batch.set(doc(root,'events',String(after.revision)),{version:intent.type==='table/catalog-launched'?VERSION:1,id,sequence:after.revision,actor,intent});batch.set(doc(root,'commands',id),{sequence:after.revision});
+ batch.set(doc(root,'events',String(after.revision)),{version,id,sequence:after.revision,actor,intent});batch.set(doc(root,'commands',id),{sequence:after.revision});
  return {commit:()=>batch.commit(),after};
 }
 async function create(){const db=env.authenticatedContext('alex').firestore(),write=append(db,'ABCD1234','alex',{type:'room/created',name:'Friday friends',playerName:'Alex'});await assertSucceeds(write.commit());return {db,state:write.after};}
@@ -23,7 +23,7 @@ test('events, metadata and command acknowledgement must be atomic, attributed an
  const {db}=await create(),event=doc(db,'rooms','ABCD1234','events','1');
  await assertFails(setDoc(event,{version:1,id:'other',sequence:1,actor:'alex',intent:{type:'player/left'}}));await assertFails(deleteDoc(event));
  await assertFails(setDoc(doc(db,'rooms','ABCD1234','events','2'),{version:1,id:'orphan',sequence:2,actor:'alex',intent:{type:'message/sent',text:'hello'}}));
- const forged=append(env.authenticatedContext('stranger').firestore(),'ABCD1234','alex',{type:'message/sent',text:'not mine'},apply(initialState(),'alex',{type:'room/created',name:'Friday friends',playerName:'Alex'}));await assertFails(forged.commit());
+ const forged=append(env.authenticatedContext('stranger').firestore(),'ABCD1234','alex',{type:'message/sent',text:'not mine'},apply(initialState(),'alex',{type:'room/created',name:'Friday friends',playerName:'Alex'},1));await assertFails(forged.commit());
 });
 test('join, launch, return, leave and rejoin retain attributed membership',async()=>{
  let {db,state}=await create();const sam=env.authenticatedContext('sam').firestore();
@@ -80,12 +80,63 @@ test('consecutive committed choices can close one game and launch another withou
  const repo=repository(db,'AABBCCDD','alex',events=>canonical=events,error=>{throw new Error(error);},memoryStorage());
  try{
   await repo.append({type:'room/created',name:'Friends',playerName:'Alex'});expect(canonical).toHaveLength(1);
-  await repo.append({type:'table/catalog-launched',table:'AAAA1111',players:['alex'],game:{id:'one',title:'First',url:'https://games.example/one'}});
-  await repo.append({type:'table/closed',table:'AAAA1111'});
-  await repo.append({type:'table/catalog-launched',table:'BBBB2222',players:['alex'],game:{id:'two',title:'Second',url:'https://games.example/two'}});
+  await repo.append({type:'game/launched',code:'AAAA1111',game:{id:'one',title:'First',url:'https://games.example/one',mode:'integrated'}});
+  await repo.append({type:'game/closed',game:2});
+  await repo.append({type:'game/launched',code:'BBBB2222',game:{id:'two',title:'Second',url:'https://games.example/two',mode:'integrated'}});
   expect(canonical.map(event=>event.sequence)).toEqual([1,2,3,4]);
   expect(new Set(canonical.map(event=>event.id)).size).toBe(4);
-  expect(canonical[3].intent).toMatchObject({type:'table/catalog-launched',table:'BBBB2222',game:{id:'two'}});
+  expect(canonical[3].intent).toMatchObject({type:'game/launched',code:'BBBB2222',game:{id:'two'}});
   const saved=await getDocs(collection(db,'rooms','AABBCCDD','events'));expect(saved.size).toBe(4);
+ }finally{repo.close();}
+});
+test('one shared game is indexed atomically and any present member can close and reopen it',async()=>{
+ const first=memoryStorage(),second=memoryStorage();let alexLog:import('../../src/lib/engine').RoomEvent[]=[],samLog:import('../../src/lib/engine').RoomEvent[]=[];
+ const alexDb=env.authenticatedContext('alex').firestore() as unknown as Firestore,samDb=env.authenticatedContext('sam').firestore() as unknown as Firestore;
+ const alex=repository(alexDb,'AABBCCDD','alex',events=>alexLog=events,error=>{throw Error(error);},first);
+ let sam:ReturnType<typeof repository>|undefined;
+ try{
+  await alex.append({type:'room/created',name:'Friends',playerName:'Alex'});
+  sam=repository(samDb,'AABBCCDD','sam',events=>samLog=events,error=>{throw Error(error);},second);await until(()=>samLog.length===1);
+  await sam.append({type:'player/joined',name:'Sam'});await until(()=>alexLog.length===2);
+  const intent:Intent={type:'game/launched',code:'AABB1122',game:{id:'cribbage',title:'Cribbage',url:'https://games.example/cribbage/',mode:'integrated'}};
+  await alex.append(intent);await until(()=>samLog.length===3);
+  expect((await getDoc(doc(alexDb,'rooms','AABBCCDD'))).data()?.game).toBe(3);
+  // The same persisted command must survive server map-key ordering on retry.
+  const pending=JSON.parse(first.saved);pending.intent.game={mode:'integrated',url:intent.game.url,title:'Cribbage',id:'cribbage'};first.setItem('gameroom:pending:AABBCCDD:alex',JSON.stringify(pending));await alex.retry();
+  await sam.append({type:'game/closed',game:3});await until(()=>alexLog.length===4);
+  expect((await getDoc(doc(alexDb,'rooms','AABBCCDD'))).data()?.game).toBeNull();
+  // Clicking Close again after a lost acknowledgement reuses that command ID.
+  second.setItem('gameroom:pending:AABBCCDD:sam',second.saved);await sam.append({type:'game/closed',game:3});expect(samLog).toHaveLength(4);
+  await sam.append({type:'game/reopened',game:3});await until(()=>alexLog.length===5);
+  expect((await getDoc(doc(alexDb,'rooms','AABBCCDD'))).data()?.game).toBe(3);
+  expect((await getDocs(collection(alexDb,'rooms','AABBCCDD','events'))).size).toBe(5);
+ }finally{alex.close();sam?.close();}
+});
+test('game index changes cannot be forged or point to a non-launch event',async()=>{
+ const {db,state}=await create();
+ function write(before:State,intent:Intent,game:number|null){
+  const root=doc(db,'rooms','ABCD1234'),sequence=before.revision+1,id=`v3-${sequence}`,batch=writeBatch(db);
+  batch.set(root,{owner:before.host,members:before.players.map(p=>p.id),present:before.players.filter(p=>p.present).map(p=>p.id),revision:sequence,game});
+  batch.set(doc(root,'events',String(sequence)),{version:3,id,sequence,actor:'alex',intent});batch.set(doc(root,'commands',id),{sequence});return batch.commit();
+ }
+ const launch:Intent={type:'game/launched',code:'AABB1122',game:{id:'cribbage',title:'Cribbage',url:'https://games.example/cribbage/',mode:'integrated'}};
+ await assertFails(write(state,launch,999));await assertSucceeds(write(state,launch,2));
+ const playing=apply(state,'alex',launch);
+ await assertFails(write(playing,{type:'game/closed',game:999},null));
+ await assertFails(write(playing,{type:'game/closed',game:2},2));
+ await assertFails(write(playing,{type:'game/reopened',game:1},1));
+ await assertFails(write(playing,{type:'game/reopened',game:2},2));
+ await assertFails(write(playing,{type:'message/sent',text:'Keep the game open'},null));
+ await assertSucceeds(write(playing,{type:'game/closed',game:2},null));
+ const closed=apply(playing,'alex',{type:'game/closed',game:2});
+ await assertFails(write(closed,{type:'game/reopened',game:99},99));await assertSucceeds(write(closed,{type:'game/reopened',game:2},2));
+});
+test('a v3 room can reopen an immutable legacy launch and cannot downgrade afterwards',async()=>{
+ const {db,state}=await create();const old:Intent={type:'table/catalog-launched',table:'AABB1122',players:['alex'],game:{id:'cribbage',title:'Cribbage',url:'https://games.example/cribbage/'}};
+ const legacy=append(db,'ABCD1234','alex',old,state);await assertSucceeds(legacy.commit());
+ let events:import('../../src/lib/engine').RoomEvent[]=[];
+ const repo=repository(db as unknown as Firestore,'ABCD1234','alex',next=>events=next,error=>{throw Error(error);},memoryStorage());
+ try{await until(()=>events.length===2);await repo.append({type:'game/reopened',game:2});expect(events.at(-1)?.version).toBe(3);expect((await getDoc(doc(db,'rooms','ABCD1234'))).data()?.game).toBe(2);
+  const batch=writeBatch(db),root=doc(db,'rooms','ABCD1234');batch.set(root,{owner:'alex',members:['alex'],present:['alex'],revision:4});batch.set(doc(root,'events','4'),{version:2,id:'downgrade',sequence:4,actor:'alex',intent:{type:'message/sent',text:'old client'}});batch.set(doc(root,'commands','downgrade'),{sequence:4});await assertFails(batch.commit());
  }finally{repo.close();}
 });

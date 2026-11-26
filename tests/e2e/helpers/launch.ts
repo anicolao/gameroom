@@ -40,21 +40,17 @@ async function openOverlayMenu(page:Page){
  await clickVisibleControl(page,control);
  await expect(control).toHaveAttribute('aria-expanded','true');
 }
-export async function showRoom(page:Page){
+export async function closeRoomGame(page:Page,observers:readonly Page[]=[]){
  await openOverlayMenu(page);
- await clickVisibleControl(page,page.getByRole('button',{name:'Return to room',exact:true}));
- await expect(page.getByRole('dialog')).not.toBeVisible();
-}
-export async function dismissGame(page:Page){
- await openOverlayMenu(page);
+ await expect(page.getByRole('navigation',{name:'Gameroom controls'}).getByRole('button')).toHaveCount(1);
  await clickVisibleControl(page,page.getByRole('button',{name:'Close game',exact:true}));
- await expect(page.locator('.game-window iframe')).toHaveCount(0);
+ for(const view of [page,...observers])await expect(view.locator('.game-window iframe')).toHaveCount(0);
 }
 export async function openRoom(page:Page,name:string){
  await page.goto('/',{waitUntil:'domcontentloaded'});await page.getByRole('textbox',{name:'Your name'}).fill(name);
  await page.getByRole('button',{name:'Create room'}).click();await expect(page.getByTestId('friend')).toHaveCount(1);return page.url();
 }
-export async function joinRoom(page:Page,url:string,name:string){
- await page.goto(url,{waitUntil:'domcontentloaded'});await page.getByRole('textbox',{name:'Your name'}).fill(name);await page.getByRole('button',{name:'Join room'}).click();await expect(page.getByTestId('friend')).toHaveCount(2);
+export async function joinRoom(page:Page,url:string,name:string,members=2){
+ await page.goto(url,{waitUntil:'domcontentloaded'});await page.getByRole('textbox',{name:'Your name'}).fill(name);await page.getByRole('button',{name:'Join room'}).click();await expect(page.getByTestId('friend')).toHaveCount(members);
 }
 export async function clickForGame(page:Page,button:string){await page.getByRole('button',{name:button,exact:true}).click();return inGame(page);}
