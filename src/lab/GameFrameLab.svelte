@@ -3,27 +3,39 @@
  import type {Game} from '../lib/catalog';
  let {game}: {game:Game|undefined}=$props();
  let framed=$state<{title:string,url:string}|null>(null);
- let minimized=$state(false),expanded=$state(false),loading=$state(false);
+ let minimized=$state(false),menuOpen=$state(false);
+ let panel=$state<HTMLDialogElement>();
  let frame=$state<HTMLIFrameElement>();
- let launchButton=$state<HTMLButtonElement>(),roomButton=$state<HTMLButtonElement>();
+ let launchButton=$state<HTMLButtonElement>(),menuButton=$state<HTMLButtonElement>();
  const visible=$derived(Boolean(framed&&!minimized));
  function open(){
   if(!game)return;
   // A manual local study, not a capability declaration or group launch.
-  framed={title:game.title,url:game.launchUrl};minimized=false;loading=true;
-  void tick().then(()=>roomButton?.focus());
+  framed={title:game.title,url:game.launchUrl};minimized=false;menuOpen=false;
+  void tick().then(()=>menuButton?.focus());
  }
- function close(){framed=null;minimized=false;expanded=false;void tick().then(()=>launchButton?.focus());}
- function minimize(){minimized=true;void tick().then(()=>launchButton?.focus());}
- function restore(){minimized=false;void tick().then(()=>roomButton?.focus());}
+ function close(){framed=null;minimized=false;menuOpen=false;void tick().then(()=>launchButton?.focus());}
+ function minimize(){menuOpen=false;minimized=true;void tick().then(()=>launchButton?.focus());}
+ function restore(){minimized=false;void tick().then(()=>menuButton?.focus());}
+ $effect(()=>{
+  if(!panel)return;
+  if(visible&&!panel.open)panel.showModal();
+  else if(!visible&&panel.open)panel.close();
+ });
+ function cancel(event:Event){
+  event.preventDefault();
+  if(menuOpen){menuOpen=false;menuButton?.focus();}else minimize();
+ }
  onMount(()=>{
   function receive(event:MessageEvent){
    if(!framed||event.source!==frame?.contentWindow||event.origin!==new URL(framed.url).origin)return;
    const data=event.data;
    if(data&&typeof data==='object'&&data.type==='gameroom:close'&&data.version===1)close();
   }
+  const hideMenu=()=>menuOpen=false;
   window.addEventListener('message',receive);
-  return()=>window.removeEventListener('message',receive);
+  window.addEventListener('blur',hideMenu);
+  return()=>{window.removeEventListener('message',receive);window.removeEventListener('blur',hideMenu);};
  });
 </script>
 
@@ -34,17 +46,16 @@
 </div>
 
 {#if framed}
- <section class="game-window" class:expanded hidden={!visible} aria-label={`${framed.title} game window`}>
-  <header class="game-window-bar">
-   <div class="window-title"><span class="window-mark" aria-hidden="true">♧</span><strong>{framed.title}</strong>{#if loading}<span class="frame-loading" role="status">Loading…</span>{/if}</div>
-   <nav aria-label="Game window controls">
-    <button bind:this={roomButton} onclick={minimize}>Room</button>
-    <button aria-label={expanded?'Restore game window size':'Expand game window'} aria-pressed={expanded} onclick={()=>expanded=!expanded}>{expanded?'↙':'↗'}</button>
-    <button aria-label="Close game window" onclick={close}>×</button>
+ <dialog bind:this={panel} class="game-window" aria-label={`${framed.title} game window`} oncancel={cancel}>
+  <iframe bind:this={frame} src={framed.url} title={`${framed.title} game`} sandbox="allow-scripts allow-same-origin allow-forms" referrerpolicy="no-referrer"></iframe>
+  <button class="menu-trigger" bind:this={menuButton} aria-label="Gameroom controls" aria-expanded={menuOpen} aria-controls="game-room-menu" onclick={()=>menuOpen=!menuOpen}><span aria-hidden="true">⋯</span></button>
+  {#if menuOpen}
+   <nav id="game-room-menu" class="game-menu" aria-label="Gameroom controls">
+    <button onclick={minimize}>Return to room</button>
+    <button onclick={close}>Close game</button>
    </nav>
-  </header>
-  <iframe bind:this={frame} src={framed.url} title={`${framed.title} game`} sandbox="allow-scripts allow-same-origin allow-forms" referrerpolicy="no-referrer" onload={()=>loading=false}></iframe>
- </section>
+  {/if}
+ </dialog>
  {#if minimized}
   <div class="game-return"><button onclick={restore}>Return to {framed.title} <span aria-hidden="true">↗</span></button><button aria-label="Close game window" onclick={close}>×</button></div>
  {/if}
@@ -53,24 +64,21 @@
 <style>
  .frame-lab-controls{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
  .study-label{font-size:11px;color:var(--muted);margin-bottom:10px}
- .game-window{position:fixed;z-index:8;top:86px;bottom:112px;left:50%;transform:translateX(-50%);width:min(1120px,calc(100% - 80px));display:flex;flex-direction:column;overflow:hidden;border:1px solid #a88250;border-radius:9px;background:#20180f;box-shadow:0 22px 70px #000a,0 0 0 5px #34261999;}
- .game-window[hidden]{display:none}
- .game-window.expanded{top:12px;bottom:94px;width:calc(100% - 24px)}
- .game-window-bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:3px 8px 3px 18px;background:linear-gradient(100deg,#37271b,#251c15);border-bottom:1px solid #9f7e4d66;color:#f2e3c6;}
- .window-title{display:flex;align-items:center;gap:10px;min-width:0}
- .window-title strong{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
- .window-mark{color:#d2ad6b;font-size:26px}
- .frame-loading{font-size:11px;color:#d2c4aa}
- nav{display:flex;align-items:center;gap:4px}
- nav button{min-height:44px;min-width:44px;padding:8px 12px;border-radius:5px;font-size:14px}
- nav button:hover,nav button:focus-visible{background:#dec08a24}
- nav button:last-child{font-size:26px;padding:0}
- iframe{display:block;flex:1;width:100%;min-height:0;border:0;background:#fff}
+ .game-window{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;background:#15251c;color:#f1e7d1;}
+ .game-window::backdrop{background:#15251c}
+ iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+ .menu-trigger{position:absolute;left:max(8px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom));width:44px;height:44px;display:grid;place-items:center;padding:0;color:#fff;border-radius:50%;}
+ .menu-trigger::before{content:'';position:absolute;inset:8px;border-radius:50%;background:#17231ed9;border:1px solid #d8c59c70;box-shadow:0 2px 8px #0004;}
+ .menu-trigger span{position:relative;font-size:22px;line-height:1;transform:translateY(-3px)}
+ .menu-trigger:hover::before,.menu-trigger[aria-expanded=true]::before{background:#17231e;border-color:#eac17b}
+ .menu-trigger:focus-visible{outline:2px solid #eac17b;outline-offset:-3px}
+ .game-menu{position:absolute;left:max(16px,env(safe-area-inset-left));bottom:calc(max(8px,env(safe-area-inset-bottom)) + 52px);display:grid;min-width:180px;padding:5px;background:#1e2923f5;border:1px solid #a58a5b88;border-radius:8px;box-shadow:0 5px 24px #0006;}
+ .game-menu button{min-height:44px;padding:10px 14px;text-align:left;font-size:13px;border-radius:4px}
+ .game-menu button:hover,.game-menu button:focus-visible{background:#dbc18a20}
  .game-return{position:fixed;z-index:8;bottom:108px;left:50%;transform:translateX(-50%);display:flex;max-width:calc(100% - 32px);border:1px solid #a88250;border-radius:7px;background:#322419;box-shadow:0 8px 28px #0008}
  .game-return button{min-height:48px;padding:10px 18px;font-size:13px}
  .game-return button:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .game-return button span{margin-left:12px;color:#eac17b}
  .game-return button:last-child{border-left:1px solid #a8825055;font-size:24px}
- @media(max-width:1000px){.game-window{width:calc(100% - 32px);top:82px}.game-window-bar{padding-left:12px}}
- @media(max-width:650px){.game-window{width:calc(100% - 16px);top:72px;bottom:92px}.frame-loading,.window-mark{display:none}.game-window-bar{gap:4px}.game-window.expanded{width:100%;top:0;bottom:82px;border-radius:0}.game-return{bottom:100px}}
+ @media(max-width:650px){.game-return{bottom:100px}}
 </style>
