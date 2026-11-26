@@ -55,7 +55,9 @@ test('two profiles with the same name use independent game frames',async({page,b
  const story=new TestStepHelper(info,'SAME-NAME-PROFILES');await deterministicRoom(page,200);
  const guestContext=await browser.newContext(profile),guest=await guestContext.newPage();
  try{
-  const roomUrl=await openRoom(page,'Alex');await joinRoom(guest,roomUrl,'Alex');await waitForInactive(guest);await clickForGame(page,'Play Cribbage');await inGame(guest);
+  const roomUrl=await openRoom(page,'Alex');await joinRoom(guest,roomUrl,'Alex');
+  for(const view of [page,guest])await expect(view.getByTestId('friend')).toHaveCount(2);
+  await waitForInactive(guest);await clickForGame(page,'Play Cribbage');await inGame(guest);
   const table=(await gameURL(page)).searchParams.get('table');
   for(const [view,name] of [[page,'Host'],[guest,'Guest']] as const)await story.step('same-name-frame',view,name,'Both Alex profiles keep distinct seats in one game',[{spec:'Two Alex seats exist and only the initiating profile can deal',check:async()=>{expect((await gameURL(view)).searchParams.get('table')).toBe(table);await expect(gameFrame(view).locator('[data-player] h2')).toHaveText(['Alex','Alex']);await expect(gameFrame(view).getByRole('button',{name:'Deal',exact:true})).toHaveCount(name==='Host'?1:0);expect(view.context().pages()).toHaveLength(1);}}],true);
   for(const view of [page,guest])await showRoom(view);

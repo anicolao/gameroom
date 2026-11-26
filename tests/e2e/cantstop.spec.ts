@@ -12,7 +12,7 @@ test("Can't Stop launches independent seats in shared game frames",async({page,b
  try{
   await deterministicRoom(page,500);const friend=await context.newPage();await deterministicRoom(friend,600);
   const room=await openRoom(page,'Alex');fixtureRoom=new URL(room).searchParams.get('room')!;await joinRoom(friend,room,'Sam');
-  for(const actor of [page,friend])await expect(actor.getByRole('heading',{name:"Can't Stop",exact:true})).toBeVisible();
+  for(const actor of [page,friend]){await expect(actor.getByTestId('friend')).toHaveCount(2);await expect(actor.getByRole('heading',{name:"Can't Stop",exact:true})).toBeVisible();}
   await page.getByRole('button',{name:"Play Can't Stop",exact:true}).click();
   const rooms=[[page,'Alex'],[friend,'Sam']] as const;
   for(const [view] of rooms){await inGame(view,'4499');await expect(gameFrame(view).locator('.seat-list li')).toHaveCount(2);}

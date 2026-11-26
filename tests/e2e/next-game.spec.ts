@@ -16,6 +16,7 @@ test('Different catalog games remain launchable after the first table',async({pa
  try{
   await deterministicRoom(page,1200);const friend=await context.newPage();await deterministicRoom(friend,1300);
   const room=await openRoom(page,'Alex');await joinRoom(friend,room,'Sam');await select('Cribbage');
+  for(const view of [page,friend])await expect(view.getByTestId('friend')).toHaveCount(2);
   await expect(friend.getByTestId('cabinet')).toHaveAttribute('data-ready','true');
   await page.getByRole('button',{name:'Play Cribbage',exact:true}).click();
   const rooms=[[page,'Alex'],[friend,'Sam']] as const;
