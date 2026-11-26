@@ -1,8 +1,12 @@
+<script module lang="ts">
+ export type FrameRequest={id:number;key:string;title:string;url:string;hidden?:boolean};
+ export type FrameState='opened'|'hidden'|'closed';
+</script>
 <script lang="ts">
- import {onMount, tick} from 'svelte';
+ import {onMount, tick, untrack} from 'svelte';
  import type {Game} from '../lib/catalog';
- let {game}: {game:Game|undefined}=$props();
- let framed=$state<{title:string,url:string}|null>(null);
+ let {game,request=null,preview=true,onStateChange=()=>{}}: {game:Game|undefined;request?:FrameRequest|null;preview?:boolean;onStateChange?:(key:string,state:FrameState)=>void}=$props();
+ let framed=$state<{title:string;url:string;key?:string}|null>(null);
  let minimized=$state(false),menuOpen=$state(false);
  let panel=$state<HTMLDialogElement>();
  let frame=$state<HTMLIFrameElement>();
@@ -10,13 +14,22 @@
  const visible=$derived(Boolean(framed&&!minimized));
  function open(){
   if(!game)return;
-  // A manual local study, not a capability declaration or group launch.
+  // Standalone preview is available before joining a room only.
   framed={title:game.title,url:game.launchUrl};minimized=false;menuOpen=false;
   void tick().then(()=>menuButton?.focus());
  }
- function close(){framed=null;minimized=false;menuOpen=false;void tick().then(()=>launchButton?.focus());}
- function minimize(){menuOpen=false;minimized=true;void tick().then(()=>launchButton?.focus());}
- function restore(){minimized=false;void tick().then(()=>menuButton?.focus());}
+ function record(state:FrameState){if(framed?.key)onStateChange(framed.key,state);}
+ function close(){record('closed');framed=null;minimized=false;menuOpen=false;void tick().then(()=>launchButton?.focus());}
+ function minimize(){record('hidden');menuOpen=false;minimized=true;void tick().then(()=>launchButton?.focus());}
+ function restore(){record('opened');minimized=false;void tick().then(()=>menuButton?.focus());}
+ $effect(()=>{
+  const next=request;
+  untrack(()=>{
+   if(!next){if(framed?.key){framed=null;minimized=false;menuOpen=false;}return;}
+   framed=next;minimized=Boolean(next.hidden);menuOpen=false;
+   if(!minimized)void tick().then(()=>menuButton?.focus());
+  });
+ });
  $effect(()=>{
   if(!panel)return;
   if(visible&&!panel.open)panel.showModal();
@@ -39,11 +52,13 @@
  });
 </script>
 
+{#if preview}
 <div class="frame-lab-controls">
  <p class="study-label">Frame study</p>
  <button class="gold-button" bind:this={launchButton} disabled={!game} onclick={open}>Try {game?.title??'selected game'} in room</button>
  {#if framed}<button class="text-button" onclick={restore}>Return to {framed.title}</button>{/if}
 </div>
+{/if}
 
 {#if framed}
  <dialog bind:this={panel} class="game-window" aria-label={`${framed.title} game window`} oncancel={cancel}>

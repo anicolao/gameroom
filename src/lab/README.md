@@ -56,22 +56,32 @@ enclosed cabinet in the launcher.
 
 ## Game frame study
 
-`/dev/frames` (development only) mounts the real room UI with a **Frame study**
-control below the room/game controls. Choose a catalog game, then use **Try … in
-room** to load its exact WebURL in an overlaid sandboxed iframe. This is a manual
-visual study, not a group launch or an assertion that the game supports embedding.
-It does not append a launch intent or change the existing separate-tab flow.
-The catalog still uses the configured shared adapter; room actions remain real.
+`/dev/frames` (development only) mounts the room UI in frame mode. Before joining,
+**Try … in room** previews a selected catalog WebURL for the current browser only.
+After joining, use the normal **Play** action: it commits the existing immutable
+catalog launch intent and all selected members open their create/join URL in an
+overlaid frame. Share the invitation from this route so every profile uses frame
+mode. Available friends remain selected by default. `new-tab` catalog entries
+retain their separate launch behavior; no capability is inferred from a URL.
 
-The game fills the entire app window. A small rendered walnut-and-brass **⋯** image in the bottom-right corner
+The frame mode is local experimental opt-in, not a claim of certified PWA support.
+The ordinary app retains its separate-tab flow. Room and game backends still use
+their configured Firestore projects. Test only against guarded demo projects in
+automation; loading a production WebURL uses that game's normal backend.
+
+The game fills the entire app window. A small rendered walnut-and-brass **⋯**
+image in the bottom-right corner
 overlays the iframe, tucked against the safe-area edges. Its visible circle is
 about 28px with a 44px touch target. The artwork is `public/art/ui/game-menu.png`;
 its generation prompt is recorded alongside it in `public/art/ui/README.md`.
 It opens **Return to room** (hide without unloading) and **Close game** (remove
 the frame). A native modal dialog keeps keyboard focus out of the covered room.
 Escape closes the menu first, then returns to the room. The room stays mounted.
-Use the standard local demo environment for multi-profile room experiments; loading a production game URL uses that game's normal backend.
 Some external games may prohibit framing or require additional auth support.
+Frame receipts are separate from tab receipts: room updates never reopen a hidden
+or closed frame; reload restores an open/hidden current table, and explicit
+**Open …** reopens a closed frame. Leaving the table or closing it clears the
+frame. These are local presentation receipts, not verified game participation.
 
 `window.close()` does not close an iframe. A cooperating game may request local
 frame dismissal with:
@@ -85,5 +95,6 @@ window.parent.postMessage(
 
 The parent accepts this only from the currently framed window at the configured
 game origin. This is only a UI dismissal, not a room/table leave event.
-The overlay's close control always works without any game-side integration. No window.close
-shim, credentials bridge, or automatic embed capability detection is installed.
+The overlay's close control always works without any game-side integration.
+No window.close shim, credentials bridge, or automatic embed capability detection
+is installed.
