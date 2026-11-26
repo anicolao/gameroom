@@ -24,8 +24,8 @@ export async function inGame(page:Page,port='4397'){
  expect(page.context().pages()).toHaveLength(1);
  return gameFrame(page);
 }
-/** Check overlay controls with native hit testing; no occluded-parent RAF dependency. */
-async function clickOverlayControl(page:Page,control:Locator){
+/** Native input on a checked target, without relying on compositor animation frames. */
+export async function clickVisibleControl(page:Page,control:Locator){
  await page.bringToFront();
  await expect(control).toBeVisible();await expect(control).toBeEnabled();
  await expect.poll(()=>control.evaluate(element=>{
@@ -37,17 +37,17 @@ async function clickOverlayControl(page:Page,control:Locator){
 }
 async function openOverlayMenu(page:Page){
  const control=page.getByRole('button',{name:'Gameroom controls',exact:true});
- await clickOverlayControl(page,control);
+ await clickVisibleControl(page,control);
  await expect(control).toHaveAttribute('aria-expanded','true');
 }
 export async function showRoom(page:Page){
  await openOverlayMenu(page);
- await clickOverlayControl(page,page.getByRole('button',{name:'Return to room',exact:true}));
+ await clickVisibleControl(page,page.getByRole('button',{name:'Return to room',exact:true}));
  await expect(page.getByRole('dialog')).not.toBeVisible();
 }
 export async function dismissGame(page:Page){
  await openOverlayMenu(page);
- await clickOverlayControl(page,page.getByRole('button',{name:'Close game',exact:true}));
+ await clickVisibleControl(page,page.getByRole('button',{name:'Close game',exact:true}));
  await expect(page.locator('.game-window iframe')).toHaveCount(0);
 }
 export async function openRoom(page:Page,name:string){
