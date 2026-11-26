@@ -168,7 +168,7 @@
       {:else}<button class="gold-button" data-launch-url={selected.launchUrl} onclick={()=>openExternal(selected)}>Open {selected.title} {@render icon('arrow',17)}</button>{/if}
      </div>
     {/if}
-    {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{table.title}</strong>{#if ownTable?.code===table.code&&selectedTable?.code!==table.code}<button class="text-button" onclick={()=>openGame(table)}>Open {table.title}</button>{/if}<p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
+    {#if joined&&activeTables.length}<section class="tables" aria-label="Room tables"><h2>Tables</h2>{#each activeTables as table}<div class="table-row"><strong>{table.title}</strong>{#if ownTable?.code===table.code&&selectedTable?.code!==table.code}<button class="text-button" style="margin-left:12px" onclick={()=>openGame(table)}>Open {table.title}</button>{/if}<p>{table.players.map(id=>roomState.players.find(p=>p.id===id)?.name).join(' · ')}</p>{#if table.host===uid}<button class="text-button" disabled={busy} onclick={()=>act({type:'table/closed',table:table.code})}>Close table</button>{/if}</div>{/each}</section>{/if}
    </aside>
   </div>
  </main>
