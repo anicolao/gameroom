@@ -30,6 +30,8 @@ test('HTTP origin without native randomUUID creates a room and persists launch c
  await expect(gameFrame(page).locator('[data-player] h2')).toHaveText(['Dev']);
  expect(page.context().pages()).toHaveLength(1);expect(url.searchParams.has('returnTo')).toBe(false);
  await expect(page).toHaveURL(roomUrl);await showRoom(page);
+ const embedded=await (await page.locator('.game-window iframe').elementHandle())!.contentFrame();
+ expect(await embedded!.evaluate(()=>typeof crypto.randomUUID)).toBe('undefined');
  await page.getByRole('button',{name:'Leave table',exact:true}).click();
  await story.step('http-launch',page,'Dev','The game opens in a frame while the original HTTP room stays connected',[{spec:'The native UUID API is still absent and the saved game remains resumable',check:async()=>{
   expect(await page.evaluate(()=>typeof crypto.randomUUID)).toBe('undefined');

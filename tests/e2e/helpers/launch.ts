@@ -25,11 +25,13 @@ export async function inGame(page:Page,port='4397'){
  return gameFrame(page);
 }
 export async function showRoom(page:Page){
+ await page.bringToFront();
  await page.getByRole('button',{name:'Gameroom controls',exact:true}).click();
  await page.getByRole('button',{name:'Return to room',exact:true}).click();
  await expect(page.getByRole('dialog')).not.toBeVisible();
 }
 export async function dismissGame(page:Page){
+ await page.bringToFront();
  await page.getByRole('button',{name:'Gameroom controls',exact:true}).click();
  await page.getByRole('button',{name:'Close game',exact:true}).click();
  await expect(page.locator('.game-window iframe')).toHaveCount(0);
